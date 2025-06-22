@@ -2,50 +2,78 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>الدخول للنظام</title>
+  <title>تسجيل مستخدم جديد</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
-    .login-box { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 2px 15px #0002; text-align: center;}
+    .box { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 2px 15px #0002; text-align: center;}
     label { display: block; margin-top: 16px; font-size: 1.1rem;}
-    input[type="email"], select { padding: 10px; width: 260px; border: 1px solid #ccc; border-radius: 4px; margin-top: 8px;}
+    input[type="email"], input[type="password"], select { padding: 10px; width: 260px; border: 1px solid #ccc; border-radius: 4px; margin-top: 8px;}
     button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <h2>تسجيل الدخول</h2>
-    <form id="mainLoginForm">
-      <label for="role">الدخول كـ:</label>
-      <select id="role" required>
-        <option value="">اختر الصلاحية</option>
-        <option value="teacher">معلم</option>
-        <option value="student">طالب</option>
-      </select>
-
-      <label for="email">البريد الإلكتروني:</label>
-      <input type="email" id="email" required>
-
-      <button type="submit">دخول</button>
+  <div class="box">
+    <h2>تسجيل حساب جديد</h2>
+    <form id="registerForm">
+      <label>البريد الإلكتروني:
+        <input type="email" id="email" required>
+      </label>
+      <label>كلمة المرور:
+        <input type="password" id="password" required>
+      </label>
+      <label>الدور:
+        <select id="role" required>
+          <option value="">اختر الدور</option>
+          <option value="student">طالب</option>
+          <option value="teacher">معلم</option>
+        </select>
+      </label>
+      <button type="submit">تسجيل</button>
     </form>
+    <div id="msg"></div>
   </div>
   <script>
-    document.getElementById('mainLoginForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      var role = document.getElementById('role').value;
-      var email = document.getElementById('email').value.trim().toLowerCase();
+    var firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.appspot.com",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
 
-      if(!role || !email) {
-        alert("يرجى اختيار الصلاحية وإدخال البريد الإلكتروني");
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value.trim();
+      var role = document.getElementById('role').value;
+
+      if (!email || !password || !role) {
+        document.getElementById('msg').innerText = "يرجى إدخال جميع البيانات.";
         return;
       }
-      // حفظ البريد في localStorage ليستخدم لاحقاً في الصفحات الأخرى
-      localStorage.setItem('user_email', email);
 
-      if(role === "teacher") {
-        window.location.href = "dashboard.html";
-      } else {
-        window.location.href = "student.html";
-      }
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          var user = userCredential.user;
+          // حفظ الدور في Firestore
+          firestore.collection('users').doc(user.uid).set({
+            email: user.email,
+            role: role
+          }).then(() => {
+            document.getElementById('msg').innerText = "تم التسجيل بنجاح! يمكنك تسجيل الدخول الآن.";
+            document.getElementById('registerForm').reset();
+          });
+        })
+        .catch((error) => {
+          document.getElementById('msg').innerText = "خطأ أثناء التسجيل: " + error.message;
+        });
     });
   </script>
 </body>
