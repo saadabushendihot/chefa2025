@@ -68,24 +68,16 @@
         .then((userCredential) => {
           let user = userCredential.user;
           firestore.collection('users').doc(user.uid).get().then(function(doc) {
-            if (doc.exists) {
+            if (doc.exists && doc.data().role === "teacher") {
               let data = doc.data();
-              // إذا كان معلم اسمح بالدخول
-              if (data.role === "teacher") {
-                localStorage.setItem('user_email', user.email);
-                localStorage.setItem('user_role', data.role);
-                showNavbar(data.role, user.email, data.name);
-                document.getElementById('loginBox').style.display = "none";
-                document.getElementById('welcomeBox').style.display = "block";
-                document.getElementById('welcomeMessage').innerText = `مرحباً ${data.name ? data.name : user.email}`;
-                document.getElementById('roleMessage').innerText = `صلاحيتك: معلم`;
-              } else {
-                // إذا كان طالب أو أي دور آخر
-                document.getElementById('msg').innerText = "لا توجد بيانات صلاحية لهذا الحساب.";
-                auth.signOut();
-              }
+              localStorage.setItem('user_email', user.email);
+              localStorage.setItem('user_role', data.role);
+              showNavbar(data.role, user.email, data.name);
+              document.getElementById('loginBox').style.display = "none";
+              document.getElementById('welcomeBox').style.display = "block";
+              document.getElementById('welcomeMessage').innerText = `مرحباً ${data.name ? data.name : user.email}`;
+              document.getElementById('roleMessage').innerText = `صلاحيتك: معلم`;
             } else {
-              // لا يوجد بيانات صلاحية في قاعدة البيانات
               document.getElementById('msg').innerText = "لا توجد بيانات صلاحية لهذا الحساب.";
               auth.signOut();
             }
@@ -96,7 +88,7 @@
         });
     });
 
-    // شريط تنقل ديناميكي حسب الدور
+    // شريط تنقل للمعلم فقط
     function showNavbar(role, email, name) {
       let nav = document.getElementById('navbar');
       let links = '';
