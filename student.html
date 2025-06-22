@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>محاضراتي المفعلة</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <style>
+    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin: 40px; }
+    .box { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px #ccc2; margin-bottom: 20px;}
+    input[type="email"] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 300px; }
+    button { background: #4361ee; color: #fff; border: none; padding: 10px 25px; border-radius: 6px; font-size: 1rem; margin-right: 10px;}
+    table { border-collapse: collapse; width: 100%; margin-top: 15px;}
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background: #4361ee; color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>عرض المحاضرات المفعلة</h2>
+    <form id="emailForm">
+      <label>البريد الإلكتروني للطالب:
+        <input type="email" id="studentEmail" required>
+      </label>
+      <button type="submit">عرض المحاضرات</button>
+    </form>
+  </div>
+  <div id="lecturesBox" class="box" style="display:none;">
+    <h2>المحاضرات المفعلة</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>المحاضرة/الامتحان</th>
+          <th>الحالة</th>
+        </tr>
+      </thead>
+      <tbody id="activeLecturesBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    // إعدادات Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.appspot.com",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+
+    document.getElementById('emailForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var email = document.getElementById('studentEmail').value.trim();
+      if (!email) return;
+
+      db.collection("lectures").doc(email).get().then(function(doc) {
+        if (doc.exists) {
+          var data = doc.data();
+          var lectures = [
+            {name: "المستوى 1", key: "level1"},
+            {name: "المستوى 2", key: "level2"},
+            {name: "المستوى 3", key: "level3"},
+            {name: "المستوى 4", key: "level4"},
+            {name: "المستوى 5", key: "level5"},
+            {name: "المستوى 6", key: "level6"},
+            {name: "المستوى 7", key: "level7"},
+            {name: "الامتحان الكتابي الأول", key: "exam1"},
+            {name: "امتحان تشخيص الحالة", key: "diagnosis_exam"},
+            {name: "الامتحان الشفهي", key: "oral_exam"}
+          ];
+          var tbody = "";
+          lectures.forEach(function(item) {
+            if (data[item.key]) { // مفعلة فقط
+              tbody += `<tr><td>${item.name}</td><td>✅</td></tr>`;
+            }
+          });
+          if (tbody === "") {
+            tbody = '<tr><td colspan="2">لا توجد محاضرات أو امتحانات مفعلة حاليًا</td></tr>';
+          }
+          document.getElementById('activeLecturesBody').innerHTML = tbody;
+          document.getElementById('lecturesBox').style.display = "block";
+        } else {
+          alert("لا يوجد بيانات لهذا الطالب.");
+          document.getElementById('lecturesBox').style.display = "none";
+        }
+      }).catch(function(error) {
+        alert("حدث خطأ أثناء جلب البيانات: " + error.message);
+      });
+    });
+  </script>
+</body>
+</html>
