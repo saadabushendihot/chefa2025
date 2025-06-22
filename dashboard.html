@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <title>لوحة تحكم المعلم - إدارة الطلاب</title>
+  <script>
+  var role = localStorage.getItem('user_role');
+  if(role !== "teacher"){
+    window.location.href = "index.html";
+  }
+</script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
