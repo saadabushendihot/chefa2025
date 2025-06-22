@@ -2,134 +2,51 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الدخول بالبريد الإلكتروني</title>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <!-- استخدم مكتبة Firebase v8 لتبسيط الكود -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <title>الدخول للنظام</title>
   <style>
-    body {
-      font-family: 'Tajawal', sans-serif;
-      background-color: #f8fafc;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .login-container {
-      background-color: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      text-align: center;
-      width: 350px;
-    }
-    .input-field {
-      width: 90%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 4px;
-      border: 1px solid #bdbdbd;
-      font-size: 1rem;
-    }
-    .btn {
-      background-color: #4361ee;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.3s;
-      margin: 10px 0;
-      width: 100%;
-    }
-    .btn:hover {
-      background-color: #3f37c9;
-    }
-    .toggle-link {
-      color: #4361ee;
-      cursor: pointer;
-      display: block;
-      margin-top: 10px;
-      text-decoration: underline;
-      font-size: 0.95rem;
-    }
+    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
+    .login-box { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 2px 15px #0002; text-align: center;}
+    label { display: block; margin-top: 16px; font-size: 1.1rem;}
+    input[type="email"], select { padding: 10px; width: 260px; border: 1px solid #ccc; border-radius: 4px; margin-top: 8px;}
+    button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2 id="form-title">تسجيل الدخول</h2>
-    <input id="email" class="input-field" type="email" placeholder="البريد الإلكتروني" required>
-    <input id="password" class="input-field" type="password" placeholder="كلمة المرور" required>
-    <button class="btn" onclick="login()">تسجيل الدخول</button>
-    <span class="toggle-link" onclick="toggleForm()">ليس لديك حساب؟ سجل الآن</span>
+  <div class="login-box">
+    <h2>تسجيل الدخول</h2>
+    <form id="mainLoginForm">
+      <label for="role">الدخول كـ:</label>
+      <select id="role" required>
+        <option value="">اختر الصلاحية</option>
+        <option value="teacher">معلم</option>
+        <option value="student">طالب</option>
+      </select>
+
+      <label for="email">البريد الإلكتروني:</label>
+      <input type="email" id="email" required>
+
+      <button type="submit">دخول</button>
+    </form>
   </div>
-
   <script>
-    // إعدادات Firebase
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var auth = firebase.auth();
-    var firestore = firebase.firestore();
+    document.getElementById('mainLoginForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      var role = document.getElementById('role').value;
+      var email = document.getElementById('email').value.trim().toLowerCase();
 
-    // وضع تسجيل جديد أم تسجيل دخول؟
-    var isRegister = false;
-
-    function toggleForm() {
-      isRegister = !isRegister;
-      document.getElementById('form-title').innerText = isRegister ? 'تسجيل حساب جديد' : 'تسجيل الدخول';
-      document.querySelector('.btn').innerText = isRegister ? 'تسجيل' : 'تسجيل الدخول';
-      document.querySelector('.toggle-link').innerText = isRegister ? 'لديك حساب بالفعل؟ سجل الدخول' : 'ليس لديك حساب؟ سجل الآن';
-    }
-
-    function login() {
-      var email = document.getElementById('email').value.trim();
-      var password = document.getElementById('password').value.trim();
-
-      if (!email || !password) {
-        alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+      if(!role || !email) {
+        alert("يرجى اختيار الصلاحية وإدخال البريد الإلكتروني");
         return;
       }
+      // حفظ البريد في localStorage ليستخدم لاحقاً في الصفحات الأخرى
+      localStorage.setItem('user_email', email);
 
-      if (isRegister) {
-        // تسجيل حساب جديد
-        auth.createUserWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            var user = userCredential.user;
-            // تخزين بيانات المستخدم في Firestore
-            firestore.collection('users').doc(user.uid).set({
-              email: user.email
-            });
-            alert('تم التسجيل بنجاح!');
-            window.location.href = "dashboard.html";
-          })
-          .catch((error) => {
-            alert("خطأ أثناء التسجيل: " + error.message);
-          });
+      if(role === "teacher") {
+        window.location.href = "dashboard.html";
       } else {
-        // تسجيل دخول
-        auth.signInWithEmailAndPassword(email, password)
-          .then((userCredential) => {
-            var user = userCredential.user;
-            alert('تم تسجيل الدخول بنجاح!');
-            window.location.href = "dashboard.html";
-          })
-          .catch((error) => {
-            alert("خطأ أثناء تسجيل الدخول: " + error.message);
-          });
+        window.location.href = "student.html";
       }
-    }
+    });
   </script>
 </body>
 </html>
