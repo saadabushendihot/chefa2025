@@ -2,27 +2,32 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة تحكم المعلم</title>
+  <title>لوحة تحكم المعلم - إدارة الطلاب</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin: 40px; }
     .box { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px #ccc2; margin-bottom: 20px;}
-    label { display: block; margin-top: 12px; }
-    input[type="text"], input[type="email"] { width: 250px; padding: 7px; border-radius: 4px; border: 1px solid #ccc; }
-    .checkbox-group { display: flex; gap: 15px; margin: 10px 0 0 0; }
-    button { background: #4361ee; color: #fff; border: none; padding: 10px 25px; border-radius: 6px; font-size: 1rem; margin-top: 10px;}
+    label { display: inline-block; margin: 10px 12px 10px 0;}
+    input[type="text"], input[type="email"] { width: 230px; padding: 7px; border-radius: 4px; border: 1px solid #ccc; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin: 10px 0 0 0; }
+    button { background: #4361ee; color: #fff; border: none; padding: 10px 25px; border-radius: 6px; font-size: 1rem; margin: 8px 0;}
     table { border-collapse: collapse; width: 100%; background: #fff; box-shadow: 0 2px 8px #ccc2; margin-top: 20px;}
     th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
     th { background: #4361ee; color: #fff; }
-    .edit-btn { background: #fbbc05; color: #222; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
-    .save-btn { background: #06d6a0; color: #222; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
-    .cancel-btn { background: #ef476f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+    .edit-btn, .save-btn, .cancel-btn, .delete-btn {
+      border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-weight: bold;
+    }
+    .edit-btn { background: #fbbc05; color: #222; }
+    .save-btn { background: #06d6a0; color: #222; }
+    .cancel-btn { background: #ef476f; color: #fff; }
+    .delete-btn { background: #eb2f06; color: #fff; }
+    .msg { margin: 10px 0; color: #4361ee; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="box">
-    <h2>إضافة/تعديل بيانات طالب</h2>
+    <h2>إضافة أو تعديل طالب</h2>
     <form id="studentForm">
       <label>رقم الدورة: <input type="text" id="course_number" required></label>
       <label>اسم الطالب: <input type="text" id="name" required></label>
@@ -41,8 +46,10 @@
         <label>امتحان تشخيص الحالة <input type="checkbox" id="diagnosis_exam"></label>
         <label>الامتحان الشفهي <input type="checkbox" id="oral_exam"></label>
       </div>
-      <button type="submit">حفظ</button>
+      <button type="submit" id="saveBtn">حفظ</button>
+      <button type="button" id="cancelEditBtn" style="display:none;" class="cancel-btn">إلغاء التعديل</button>
     </form>
+    <div class="msg" id="msg"></div>
   </div>
 
   <div class="box">
@@ -51,7 +58,7 @@
       <thead>
         <tr>
           <th>رقم الدورة</th>
-          <th>اسم الطالب</th>
+          <th>الاسم</th>
           <th>البريد الإلكتروني</th>
           <th>م1</th>
           <th>م2</th>
@@ -64,6 +71,7 @@
           <th>تشخيص</th>
           <th>شفهي</th>
           <th>تعديل</th>
+          <th>حذف</th>
         </tr>
       </thead>
       <tbody id="studentsBody"></tbody>
@@ -83,13 +91,32 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
-    // إضافة وتعديل طالب
+    let editingEmail = null;
+
+    // تعبئة النموذج
+    function fillForm(d) {
+      document.getElementById('course_number').value = d.course_number || "";
+      document.getElementById('name').value = d.name || "";
+      document.getElementById('email').value = d.email || "";
+      document.getElementById('level1').checked = !!d.level1;
+      document.getElementById('level2').checked = !!d.level2;
+      document.getElementById('level3').checked = !!d.level3;
+      document.getElementById('level4').checked = !!d.level4;
+      document.getElementById('level5').checked = !!d.level5;
+      document.getElementById('level6').checked = !!d.level6;
+      document.getElementById('level7').checked = !!d.level7;
+      document.getElementById('exam1').checked = !!d.exam1;
+      document.getElementById('diagnosis_exam').checked = !!d.diagnosis_exam;
+      document.getElementById('oral_exam').checked = !!d.oral_exam;
+    }
+
     document.getElementById('studentForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      var data = {
+      let email = document.getElementById('email').value.trim().toLowerCase();
+      let data = {
         course_number: document.getElementById('course_number').value,
         name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
+        email: email,
         level1: document.getElementById('level1').checked,
         level2: document.getElementById('level2').checked,
         level3: document.getElementById('level3').checked,
@@ -100,27 +127,29 @@
         exam1: document.getElementById('exam1').checked,
         diagnosis_exam: document.getElementById('diagnosis_exam').checked,
         oral_exam: document.getElementById('oral_exam').checked,
-        role: "student" // جميع من يسجل هنا طالب
+        role: "student"
       };
 
-      db.collection("lectures").doc(data.email).set(data)
+      db.collection("lectures").doc(email).set(data)
         .then(function() {
-          alert("تم حفظ بيانات الطالب بنجاح!");
+          document.getElementById('msg').innerText = editingEmail ? "تم تعديل بيانات الطالب بنجاح" : "تم إضافة الطالب بنجاح";
           document.getElementById('studentForm').reset();
+          document.getElementById('saveBtn').innerText = "حفظ";
+          document.getElementById('cancelEditBtn').style.display = "none";
+          editingEmail = null;
           loadStudents();
         })
         .catch(function(error) {
-          alert("حدث خطأ أثناء الحفظ: " + error);
+          document.getElementById('msg').innerText = "حدث خطأ: " + error;
         });
     });
 
-    // جلب وعرض الطلاب
     function loadStudents() {
       db.collection("lectures").where("role", "==", "student").get().then(function(querySnapshot) {
         var body = "";
         querySnapshot.forEach(function(doc) {
           var d = doc.data();
-          body += `<tr data-email="${d.email}">
+          body += `<tr>
             <td>${d.course_number || ""}</td>
             <td>${d.name || ""}</td>
             <td>${d.email || ""}</td>
@@ -135,33 +164,43 @@
             <td>${d.diagnosis_exam ? "✅" : ""}</td>
             <td>${d.oral_exam ? "✅" : ""}</td>
             <td><button class="edit-btn" onclick="editStudent('${d.email}')">تعديل</button></td>
+            <td><button class="delete-btn" onclick="deleteStudent('${d.email}')">حذف</button></td>
           </tr>`;
         });
         document.getElementById('studentsBody').innerHTML = body;
       });
     }
 
-    // تعبئة الفورم عند الضغط على تعديل
+    // تعديل بيانات طالب
     window.editStudent = function(email) {
       db.collection("lectures").doc(email).get().then(function(doc) {
         if(doc.exists) {
-          var d = doc.data();
-          document.getElementById('course_number').value = d.course_number || "";
-          document.getElementById('name').value = d.name || "";
-          document.getElementById('email').value = d.email || "";
-          document.getElementById('level1').checked = !!d.level1;
-          document.getElementById('level2').checked = !!d.level2;
-          document.getElementById('level3').checked = !!d.level3;
-          document.getElementById('level4').checked = !!d.level4;
-          document.getElementById('level5').checked = !!d.level5;
-          document.getElementById('level6').checked = !!d.level6;
-          document.getElementById('level7').checked = !!d.level7;
-          document.getElementById('exam1').checked = !!d.exam1;
-          document.getElementById('diagnosis_exam').checked = !!d.diagnosis_exam;
-          document.getElementById('oral_exam').checked = !!d.oral_exam;
+          fillForm(doc.data());
+          editingEmail = email;
+          document.getElementById('saveBtn').innerText = "تعديل";
+          document.getElementById('cancelEditBtn').style.display = "inline-block";
           window.scrollTo({top: 0, behavior: 'smooth'});
         }
       });
+    }
+
+    // إلغاء التعديل
+    document.getElementById('cancelEditBtn').onclick = function() {
+      document.getElementById('studentForm').reset();
+      editingEmail = null;
+      document.getElementById('saveBtn').innerText = "حفظ";
+      this.style.display = "none";
+      document.getElementById('msg').innerText = "";
+    };
+
+    // حذف طالب
+    window.deleteStudent = function(email) {
+      if(confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
+        db.collection("lectures").doc(email).delete().then(function() {
+          loadStudents();
+          document.getElementById('msg').innerText = "تم حذف الطالب.";
+        });
+      }
     }
 
     // تحميل الطلاب عند الفتح
