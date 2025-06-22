@@ -3,18 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الدخول باستخدام Google</title>
-  
-  <!-- إضافة خط عربي من Google Fonts -->
+  <title>تسجيل الدخول بالبريد الإلكتروني</title>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  
-  <!-- إضافة Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
-
+  <!-- استخدم مكتبة Firebase v8 لتبسيط الكود -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
-    /* تنسيق الصفحة */
     body {
       font-family: 'Tajawal', sans-serif;
       background-color: #f8fafc;
@@ -30,44 +25,53 @@
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       text-align: center;
+      width: 350px;
+    }
+    .input-field {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border: 1px solid #bdbdbd;
+      font-size: 1rem;
     }
     .btn {
       background-color: #4361ee;
       color: white;
       border: none;
-      padding: 15px 30px;
+      padding: 12px 25px;
       font-size: 1.1rem;
       cursor: pointer;
       border-radius: 5px;
       transition: background-color 0.3s;
+      margin: 10px 0;
+      width: 100%;
     }
     .btn:hover {
       background-color: #3f37c9;
     }
-    .btn-google {
-      background-color: #db4437;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .btn-google i {
-      margin-left: 10px;
+    .toggle-link {
+      color: #4361ee;
+      cursor: pointer;
+      display: block;
+      margin-top: 10px;
+      text-decoration: underline;
+      font-size: 0.95rem;
     }
   </style>
 </head>
 <body>
-
   <div class="login-container">
-    <h2>تسجيل الدخول باستخدام حساب Google</h2>
-    <button class="btn btn-google" onclick="loginWithGoogle()">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" height="20" />
-      تسجيل الدخول باستخدام Google
-    </button>
+    <h2 id="form-title">تسجيل الدخول</h2>
+    <input id="email" class="input-field" type="email" placeholder="البريد الإلكتروني" required>
+    <input id="password" class="input-field" type="password" placeholder="كلمة المرور" required>
+    <button class="btn" onclick="login()">تسجيل الدخول</button>
+    <span class="toggle-link" onclick="toggleForm()">ليس لديك حساب؟ سجل الآن</span>
   </div>
 
   <script>
-    // إعدادات Firebase الخاصة بك
-    const firebaseConfig = {
+    // إعدادات Firebase
+    var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
       projectId: "shefa-502fe",
@@ -75,37 +79,56 @@
       messagingSenderId: "639314388969",
       appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
     };
+    firebase.initializeApp(firebaseConfig);
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
 
-    // تهيئة Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const firestore = firebase.firestore();
+    // وضع تسجيل جديد أم تسجيل دخول؟
+    var isRegister = false;
 
-    // دالة تسجيل الدخول باستخدام Google
-    function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then((result) => {
-          // تسجيل دخول ناجح
-          const user = result.user;
-          console.log('Logged in as:', user.displayName);
-          alert('تم تسجيل الدخول بنجاح');
-          
-          // تخزين بيانات المستخدم في Firestore
-          firestore.collection('users').doc(user.uid).set({
-            name: user.displayName,
-            email: user.email,
-            photoURL: user.photoURL
+    function toggleForm() {
+      isRegister = !isRegister;
+      document.getElementById('form-title').innerText = isRegister ? 'تسجيل حساب جديد' : 'تسجيل الدخول';
+      document.querySelector('.btn').innerText = isRegister ? 'تسجيل' : 'تسجيل الدخول';
+      document.querySelector('.toggle-link').innerText = isRegister ? 'لديك حساب بالفعل؟ سجل الدخول' : 'ليس لديك حساب؟ سجل الآن';
+    }
+
+    function login() {
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value.trim();
+
+      if (!email || !password) {
+        alert('يرجى إدخال البريد الإلكتروني وكلمة المرور');
+        return;
+      }
+
+      if (isRegister) {
+        // تسجيل حساب جديد
+        auth.createUserWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            var user = userCredential.user;
+            // تخزين بيانات المستخدم في Firestore
+            firestore.collection('users').doc(user.uid).set({
+              email: user.email
+            });
+            alert('تم التسجيل بنجاح!');
+            window.location.href = "dashboard.html";
+          })
+          .catch((error) => {
+            alert("خطأ أثناء التسجيل: " + error.message);
           });
-
-          // إعادة التوجيه أو عرض محتوى آخر بعد تسجيل الدخول
-          window.location.href = "dashboard.html"; // على سبيل المثال، الصفحة الرئيسية بعد تسجيل الدخول
-        })
-        .catch((error) => {
-          // إذا حدث خطأ أثناء تسجيل الدخول
-          console.error("Error during sign-in: ", error);
-          alert("حدث خطأ أثناء تسجيل الدخول: " + error.message);
-        });
+      } else {
+        // تسجيل دخول
+        auth.signInWithEmailAndPassword(email, password)
+          .then((userCredential) => {
+            var user = userCredential.user;
+            alert('تم تسجيل الدخول بنجاح!');
+            window.location.href = "dashboard.html";
+          })
+          .catch((error) => {
+            alert("خطأ أثناء تسجيل الدخول: " + error.message);
+          });
+      }
     }
   </script>
 </body>
