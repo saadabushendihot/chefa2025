@@ -2,50 +2,84 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>الصفحة الرئيسية</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+  <title>إدخال بيانات الطالب</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <style>
+    body { font-family: Tajawal, Arial, sans-serif; margin: 40px; background: #f8fafc;}
+    label { display: block; margin-top: 12px; }
+    input[type="text"], input[type="email"] { width: 300px; padding: 7px; border-radius: 4px; border: 1px solid #ccc; }
+    .checkbox-group { display: flex; gap: 18px; margin: 10px 0 0 0; }
+    button { margin-top: 20px; background: #4361ee; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; }
+  </style>
 </head>
 <body>
+  <h2>إدخال بيانات الطالب</h2>
+  <form id="studentForm">
+    <label>رقم الدورة: <input type="text" id="course_number" required></label>
+    <label>اسم الطالب: <input type="text" id="name" required></label>
+    <label>البريد الإلكتروني: <input type="email" id="email" required></label>
 
-  <h1>مرحبًا، <span id="userName"></span></h1>
+    <div class="checkbox-group">
+      <label>المستوى 1 <input type="checkbox" id="level1"></label>
+      <label>المستوى 2 <input type="checkbox" id="level2"></label>
+      <label>المستوى 3 <input type="checkbox" id="level3"></label>
+      <label>المستوى 4 <input type="checkbox" id="level4"></label>
+    </div>
+    <div class="checkbox-group">
+      <label>المستوى 5 <input type="checkbox" id="level5"></label>
+      <label>المستوى 6 <input type="checkbox" id="level6"></label>
+      <label>المستوى 7 <input type="checkbox" id="level7"></label>
+    </div>
+    <div class="checkbox-group">
+      <label>الامتحان الكتابي الأول <input type="checkbox" id="exam1"></label>
+      <label>امتحان تشخيص الحالة <input type="checkbox" id="diagnosis_exam"></label>
+      <label>الامتحان الشفهي <input type="checkbox" id="oral_exam"></label>
+    </div>
 
-  <button onclick="logout()">تسجيل الخروج</button>
+    <button type="submit">حفظ</button>
+  </form>
 
   <script>
-    // إعدادات Firebase الخاصة بك
-    const firebaseConfig = {
+    // إعدادات Firebase
+    var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
       projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.firebasestorage.app",
+      storageBucket: "shefa-502fe.appspot.com",
       messagingSenderId: "639314388969",
       appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
     };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
 
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const firestore = firebase.firestore();
+    document.getElementById('studentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var data = {
+        course_number: document.getElementById('course_number').value,
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        level1: document.getElementById('level1').checked,
+        level2: document.getElementById('level2').checked,
+        level3: document.getElementById('level3').checked,
+        level4: document.getElementById('level4').checked,
+        level5: document.getElementById('level5').checked,
+        level6: document.getElementById('level6').checked,
+        level7: document.getElementById('level7').checked,
+        exam1: document.getElementById('exam1').checked,
+        diagnosis_exam: document.getElementById('diagnosis_exam').checked,
+        oral_exam: document.getElementById('oral_exam').checked
+      };
 
-    // جلب بيانات المستخدم
-    auth.onAuthStateChanged((user) => {
-      if (user) {
-        document.getElementById('userName').textContent = user.displayName;
-      } else {
-        window.location.href = "index.html"; // إعادة التوجيه إلى صفحة تسجيل الدخول إذا لم يكن المستخدم مسجلاً دخوله
-      }
+      db.collection("lectures").doc(data.email).set(data)
+        .then(function() {
+          alert("تم حفظ بيانات الطالب بنجاح!");
+          document.getElementById('studentForm').reset();
+        })
+        .catch(function(error) {
+          alert("حدث خطأ أثناء الحفظ: " + error);
+        });
     });
-
-    // دالة لتسجيل الخروج
-    function logout() {
-      auth.signOut().then(() => {
-        window.location.href = "index.html"; // إعادة التوجيه إلى صفحة تسجيل الدخول بعد الخروج
-      }).catch((error) => {
-        console.error("Error during sign-out: ", error);
-      });
-    }
   </script>
 </body>
 </html>
