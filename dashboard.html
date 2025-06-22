@@ -2,43 +2,73 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إدخال بيانات الطالب</title>
+  <title>لوحة تحكم المعلم</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
-    body { font-family: Tajawal, Arial, sans-serif; margin: 40px; background: #f8fafc;}
+    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin: 40px; }
+    .box { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px #ccc2; margin-bottom: 20px;}
     label { display: block; margin-top: 12px; }
-    input[type="text"], input[type="email"] { width: 300px; padding: 7px; border-radius: 4px; border: 1px solid #ccc; }
-    .checkbox-group { display: flex; gap: 18px; margin: 10px 0 0 0; }
-    button { margin-top: 20px; background: #4361ee; color: #fff; border: none; padding: 12px 30px; border-radius: 6px; font-size: 1rem; }
+    input[type="text"], input[type="email"] { width: 250px; padding: 7px; border-radius: 4px; border: 1px solid #ccc; }
+    .checkbox-group { display: flex; gap: 15px; margin: 10px 0 0 0; }
+    button { background: #4361ee; color: #fff; border: none; padding: 10px 25px; border-radius: 6px; font-size: 1rem; margin-top: 10px;}
+    table { border-collapse: collapse; width: 100%; background: #fff; box-shadow: 0 2px 8px #ccc2; margin-top: 20px;}
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background: #4361ee; color: #fff; }
+    .edit-btn { background: #fbbc05; color: #222; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+    .save-btn { background: #06d6a0; color: #222; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+    .cancel-btn { background: #ef476f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h2>إدخال بيانات الطالب</h2>
-  <form id="studentForm">
-    <label>رقم الدورة: <input type="text" id="course_number" required></label>
-    <label>اسم الطالب: <input type="text" id="name" required></label>
-    <label>البريد الإلكتروني: <input type="email" id="email" required></label>
+  <div class="box">
+    <h2>إضافة/تعديل بيانات طالب</h2>
+    <form id="studentForm">
+      <label>رقم الدورة: <input type="text" id="course_number" required></label>
+      <label>اسم الطالب: <input type="text" id="name" required></label>
+      <label>البريد الإلكتروني: <input type="email" id="email" required></label>
+      <div class="checkbox-group">
+        <label>المستوى 1 <input type="checkbox" id="level1"></label>
+        <label>المستوى 2 <input type="checkbox" id="level2"></label>
+        <label>المستوى 3 <input type="checkbox" id="level3"></label>
+        <label>المستوى 4 <input type="checkbox" id="level4"></label>
+        <label>المستوى 5 <input type="checkbox" id="level5"></label>
+        <label>المستوى 6 <input type="checkbox" id="level6"></label>
+        <label>المستوى 7 <input type="checkbox" id="level7"></label>
+      </div>
+      <div class="checkbox-group">
+        <label>الامتحان الكتابي الأول <input type="checkbox" id="exam1"></label>
+        <label>امتحان تشخيص الحالة <input type="checkbox" id="diagnosis_exam"></label>
+        <label>الامتحان الشفهي <input type="checkbox" id="oral_exam"></label>
+      </div>
+      <button type="submit">حفظ</button>
+    </form>
+  </div>
 
-    <div class="checkbox-group">
-      <label>المستوى 1 <input type="checkbox" id="level1"></label>
-      <label>المستوى 2 <input type="checkbox" id="level2"></label>
-      <label>المستوى 3 <input type="checkbox" id="level3"></label>
-      <label>المستوى 4 <input type="checkbox" id="level4"></label>
-    </div>
-    <div class="checkbox-group">
-      <label>المستوى 5 <input type="checkbox" id="level5"></label>
-      <label>المستوى 6 <input type="checkbox" id="level6"></label>
-      <label>المستوى 7 <input type="checkbox" id="level7"></label>
-    </div>
-    <div class="checkbox-group">
-      <label>الامتحان الكتابي الأول <input type="checkbox" id="exam1"></label>
-      <label>امتحان تشخيص الحالة <input type="checkbox" id="diagnosis_exam"></label>
-      <label>الامتحان الشفهي <input type="checkbox" id="oral_exam"></label>
-    </div>
-
-    <button type="submit">حفظ</button>
-  </form>
+  <div class="box">
+    <h2>الطلاب المسجلون</h2>
+    <table id="studentsTable">
+      <thead>
+        <tr>
+          <th>رقم الدورة</th>
+          <th>اسم الطالب</th>
+          <th>البريد الإلكتروني</th>
+          <th>م1</th>
+          <th>م2</th>
+          <th>م3</th>
+          <th>م4</th>
+          <th>م5</th>
+          <th>م6</th>
+          <th>م7</th>
+          <th>كتابي</th>
+          <th>تشخيص</th>
+          <th>شفهي</th>
+          <th>تعديل</th>
+        </tr>
+      </thead>
+      <tbody id="studentsBody"></tbody>
+    </table>
+  </div>
 
   <script>
     // إعدادات Firebase
@@ -53,6 +83,7 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
+    // إضافة وتعديل طالب
     document.getElementById('studentForm').addEventListener('submit', function(e) {
       e.preventDefault();
       var data = {
@@ -68,18 +99,73 @@
         level7: document.getElementById('level7').checked,
         exam1: document.getElementById('exam1').checked,
         diagnosis_exam: document.getElementById('diagnosis_exam').checked,
-        oral_exam: document.getElementById('oral_exam').checked
+        oral_exam: document.getElementById('oral_exam').checked,
+        role: "student" // جميع من يسجل هنا طالب
       };
 
       db.collection("lectures").doc(data.email).set(data)
         .then(function() {
           alert("تم حفظ بيانات الطالب بنجاح!");
           document.getElementById('studentForm').reset();
+          loadStudents();
         })
         .catch(function(error) {
           alert("حدث خطأ أثناء الحفظ: " + error);
         });
     });
+
+    // جلب وعرض الطلاب
+    function loadStudents() {
+      db.collection("lectures").where("role", "==", "student").get().then(function(querySnapshot) {
+        var body = "";
+        querySnapshot.forEach(function(doc) {
+          var d = doc.data();
+          body += `<tr data-email="${d.email}">
+            <td>${d.course_number || ""}</td>
+            <td>${d.name || ""}</td>
+            <td>${d.email || ""}</td>
+            <td>${d.level1 ? "✅" : ""}</td>
+            <td>${d.level2 ? "✅" : ""}</td>
+            <td>${d.level3 ? "✅" : ""}</td>
+            <td>${d.level4 ? "✅" : ""}</td>
+            <td>${d.level5 ? "✅" : ""}</td>
+            <td>${d.level6 ? "✅" : ""}</td>
+            <td>${d.level7 ? "✅" : ""}</td>
+            <td>${d.exam1 ? "✅" : ""}</td>
+            <td>${d.diagnosis_exam ? "✅" : ""}</td>
+            <td>${d.oral_exam ? "✅" : ""}</td>
+            <td><button class="edit-btn" onclick="editStudent('${d.email}')">تعديل</button></td>
+          </tr>`;
+        });
+        document.getElementById('studentsBody').innerHTML = body;
+      });
+    }
+
+    // تعبئة الفورم عند الضغط على تعديل
+    window.editStudent = function(email) {
+      db.collection("lectures").doc(email).get().then(function(doc) {
+        if(doc.exists) {
+          var d = doc.data();
+          document.getElementById('course_number').value = d.course_number || "";
+          document.getElementById('name').value = d.name || "";
+          document.getElementById('email').value = d.email || "";
+          document.getElementById('level1').checked = !!d.level1;
+          document.getElementById('level2').checked = !!d.level2;
+          document.getElementById('level3').checked = !!d.level3;
+          document.getElementById('level4').checked = !!d.level4;
+          document.getElementById('level5').checked = !!d.level5;
+          document.getElementById('level6').checked = !!d.level6;
+          document.getElementById('level7').checked = !!d.level7;
+          document.getElementById('exam1').checked = !!d.exam1;
+          document.getElementById('diagnosis_exam').checked = !!d.diagnosis_exam;
+          document.getElementById('oral_exam').checked = !!d.oral_exam;
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+      });
+    }
+
+    // تحميل الطلاب عند الفتح
+    window.onload = loadStudents;
   </script>
 </body>
 </html>
