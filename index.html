@@ -18,6 +18,7 @@
     button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
     .msg { color: #ef476f; margin-top: 12px;}
     .logout-btn { background: #eb2f06; color: #fff; padding: 7px 20px; border-radius: 4px; border: none; font-size: 1em; margin-right: 15px;}
+    #student-redirect { color: #4361ee; font-weight:bold; margin-top:24px; font-size:1.1em;}
   </style>
 </head>
 <body>
@@ -35,6 +36,7 @@
         <button type="submit">دخول</button>
       </form>
       <div id="msg" class="msg"></div>
+      <div id="student-redirect" style="display:none;"></div>
     </div>
     <div id="welcomeBox" class="box" style="display:none;">
       <h2 id="welcomeMessage"></h2>
@@ -63,20 +65,34 @@
       var email = document.getElementById('email').value.trim().toLowerCase();
       var password = document.getElementById('password').value.trim();
       document.getElementById('msg').innerText = "";
+      document.getElementById('student-redirect').style.display = "none";
 
       auth.signInWithEmailAndPassword(email, password)
         .then((userCredential) => {
           let user = userCredential.user;
           firestore.collection('users').doc(user.uid).get().then(function(doc) {
-            if (doc.exists && doc.data().role === "teacher") {
+            if (doc.exists) {
               let data = doc.data();
               localStorage.setItem('user_email', user.email);
               localStorage.setItem('user_role', data.role);
-              showNavbar(data.role, user.email, data.name);
-              document.getElementById('loginBox').style.display = "none";
-              document.getElementById('welcomeBox').style.display = "block";
-              document.getElementById('welcomeMessage').innerText = `مرحباً ${data.name ? data.name : user.email}`;
-              document.getElementById('roleMessage').innerText = `صلاحيتك: معلم`;
+
+              if(data.role === "teacher") {
+                showNavbar(data.role, user.email, data.name);
+                document.getElementById('loginBox').style.display = "none";
+                document.getElementById('welcomeBox').style.display = "block";
+                document.getElementById('welcomeMessage').innerText = `مرحباً ${data.name ? data.name : user.email}`;
+                document.getElementById('roleMessage').innerText = `صلاحيتك: معلم`;
+              } else if(data.role === "student") {
+                document.getElementById('student-redirect').style.display = "block";
+                document.getElementById('student-redirect').innerText = "مرحباً طالبنا العزيز، سيتم تحويلك تلقائياً إلى صفحتك...";
+                setTimeout(function() {
+                  window.location.href = "student.html";
+                }, 2000);
+                auth.signOut();
+              } else {
+                document.getElementById('msg').innerText = "لا توجد بيانات صلاحية لهذا الحساب.";
+                auth.signOut();
+              }
             } else {
               document.getElementById('msg').innerText = "لا توجد بيانات صلاحية لهذا الحساب.";
               auth.signOut();
@@ -95,7 +111,6 @@
       if(role === "teacher") {
         links += `<a href="dashboard.html" target="_self">إدارة الطلاب</a>`;
         links += `<a href="student.html" target="_self">صفحة الطالب</a>`;
-        // يمكنك إضافة صفحات أخرى هنا للمعلم فقط
       }
       nav.innerHTML = links;
       nav.style.display = "flex";
@@ -113,8 +128,6 @@
               document.getElementById('welcomeBox').style.display = "block";
               document.getElementById('welcomeMessage').innerText = `مرحباً ${data.name ? data.name : user.email}`;
               document.getElementById('roleMessage').innerText = `صلاحيتك: معلم`;
-            } else {
-              logout();
             }
           });
         }
