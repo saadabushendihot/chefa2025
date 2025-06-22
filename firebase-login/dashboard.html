@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>الصفحة الرئيسية</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+</head>
+<body>
+
+  <h1>مرحبًا، <span id="userName"></span></h1>
+
+  <button onclick="logout()">تسجيل الخروج</button>
+
+  <script>
+    // إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.firebasestorage.app",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
+
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const firestore = firebase.firestore();
+
+    // جلب بيانات المستخدم
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        document.getElementById('userName').textContent = user.displayName;
+      } else {
+        window.location.href = "index.html"; // إعادة التوجيه إلى صفحة تسجيل الدخول إذا لم يكن المستخدم مسجلاً دخوله
+      }
+    });
+
+    // دالة لتسجيل الخروج
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html"; // إعادة التوجيه إلى صفحة تسجيل الدخول بعد الخروج
+      }).catch((error) => {
+        console.error("Error during sign-out: ", error);
+      });
+    }
+  </script>
+</body>
+</html>

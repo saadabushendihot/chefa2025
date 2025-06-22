@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول باستخدام Google</title>
+  
+  <!-- إضافة خط عربي من Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- إضافة Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+
+  <style>
+    /* تنسيق الصفحة */
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: #f8fafc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-container {
+      background-color: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    .btn {
+      background-color: #4361ee;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #3f37c9;
+    }
+    .btn-google {
+      background-color: #db4437;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .btn-google i {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>تسجيل الدخول باستخدام حساب Google</h2>
+    <button class="btn btn-google" onclick="loginWithGoogle()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" height="20" />
+      تسجيل الدخول باستخدام Google
+    </button>
+  </div>
+
+  <script>
+    // إعدادات Firebase الخاصة بك
+    const firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.firebasestorage.app",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
+
+    // تهيئة Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const firestore = firebase.firestore();
+
+    // دالة تسجيل الدخول باستخدام Google
+    function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          // تسجيل دخول ناجح
+          const user = result.user;
+          console.log('Logged in as:', user.displayName);
+          alert('تم تسجيل الدخول بنجاح');
+          
+          // تخزين بيانات المستخدم في Firestore
+          firestore.collection('users').doc(user.uid).set({
+            name: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL
+          });
+
+          // إعادة التوجيه أو عرض محتوى آخر بعد تسجيل الدخول
+          window.location.href = "dashboard.html"; // على سبيل المثال، الصفحة الرئيسية بعد تسجيل الدخول
+        })
+        .catch((error) => {
+          // إذا حدث خطأ أثناء تسجيل الدخول
+          console.error("Error during sign-in: ", error);
+          alert("حدث خطأ أثناء تسجيل الدخول: " + error.message);
+        });
+    }
+  </script>
+</body>
+</html>
