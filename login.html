@@ -2,76 +2,54 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>تسجيل الدخول</title>
+  <title>تسجيل الدخول - منصة شفاء</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
-    .box { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 2px 15px #0002; text-align: center;}
+    .login-box { background: #fff; padding: 40px 32px; border-radius: 12px; box-shadow: 0 2px 15px #0002; text-align: center; width: 350px;}
+    .logo { font-weight: bold; font-size: 2rem; color: #4361ee; margin-bottom: 10px;}
     button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
-    #debug {margin-top:20px; background:#eee; color:#222; text-align:left; padding:10px; font-size:14px;}
+    #msg { color: #e63946; margin-top: 20px; }
   </style>
 </head>
 <body>
-  <div class="box">
+  <div class="login-box">
+    <div class="logo">شفاء</div>
     <h2>تسجيل الدخول</h2>
+    <p>سجّل الدخول باستخدام حساب Google الخاص بك</p>
     <button id="googleLogin">تسجيل الدخول عبر Google</button>
     <div id="msg"></div>
-    <div id="debug"></div>
   </div>
   <script>
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
+    // firebase config ...
+    var firebaseConfig = { /* .... نفس الإعدادات السابقة .... */ };
     firebase.initializeApp(firebaseConfig);
     var auth = firebase.auth();
     var firestore = firebase.firestore();
-
-    function logDebug(info) {
-      document.getElementById('debug').innerText += info + "\n";
-    }
 
     document.getElementById('googleLogin').addEventListener('click', function() {
       var provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then((result) => {
           var user = result.user;
-          // طباعة بيانات المستخدم بعد تسجيل الدخول
-          logDebug("بيانات المستخدم بعد تسجيل الدخول:");
-          logDebug("UID: " + user.uid);
-          logDebug("Email: " + user.email);
-
-          // جلب بيانات المستخدم من قاعدة البيانات
           firestore.collection('users').doc(user.uid).get().then(function(doc) {
             if (doc.exists) {
-              logDebug("بيانات المستخدم في Firestore:");
-              logDebug(JSON.stringify(doc.data(), null, 2));
               var role = doc.data().role;
-              localStorage.setItem('user_email', user.email);
               if (role === "teacher") {
                 window.location.href = "dashboard.html";
               } else if (role === "student") {
                 window.location.href = "student.html";
               } else {
-                document.getElementById('msg').innerText = "دور المستخدم غير محدد بشكل صحيح.";
+                document.getElementById('msg').innerText = "دور المستخدم غير محدد.";
               }
             } else {
-              logDebug("لا توجد بيانات لهذا المستخدم في Firestore.");
-              document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم.";
+              document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم. تواصل مع الإدارة.";
             }
-          }).catch(function(error) {
-            logDebug("خطأ عند جلب بيانات Firestore: " + error.message);
-            document.getElementById('msg').innerText = "خطأ عند جلب بيانات المستخدم: " + error.message;
           });
         })
         .catch((error) => {
-          logDebug("خطأ أثناء تسجيل الدخول: " + error.message);
           document.getElementById('msg').innerText = "خطأ أثناء تسجيل الدخول: " + error.message;
         });
     });
