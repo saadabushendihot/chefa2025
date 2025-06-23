@@ -65,12 +65,14 @@
     .summary-status {font-weight:bold; font-size:0.95rem; margin-right:8px;}
     .summary-status.draft { color: #e6a100;}
     .summary-status.submitted { color: #219e4b;}
+    .lesson-student-name {font-size:0.98rem; color:#888; margin-bottom:7px;}
     textarea.summary-text {
       width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
-      resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
+      resize:vertical;font-size:1.09rem; box-sizing: border-box; background:#fff;
       font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
       color: #1b2a39; line-height: 1.7;
       transition: border 0.15s;
+      direction: rtl;
     }
     textarea.summary-text:focus {border-color: #4361ee;}
     @media (max-width: 900px){
@@ -88,7 +90,7 @@
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
-    <h2>مرحباً، <span id="studentName"></span> <span id="studentNameDisplay" style="color:#3b5cb8;"></span></h2>
+    <h2>مرحباً، <span id="studentName"></span></h2>
     <div class="info">
       <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
       <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
@@ -182,7 +184,6 @@
       currentStudentEmail = userEmail;
       currentStudentName = userName;
       document.getElementById('studentName').innerText = userName || "";
-      document.getElementById('studentNameDisplay').innerText = userName ? `(${userName})` : "";
       document.getElementById('studentNameInfo').innerText = userName || "";
       document.getElementById('studentEmail').innerText = userEmail || "";
       document.getElementById('courseNumber').innerText = "";
@@ -317,6 +318,7 @@
         let submitted = sum.status === 'submitted';
         html += `
         <div class="lesson-summary-block">
+          <div class="lesson-student-name">اسم الطالب: ${currentStudentName || ""}</div>
           <h4>(${lesson.id}) ${lesson.title}</h4>
           <a href="${lesson.url}" target="_blank" class="lesson-link">رابط المحاضرة</a>
           <div style="margin:12px 0 5px 0;">
