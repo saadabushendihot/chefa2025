@@ -2,34 +2,42 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>تسجيل الدخول - منصة شفاء</title>
+  <title>تسجيل الدخول - مركز شفاء ورحمة للناس</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
-    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
-    .login-box { background: #fff; padding: 40px 32px; border-radius: 12px; box-shadow: 0 2px 15px #0002; text-align: center; width: 350px;}
-    .logo { font-weight: bold; font-size: 2rem; color: #4361ee; margin-bottom: 10px;}
-    button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 16px;}
-    #msg { color: #e63946; margin-top: 20px; }
-    input { width: 85%; margin: 8px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;}
+    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin:0;}
+    .login-container { max-width: 380px; margin: 60px auto; background: #fff; border-radius: 12px; padding: 32px 24px; box-shadow: 0 2px 10px #0002;}
+    h2 { text-align:center; color: #4361ee;}
+    label { display:block; margin-bottom:6px;}
+    input[type="email"], input[type="password"] { width:100%; padding:8px; border:1px solid #ddd; border-radius:5px; margin-bottom:16px;}
+    .btn { width:100%; background: #4361ee; color: #fff; border: none; padding: 10px 0; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+    .google-btn { background: #fff; color: #333; border: 1px solid #aaa; margin-top: 12px; }
+    .google-btn img { vertical-align:middle; width:22px; margin-left:8px;}
+    #msg { color: #e63946; text-align: center; margin: 16px 0 0 0;}
+    @media (max-width: 500px) { .login-container{padding:10px 4vw;} }
   </style>
 </head>
 <body>
-  <div class="login-box">
-    <div class="logo">شفاء</div>
+  <div class="login-container">
     <h2>تسجيل الدخول</h2>
-    <form id="loginForm">
-      <input type="email" id="email" placeholder="البريد الإلكتروني" required><br>
-      <input type="password" id="password" placeholder="كلمة المرور" required><br>
-      <button type="submit" id="emailLoginBtn">دخول بالبريد</button>
+    <form id="loginForm" onsubmit="login(event)">
+      <label>البريد الإلكتروني</label>
+      <input type="email" id="email" required autocomplete="username">
+      <label>كلمة المرور</label>
+      <input type="password" id="password" required autocomplete="current-password">
+      <button class="btn" type="submit">دخول</button>
     </form>
-    <hr style="margin:20px 0;">
-    <button id="googleLogin">دخول عبر Google</button>
+    <button class="btn google-btn" onclick="loginWithGoogle()">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"> الدخول باستخدام Google
+    </button>
     <div id="msg"></div>
   </div>
+
   <script>
-    // إعدادات Firebase
+    // إعدادات فايربيز
     var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
@@ -38,19 +46,77 @@
       messagingSenderId: "639314388969",
       appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
-    // دخول بالبريد وكلمة المرور
-    document.getElementById('loginForm').addEventListener('submit', function(e){
+    // تسجيل الدخول بالبريد وكلمة المرور
+    function login(e) {
       e.preventDefault();
-      var email = document.getElementById('email').value;
+      var email = document.getElementById('email').value.trim().toLowerCase();
       var password = document.getElementById('password').value;
-      document.getElementById('msg').innerText = '';
+      var msg = document.getElementById('msg');
+      msg.innerText = "";
+
       auth.signInWithEmailAndPassword(email, password)
-      .then((result)=>{
-        var user = result.user;
+        .then(function(result) {
+          handleUserAfterLogin(result.user);
+        })
+        .catch(function(error) {
+          msg.innerText = "خطأ: " + (error.message || "تأكد من البيانات");
+        });
+    }
+
+    // تسجيل الدخول عبر Google
+    function loginWithGoogle() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(function(result) {
+          handleUserAfterLogin(result.user);
+        })
+        .catch(function(error) {
+          document.getElementById('msg').innerText = "خطأ في تسجيل الدخول عبر Google: " + (error.message || "");
+        });
+    }
+
+    // بعد نجاح الدخول: أضف المستخدم إلى users إذا لم يكن موجودًا ووجهه حسب الدور
+    function handleUserAfterLogin(user) {
+      if (!user) return;
+      var msg = document.getElementById('msg');
+      var usersRef = firestore.collection('users').doc(user.uid);
+
+      usersRef.get().then(function(doc) {
+        if (!doc.exists) {
+          // إضافة المستخدم لأول مرة (طالب افتراضي)
+          usersRef.set({
+            email: user.email,
+            role: "student"
+          }).then(function() {
+            // توجيه الطالب
+            window.location.href = "student.html";
+          }).catch(function(error){
+            msg.innerText = "تعذر إضافة الحساب: " + (error.message || "");
+          });
+        } else {
+          // المستخدم موجود مسبقًا: وجهه حسب الصلاحية
+          var role = doc.data().role;
+          if (role === "teacher") {
+            window.location.href = "dashboard.html";
+          } else if (role === "student") {
+            window.location.href = "student.html";
+          } else {
+            msg.innerText = "حسابك لا يملك صلاحية دخول معروفة. تواصل مع الإدارة.";
+            auth.signOut();
+          }
+        }
+      }).catch(function(error){
+        msg.innerText = "خطأ في التحقق من بيانات الحساب: " + (error.message || "");
+      });
+    }
+
+    // الحماية: إذا المستخدم مسجل دخوله بالفعل، وجهه مباشرة حسب صلاحياته
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
           if (doc.exists) {
             var role = doc.data().role;
@@ -58,43 +124,10 @@
               window.location.href = "dashboard.html";
             } else if (role === "student") {
               window.location.href = "student.html";
-            } else {
-              document.getElementById('msg').innerText = "دور المستخدم غير محدد.";
             }
-          } else {
-            document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم.";
           }
         });
-      })
-      .catch((error)=>{
-        document.getElementById('msg').innerText = "خطأ: " + error.message;
-      });
-    });
-
-    // دخول عبر Google
-    document.getElementById('googleLogin').addEventListener('click', function() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then((result) => {
-          var user = result.user;
-          firestore.collection('users').doc(user.uid).get().then(function(doc) {
-            if (doc.exists) {
-              var role = doc.data().role;
-              if (role === "teacher") {
-                window.location.href = "dashboard.html";
-              } else if (role === "student") {
-                window.location.href = "student.html";
-              } else {
-                document.getElementById('msg').innerText = "دور المستخدم غير محدد.";
-              }
-            } else {
-              document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم. تواصل مع الإدارة.";
-            }
-          });
-        })
-        .catch((error) => {
-          document.getElementById('msg').innerText = "خطأ أثناء تسجيل الدخول: " + error.message;
-        });
+      }
     });
   </script>
 </body>
