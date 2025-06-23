@@ -11,110 +11,105 @@
     body {
       font-family: Tajawal, Arial, sans-serif;
       margin: 0;
-      background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+      background: #f5f7fa;
+      color: #23272f;
       min-height: 100vh;
     }
     header {
-      background: linear-gradient(90deg, #4361ee 0%, #48b1f3 100%);
+      background: #3b5cb8;
       color: #fff;
       padding: 18px 30px;
-      font-size: 1.7rem;
+      font-size: 1.4rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 16px #4361ee22;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
+      box-shadow: 0 2px 8px #3b5cb820;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
     }
     .container {
       max-width: 1100px;
       margin: 32px auto 24px auto;
-      padding: 0;
+      padding: 0 8px;
     }
     h2 {
-      color: #4361ee;
+      color: #294169;
       margin-top: 0;
       margin-bottom: 18px;
-      letter-spacing: 1px;
+      font-size: 1.22rem;
+      letter-spacing: 0.5px;
+      font-weight: 700;
     }
     .btn {
-      background: linear-gradient(90deg, #4361ee 0%, #48b1f3 100%);
+      background: #3b5cb8;
       color: #fff;
       border: none;
-      padding: 8px 24px;
+      padding: 7px 20px;
       border-radius: 7px;
       font-size: 1rem;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.2s;
+      transition: background 0.15s;
     }
-    .btn:hover { background: linear-gradient(90deg, #3c5ec2 0%, #2ea0df 100%);}
-    .signout { background: #e63946; }
-    .signout:hover { background: #ad2330; }
-    /* ثيم منطقة إضافة طالب */
-    .add-student {
-      background: linear-gradient(90deg,#e0c3fc 0%, #8ec5fc 100%);
-      padding: 18px 16px; border-radius: 12px; margin-bottom: 22px;
-      box-shadow: 0 2px 10px #8ec5fc33;
-      display: flex; align-items: center; gap: 18px;
-      flex-wrap: wrap;
+    .btn:hover { background: #26407a; }
+    .signout { background: #b83b3b;}
+    .signout:hover { background: #7a2626;}
+
+    .add-student, .add-lesson, .students-area, .lessons-area {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      margin-bottom: 22px;
+      padding: 18px 14px;
     }
-    .add-student input { padding: 8px; border: 1px solid #bbb; border-radius: 5px; width: 160px;}
-    .add-student label {margin-left: 10px;}
-    .add-student form {display: flex; align-items: center; gap: 12px;}
-    /* ثيم منطقة إضافة درس */
-    .add-lesson {
-      background: linear-gradient(90deg,#fbc2eb 0%, #a6c1ee 100%);
-      padding: 18px 16px; border-radius: 12px; margin-bottom: 28px;
-      box-shadow: 0 2px 10px #fbc2eb44;
-      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    .add-student, .add-lesson {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
     }
-    .add-lesson input { padding: 8px; border: 1px solid #bbb; border-radius: 5px; width: 120px;}
-    .add-lesson label {margin-left: 10px;}
-    .add-lesson form {display: flex; align-items: center; gap: 12px;}
-    /* ثيم إدارة الطلاب */
-    .students-area {
-      background: linear-gradient(90deg,#f2fcfe 0%, #1c92d2 100%);
-      border-radius: 14px; box-shadow: 0 2px 10px #1c92d244;
-      padding: 22px 16px; margin-bottom: 32px;
+    .add-student form, .add-lesson form {
+      display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
     }
-    /* ثيم قائمة الدروس */
-    .lessons-area {
-      background: linear-gradient(90deg,#fff6b7 0%, #f6416c 100%);
-      border-radius: 14px; box-shadow: 0 2px 10px #f6416c33;
-      padding: 22px 16px; margin-bottom: 32px;
+    .add-student label, .add-lesson label {margin-left: 10px;}
+    .add-student input, .add-lesson input {
+      padding: 7px; border: 1px solid #c5c9d2; border-radius: 5px; width: 170px; font-size: 1rem;
+      background: #f7f8fa; color: #23272f;
+      transition: border 0.15s;
     }
-    /* جدول عام */
+    .add-student input:focus, .add-lesson input:focus {
+      border-color: #3b5cb8; outline: none;
+    }
+
+    /* مناطق الجداول */
+    .students-area { margin-bottom: 28px; }
+    .lessons-area { margin-bottom: 28px; }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 18px;
+      margin-top: 14px;
       background: #fff;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 8px #bdbdbd22;
+      box-shadow: 0 1px 4px #00000008;
     }
     th, td {
-      padding: 10px 6px;
-      border-bottom: 1px solid #eee;
+      padding: 9px 6px;
+      border-bottom: 1px solid #e5e7ea;
       text-align: center;
       font-size: 1rem;
+      color: #23272f;
     }
-    th { background: #f1f5f9; color: #2c3e50; font-weight: bold;}
-    tr:last-child td { border-bottom: none;}
+    th { background: #f2f5fc; color: #294169; font-weight: bold;}
+    tr:last-child td { border-bottom: none; }
     .level-checkbox { width: 18px; height: 18px; }
-    /* جدول الدروس بألوان المستويات */
-    .lessons-table th, .lessons-table td {padding: 8px;}
-    .lessons-table th {background: #eef2fa;}
-    .lessons-table {margin-top:10px;}
-    /* ثيم ألوان لكل مستوى */
-    .level-color-1 { background: #e3f6fc !important;}
-    .level-color-2 { background: #fde2e4 !important;}
-    .level-color-3 { background: #e4f9ef !important;}
-    .level-color-4 { background: #fff9db !important;}
-    .level-color-5 { background: #f3e8ff !important;}
-    .level-color-6 { background: #f1faee !important;}
-    .level-color-7 { background: #fce4ec !important;}
+
+    /* ألوان صفوف الدروس حسب المستوى */
+    .level-color-1 { background: #e7f2fa !important; }
+    .level-color-2 { background: #f8e7fa !important; }
+    .level-color-3 { background: #e7faf0 !important; }
+    .level-color-4 { background: #f9f6e7 !important; }
+    .level-color-5 { background: #f3e7fa !important; }
+    .level-color-6 { background: #e7faee !important; }
+    .level-color-7 { background: #fae7e7 !important; }
     /* أزرار التعديل */
     .edit-btn, .save-btn, .cancel-btn {
       padding: 4px 14px;
@@ -126,24 +121,24 @@
       font-size: 0.98rem;
       transition: background 0.2s;
     }
-    .edit-btn {background:#2196f3; color:#fff;}
-    .edit-btn:hover {background:#1b79c3;}
-    .save-btn {background:#209e57; color:#fff;}
-    .save-btn:hover {background:#16723e;}
-    .cancel-btn {background:#e63946; color:#fff;}
-    .cancel-btn:hover {background:#ad2330;}
+    .edit-btn {background:#5a7be4; color:#fff;}
+    .edit-btn:hover {background:#294169;}
+    .save-btn {background:#1dad87; color:#fff;}
+    .save-btn:hover {background:#156c59;}
+    .cancel-btn {background:#b83b3b; color:#fff;}
+    .cancel-btn:hover {background:#7a2626;}
     /* رسائل */
     #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
-      color: #e63946; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
+      color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
     }
     /* استجابة للشاشات الصغيرة */
     @media (max-width: 900px){
       .container {padding:8px;}
-      .add-student input, .add-lesson input {width:100px;}
-      th, td {font-size: 0.93rem;}
-      h2 {font-size:1.1rem;}
+      .add-student input, .add-lesson input {width:110px;}
+      th, td {font-size: 0.91rem;}
+      h2 {font-size:1rem;}
       .add-student, .add-lesson, .students-area, .lessons-area {padding:10px 4px;}
-      header {font-size:1.05rem; padding:10px;}
+      header {font-size:1rem; padding:10px;}
     }
   </style>
 </head>
@@ -157,7 +152,7 @@
     <!-- إضافة طالب جديد -->
     <div class="add-student">
       <form id="addStudentForm" onsubmit="addStudent(event)">
-        <label>إضافة طالب جديد:</label>
+        <label>إضافة طالب جديد (البريد الإلكتروني):</label>
         <input type="email" id="studentEmail" placeholder="student@email.com" required>
         <input type="text" id="studentName" placeholder="اسم الطالب" required>
         <input type="text" id="courseNumber" placeholder="رقم المقرر" required>
@@ -258,7 +253,7 @@
       var courseNumber = document.getElementById('courseNumber').value.trim();
       var msg = document.getElementById('addStudentMsg');
       msg.innerText = '';
-      msg.style.color = "#e63946";
+      msg.style.color = "#b83b3b";
       if (!validateEmail(email) || !name || !courseNumber) {
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
@@ -282,7 +277,7 @@
             oral_exam: false,
             ...levelsObj
           }).then(function(){
-            msg.style.color = "green";
+            msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الطالب بنجاح!";
             document.getElementById('addStudentForm').reset();
             loadStudents();
@@ -302,7 +297,7 @@
       var level = document.getElementById('lessonLevel').value.trim();
       var msg = document.getElementById('addLessonMsg');
       msg.innerText = '';
-      msg.style.color = "#e63946";
+      msg.style.color = "#b83b3b";
       if (!id || !title || !url || !level) {
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
@@ -319,7 +314,7 @@
             url: url,
             level: level
           }).then(function(){
-            msg.style.color = "green";
+            msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الدرس بنجاح!";
             document.getElementById('addLessonForm').reset();
             loadLessons();
@@ -432,7 +427,7 @@
       var level = document.getElementById('editLevel').value.trim();
       var msg = document.getElementById('editLessonMsg');
       msg.innerText = '';
-      msg.style.color = "#e63946";
+      msg.style.color = "#b83b3b";
       if (!id || !title || !url || !level) {
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
@@ -443,7 +438,7 @@
         url: url,
         level: level
       }).then(function(){
-        msg.style.color = "green";
+        msg.style.color = "#1dad87";
         msg.innerText = "تم تحديث الدرس بنجاح!";
         editLessonId = null;
         loadLessons();
@@ -459,9 +454,9 @@
       const level = checkbox.getAttribute('data-level');
       const value = checkbox.checked;
       firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
-        document.getElementById('msg').style.color = 'green';
+        document.getElementById('msg').style.color = '#1dad87';
         document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
-        setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#e63946';}, 1500);
+        setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
       }).catch(function(err){
         document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
       });
