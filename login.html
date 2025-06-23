@@ -10,6 +10,7 @@
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
     .box { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 2px 15px #0002; text-align: center;}
     button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
+    #debug {margin-top:20px; background:#eee; color:#222; text-align:left; padding:10px; font-size:14px;}
   </style>
 </head>
 <body>
@@ -17,6 +18,7 @@
     <h2>تسجيل الدخول</h2>
     <button id="googleLogin">تسجيل الدخول عبر Google</button>
     <div id="msg"></div>
+    <div id="debug"></div>
   </div>
   <script>
     var firebaseConfig = {
@@ -31,13 +33,25 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
+    function logDebug(info) {
+      document.getElementById('debug').innerText += info + "\n";
+    }
+
     document.getElementById('googleLogin').addEventListener('click', function() {
       var provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then((result) => {
           var user = result.user;
+          // طباعة بيانات المستخدم بعد تسجيل الدخول
+          logDebug("بيانات المستخدم بعد تسجيل الدخول:");
+          logDebug("UID: " + user.uid);
+          logDebug("Email: " + user.email);
+
+          // جلب بيانات المستخدم من قاعدة البيانات
           firestore.collection('users').doc(user.uid).get().then(function(doc) {
             if (doc.exists) {
+              logDebug("بيانات المستخدم في Firestore:");
+              logDebug(JSON.stringify(doc.data(), null, 2));
               var role = doc.data().role;
               localStorage.setItem('user_email', user.email);
               if (role === "teacher") {
@@ -48,11 +62,16 @@
                 document.getElementById('msg').innerText = "دور المستخدم غير محدد بشكل صحيح.";
               }
             } else {
+              logDebug("لا توجد بيانات لهذا المستخدم في Firestore.");
               document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم.";
             }
+          }).catch(function(error) {
+            logDebug("خطأ عند جلب بيانات Firestore: " + error.message);
+            document.getElementById('msg').innerText = "خطأ عند جلب بيانات المستخدم: " + error.message;
           });
         })
         .catch((error) => {
+          logDebug("خطأ أثناء تسجيل الدخول: " + error.message);
           document.getElementById('msg').innerText = "خطأ أثناء تسجيل الدخول: " + error.message;
         });
     });
