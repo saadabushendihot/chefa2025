@@ -27,6 +27,19 @@
     .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
     .exam-row {margin-bottom: 10px; font-size: 1.09rem;}
     .exam-row span {margin-left: 10px;}
+    /* جديد: مربع حالة القبول */
+    .admission-status-box { 
+      padding: 15px 18px; 
+      margin-bottom: 18px; 
+      border-radius: 8px; 
+      font-size: 1.18rem; 
+      font-weight: bold; 
+      border: 2px solid #e4e7ef; 
+      text-align:center;
+    }
+    .admission-accepted { background: #e6faea; color: #219e4b; border-color: #8be2b4;}
+    .admission-rejected { background: #fff2f2; color: #e63946; border-color: #f6b8b8;}
+    .admission-pending { background: #fffde6; color: #e6a100; border-color: #ffeab6;}
     @media (max-width: 700px) {
       .container {padding: 8px;}
       header {padding:10px;}
@@ -45,6 +58,8 @@
       <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
       <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
     </div>
+    <!-- مربع حالة القبول -->
+    <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
     <table class="levels-table" id="levelsTable">
       <thead>
@@ -109,7 +124,8 @@
       document.getElementById('msg').innerText = "";
       document.getElementById('levelsBody').innerHTML = "";
       document.getElementById('examsBox').style.display = "none";
-
+      // مربع القبول اخفاء مبدئي
+      document.getElementById('admissionStatusBox').style.display = "none";
       firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
         if (querySnapshot.empty) {
           document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم في النظام. تواصل مع الإدارة.";
@@ -118,6 +134,25 @@
           document.getElementById('studentName').innerText = data.name || "";
           document.getElementById('studentEmail').innerText = data.email || "";
           document.getElementById('courseNumber').innerText = data.course_number || "";
+
+          // عرض حالة القبول
+          var admissionBox = document.getElementById('admissionStatusBox');
+          var status = data.accepted; // أو admissionStatus حسب تسمية الحقل لديك
+          // يمكن أن يكون status === true أو "مقبول" أو "قيد المراجعة" أو false أو "مرفوض"
+          if (typeof status !== "undefined") {
+            admissionBox.style.display = "block";
+            // دعم الأنواع المختلفة للحقل
+            if (status === true || status === "مقبول" || status === "accepted") {
+              admissionBox.className = "admission-status-box admission-accepted";
+              admissionBox.innerText = "تم قبولك في الدورة ✅";
+            } else if (status === false || status === "مرفوض" || status === "rejected") {
+              admissionBox.className = "admission-status-box admission-rejected";
+              admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
+            } else {
+              admissionBox.className = "admission-status-box admission-pending";
+              admissionBox.innerText = "طلبك قيد المراجعة...";
+            }
+          }
 
           var levelsHtml = '';
           for (var i = 1; i <= 7; i++) {
