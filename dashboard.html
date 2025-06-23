@@ -2,49 +2,49 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة المعلم - شفاء</title>
+  <title>لوحة المعلم - إدارة الطلاب</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f6f9fc;}
     header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 900px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    .container { max-width: 1000px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
     .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
-    .lessons-list {margin-top:30px;}
-    .lesson { padding: 16px; border-bottom: 1px solid #eee;}
     .signout {background:#e63946;}
-    .student-form { margin: 36px 0 0 0; padding: 18px; background: #f1f5f9; border-radius: 8px;}
-    .student-form input { padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; width: 70%; max-width: 300px;}
-    .student-form label { display: block; margin-bottom: 8px; color: #4361ee;}
-    #addStudentMsg {color:#e63946; margin-top:10px;}
-    .student-list {margin-top:20px;}
-    .student-item {border-bottom:1px solid #eee;padding:8px 0;}
+    table { width: 100%; border-collapse: collapse; margin-top: 20px;}
+    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
+    th { background: #f1f5f9;}
+    .level-checkbox { width: 18px; height: 18px; }
+    #msg { color: #e63946; margin-top: 20px; }
   </style>
 </head>
 <body>
   <header>
-    <span>لوحة المعلم</span>
+    <span>لوحة المعلم - إدارة الطلاب</span>
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
-    <h2>مرحباً، <span id="teacherName"></span></h2>
-    <button class="btn" onclick="addLesson()">إضافة درس جديد</button>
-
-    <div class="student-form">
-      <label>إضافة طالب جديد (البريد الإلكتروني فقط):</label>
-      <input type="email" id="studentEmail" placeholder="ex: student@email.com" required>
-      <button class="btn" onclick="addStudent()">إضافة الطالب</button>
-      <div id="addStudentMsg"></div>
-    </div>
-
-    <div class="student-list" id="students">
-      <strong>قائمة الطلاب:</strong>
-      <div id="studentListContent"></div>
-    </div>
-
-    <div class="lessons-list" id="lessons"></div>
+    <h2>إدارة مستويات الطلاب</h2>
+    <div id="msg"></div>
+    <table id="studentsTable">
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>البريد</th>
+          <th>المقرر</th>
+          <th>المستوى 1</th>
+          <th>المستوى 2</th>
+          <th>المستوى 3</th>
+          <th>المستوى 4</th>
+          <th>المستوى 5</th>
+          <th>المستوى 6</th>
+          <th>المستوى 7</th>
+        </tr>
+      </thead>
+      <tbody id="studentsList"></tbody>
+    </table>
   </div>
   <script>
     // إعدادات الفايربيز
@@ -60,25 +60,14 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
-    // حماية الصفحة
+    // حماية الصفحة: يسمح فقط للمعلم بالدخول
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
-          if (doc.exists && doc.data().role === "teacher") {
-            document.getElementById('teacherName').innerText = doc.data().email;
-            loadStudents();
-            // جلب الدروس (مثال)
-            firestore.collection('lessons').where('teacher', '==', user.uid).get().then(function(querySnapshot){
-              let html = '';
-              querySnapshot.forEach(function(lesson){
-                html += `<div class="lesson">عنوان الدرس: ${lesson.data().title || 'بدون عنوان'}</div>`;
-              });
-              document.getElementById('lessons').innerHTML = html || "لا توجد دروس حالياً.";
-            });
-          } else if (doc.exists && doc.data().role === "student") {
-            window.location.href = "student.html";
-          } else {
+          if (!doc.exists || doc.data().role !== "teacher") {
             window.location.href = "login.html";
+          } else {
+            loadStudents();
           }
         });
       } else {
@@ -86,59 +75,41 @@
       }
     });
 
-    // إضافة طالب جديد
-    function addStudent() {
-      var email = document.getElementById('studentEmail').value.trim();
-      var msg = document.getElementById('addStudentMsg');
-      msg.innerText = '';
-      if (!email || !validateEmail(email)) {
-        msg.innerText = "يرجى إدخال بريد إلكتروني صحيح.";
-        return;
-      }
-      // البحث عن الطالب في Authentication
-      firestore.collection('users').where('email', '==', email).get().then(function(querySnapshot){
-        if (!querySnapshot.empty) {
-          msg.innerText = "هذا الطالب موجود بالفعل.";
-        } else {
-          // إضافة الطالب كـ student في Firestore (سيحتاج لتسجيل الدخول لاحقاً لأول مرة)
-          // يتم توليد UID مؤقت وسيتم تحديثه عند أول دخول حقيقي للطالب
-          var fakeUid = 'uid_' + Math.random().toString(36).substr(2, 12);
-          firestore.collection('users').doc(fakeUid).set({
-            email: email,
-            role: "student"
-          }).then(function(){
-            msg.style.color = "green";
-            msg.innerText = "تمت إضافة الطالب بنجاح! يجب أن يقوم الطالب بالتسجيل والدخول بالبريد ليتم تفعيل حسابه.";
-            document.getElementById('studentEmail').value = '';
-            loadStudents();
-          }).catch(function(err){
-            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
-          });
-        }
-      });
-    }
-
-    function validateEmail(email) {
-      var re = /\S+@\S+\.\S+/;
-      return re.test(email);
-    }
-
-    // جلب الطلاب
     function loadStudents() {
-      var studentsDiv = document.getElementById('studentListContent');
-      studentsDiv.innerHTML = "جاري التحميل...";
-      firestore.collection('users').where('role', '==', 'student').get().then(function(querySnapshot){
+      // جلب الطلاب من lectures
+      firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
         let html = '';
         querySnapshot.forEach(function(doc){
-          html += `<div class="student-item">${doc.data().email}</div>`;
+          let data = doc.data();
+          html += `<tr>
+              <td>${data.name || ''}</td>
+              <td>${data.email || ''}</td>
+              <td>${data.course_number || ''}</td>
+              ${Array.from({length: 7}, (_, i) => {
+                const level = 'level' + (i+1);
+                return `<td>
+                  <input type="checkbox" class="level-checkbox" data-id="${doc.id}" data-level="${level}" ${data[level] ? 'checked' : ''} onchange="updateLevel(this)">
+                </td>`;
+              }).join('')}
+            </tr>`;
         });
-        studentsDiv.innerHTML = html || "لا يوجد طلاب بعد.";
+        document.getElementById('studentsList').innerHTML = html || '<tr><td colspan="10">لا يوجد طلاب بعد.</td></tr>';
       });
     }
 
-    function addLesson() {
-      alert("هنا يمكنك فتح نافذة لإضافة درس جديد (برمجة لاحقًا).");
+    window.updateLevel = function(checkbox) {
+      const docId = checkbox.getAttribute('data-id');
+      const level = checkbox.getAttribute('data-level');
+      const value = checkbox.checked;
+      firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
+        document.getElementById('msg').style.color = 'green';
+        document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
+        setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#e63946';}, 1500);
+      }).catch(function(err){
+        document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
+      });
     }
+
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
