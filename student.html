@@ -6,16 +6,24 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f8fafc;}
     header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 850px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
     .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
-    .levels {margin-top:24px;}
-    .level {margin-bottom:10px;}
     .signout {background:#e63946;}
-    #msg { color: #e63946; margin-top: 20px;}
+    .info { background: #f5f7fb; border-radius: 7px; padding: 10px 18px; margin: 16px 0;}
+    .levels {margin-top:24px;}
+    .level {margin-bottom:14px; font-size:1.1rem;}
+    .level .on {color: #219e4b; font-weight: bold;}
+    .level .off {color: #e63946; font-weight: bold;}
+    #msg { color: #e63946; margin-top: 20px; }
+    @media (max-width: 700px) {
+      .container {padding: 8px;}
+      header {padding:10px;}
+    }
   </style>
 </head>
 <body>
@@ -25,10 +33,15 @@
   </header>
   <div class="container">
     <h2>مرحباً، <span id="studentName"></span></h2>
+    <div class="info">
+      <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
+      <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
+    </div>
     <div id="msg"></div>
     <div class="levels" id="levels"></div>
   </div>
   <script>
+    // إعدادات الفايربيز
     var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
@@ -41,37 +54,58 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
+    // تحقق من الدخول وأضف الطالب تلقائياً إلى users إذا لم يكن موجوداً
     auth.onAuthStateChanged(function(user) {
       if (user) {
-        // تحقق من أن الدور طالب
+        // تحقق من وجود الطالب في users
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
-          if (doc.exists && doc.data().role === "student") {
-            document.getElementById('studentName').innerText = doc.data().email;
-            // جلب بيانات الطالب من lectures عبر البريد
-            firestore.collection('lectures').where('email', '==', doc.data().email).get().then(function(querySnapshot){
-              if (querySnapshot.empty) {
-                document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم في الجدول. تواصل مع الإدارة.";
-                document.getElementById('levels').innerHTML = '';
-              } else {
-                var data = querySnapshot.docs[0].data();
-                var html = '';
-                for (var i = 1; i <= 7; i++) {
-                  html += `<div class="level">المستوى ${i}: <b>${data['level'+i] ? 'مفعل ✅' : 'غير مفعل ❌'}</b></div>`;
-                }
-                document.getElementById('levels').innerHTML = html;
-                document.getElementById('msg').innerText = '';
-              }
-            });
-          } else if (doc.exists && doc.data().role === "teacher") {
-            window.location.href = "dashboard.html";
+          if (doc.exists) {
+            // تحقق من أن الدور طالب
+            if (doc.data().role !== "student") {
+              window.location.href = "dashboard.html";
+              return;
+            }
+            loadStudentData(doc.data().email);
           } else {
-            window.location.href = "login.html";
+            // أضف الطالب تلقائياً في users لأول مرة
+            firestore.collection('users').doc(user.uid).set({
+              email: user.email,
+              role: "student"
+            }).then(function() {
+              window.location.reload();
+            });
           }
         });
       } else {
         window.location.href = "login.html";
       }
     });
+
+    // جلب بيانات الطالب من lectures
+    function loadStudentData(userEmail) {
+      document.getElementById('studentName').innerText = "";
+      document.getElementById('studentEmail').innerText = "";
+      document.getElementById('courseNumber').innerText = "";
+      document.getElementById('msg').innerText = "";
+      document.getElementById('levels').innerHTML = "";
+      firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
+        if (querySnapshot.empty) {
+          document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم في النظام. تواصل مع الإدارة.";
+        } else {
+          var data = querySnapshot.docs[0].data();
+          document.getElementById('studentName').innerText = data.name || "";
+          document.getElementById('studentEmail').innerText = data.email || "";
+          document.getElementById('courseNumber').innerText = data.course_number || "";
+          var html = '';
+          for (var i = 1; i <= 7; i++) {
+            html += `<div class="level">المستوى ${i}: <span class="${data['level'+i] ? 'on' : 'off'}">${data['level'+i] ? 'مُفعل ✅' : 'غير مفعل ❌'}</span></div>`;
+          }
+          document.getElementById('levels').innerHTML = html;
+        }
+      }).catch(function(err) {
+        document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
+      });
+    }
 
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';});
