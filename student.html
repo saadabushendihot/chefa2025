@@ -7,23 +7,12 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- خطوط جوجل للخط العربي العصري -->
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@500;700&display=swap" rel="stylesheet">
+  <!-- خط عربي عصري -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
-      margin: 0; background: #f8fafc;
-    }
-    header {
-      background: #4361ee; color: #fff;
-      padding: 18px 30px; font-size: 1.5rem;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    .container {
-      max-width: 800px; margin: 30px auto;
-      background: #fff; border-radius: 10px; padding: 24px;
-      box-shadow: 0 2px 8px #0001;
-    }
+    body { font-family: 'Tajawal','Cairo',Arial,sans-serif; margin: 0; background: #f8fafc;}
+    header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
+    .container { max-width: 800px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
     .btn { background: #4361ee; color: #fff; border: none; padding: 7px 22px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
     .btn[disabled] {background: #bdbdbd; color: #fff; cursor: not-allowed;}
@@ -42,37 +31,23 @@
     .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
     .exam-row {margin-bottom: 10px; font-size: 1.09rem;}
     .exam-row span {margin-left: 10px;}
-    .admission-status-box { 
-      padding: 15px 18px; 
-      margin-bottom: 18px; 
-      border-radius: 8px; 
-      font-size: 1.18rem; 
-      font-weight: bold; 
-      border: 2px solid #e4e7ef; 
-      text-align:center;
-    }
+    .admission-status-box { padding: 15px 18px; margin-bottom: 18px; border-radius: 8px; font-size: 1.18rem; font-weight: bold; border: 2px solid #e4e7ef; text-align:center;}
     .admission-accepted { background: #e6faea; color: #219e4b; border-color: #8be2b4;}
     .admission-rejected { background: #fff2f2; color: #e63946; border-color: #f6b8b8;}
     .admission-pending { background: #fffde6; color: #e6a100; border-color: #ffeab6;}
-    .lesson-summary-block {
-      background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px;
-      box-shadow: 0 2px 6px #e0e7ef33;
-      font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
-    }
+    .lesson-summary-block {background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px; box-shadow: 0 2px 6px #e0e7ef33; font-family: 'Tajawal', 'Cairo', Arial, sans-serif;}
     .lesson-summary-block h4 {margin:0 0 8px 0; color:#1b3e72;}
     .lesson-link {color:#4361ee;}
     .summary-actions {margin-top: 8px;}
     .summary-status {font-weight:bold; font-size:0.95rem; margin-right:8px;}
     .summary-status.draft { color: #e6a100;}
     .summary-status.submitted { color: #219e4b;}
-    .lesson-student-name {font-size:0.98rem; color:#888; margin-bottom:7px;}
+    .lesson-student-name {font-size:1rem; color:#888; margin-bottom:7px;}
     textarea.summary-text {
       width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
-      resize:vertical;font-size:1.09rem; box-sizing: border-box; background:#fff;
-      font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
-      color: #1b2a39; line-height: 1.7;
-      transition: border 0.15s;
-      direction: rtl;
+      resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
+      font-family: 'Cairo','Tajawal',Arial,sans-serif; color: #1b2a39; line-height: 1.7;
+      transition: border 0.15s; direction: rtl;
     }
     textarea.summary-text:focus {border-color: #4361ee;}
     @media (max-width: 900px){
@@ -96,7 +71,6 @@
       <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
       <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
     </div>
-    <!-- مربع حالة القبول -->
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
     <table class="levels-table" id="levelsTable" style="display:none;">
@@ -117,11 +91,9 @@
       <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
       <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
-    <!-- تلخيص الدروس -->
     <div id="lessonsSummariesArea"></div>
   </div>
   <script>
-    // إعداد Firebase
     var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
@@ -136,7 +108,6 @@
     var currentStudentEmail = "";
     var currentStudentName = "";
 
-    // تحويل اسم المستوى الى رقم
     function getLevelNumber(levelName) {
       switch (levelName.replace('المستوى ', '').replace('ال', '')) {
         case "أول": case "الأول": return 1;
@@ -146,13 +117,7 @@
         case "خامس": case "الخامس": return 5;
         case "سادس": case "السادس": return 6;
         case "سابع": case "السابع": return 7;
-        case "1": return 1;
-        case "2": return 2;
-        case "3": return 3;
-        case "4": return 4;
-        case "5": return 5;
-        case "6": return 6;
-        case "7": return 7;
+        case "1": return 1; case "2": return 2; case "3": return 3; case "4": return 4; case "5": return 5; case "6": return 6; case "7": return 7;
         default: return 0;
       }
     }
@@ -168,11 +133,8 @@
             loadStudentData(doc.data().email, doc.data().name);
           } else {
             firestore.collection('users').doc(user.uid).set({
-              email: user.email,
-              role: "student"
-            }).then(function() {
-              window.location.reload();
-            });
+              email: user.email, role: "student"
+            }).then(function() { window.location.reload(); });
           }
         });
       } else {
@@ -180,28 +142,25 @@
       }
     });
 
-    function loadStudentData(userEmail, userName) {
+    function loadStudentData(userEmail, userNameFromUserDoc) {
       currentStudentEmail = userEmail;
-      currentStudentName = userName;
-      document.getElementById('studentName').innerText = userName || "";
-      document.getElementById('studentNameInfo').innerText = userName || "";
-      document.getElementById('studentEmail').innerText = userEmail || "";
-      document.getElementById('courseNumber').innerText = "";
-      document.getElementById('msg').innerText = "";
-      document.getElementById('levelsBody').innerHTML = "";
-      document.getElementById('levelsTable').style.display = "none";
-      document.getElementById('examsBox').style.display = "none";
-      document.getElementById('admissionStatusBox').style.display = "none";
-      document.getElementById('lessonsSummariesArea').innerHTML = "";
-
       firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
         if (querySnapshot.empty) {
           document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم في النظام. تواصل مع الإدارة.";
         } else {
           var data = querySnapshot.docs[0].data();
+          currentStudentName = data.name || userNameFromUserDoc || "";
+          document.getElementById('studentName').innerText = currentStudentName;
+          document.getElementById('studentNameInfo').innerText = currentStudentName;
+          document.getElementById('studentEmail').innerText = userEmail || "";
           document.getElementById('courseNumber').innerText = data.course_number || "";
+          document.getElementById('msg').innerText = "";
+          document.getElementById('levelsBody').innerHTML = "";
+          document.getElementById('levelsTable').style.display = "none";
+          document.getElementById('examsBox').style.display = "none";
+          document.getElementById('admissionStatusBox').style.display = "none";
+          document.getElementById('lessonsSummariesArea').innerHTML = "";
 
-          // عرض حالة القبول
           var admissionBox = document.getElementById('admissionStatusBox');
           var status = data.accepted;
           let isAccepted = (status === true || status === "مقبول" || status === "accepted");
@@ -232,7 +191,6 @@
             document.getElementById('examsBox').style.display = "none";
           }
 
-          // بناء جدول المستويات والامتحانات فقط إذا كان مقبول
           let activeLevels = [];
           if (isAccepted) {
             var levelsHtml = '';
@@ -251,7 +209,6 @@
             document.getElementById('levelsBody').innerHTML = levelsHtml;
             document.getElementById('levelsTable').style.display = "";
 
-            // الامتحانات العامة
             let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
             let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
             let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
@@ -262,7 +219,6 @@
             document.getElementById('oralExamMark').innerText = oralMark;
             document.getElementById('fExam').innerText = fMark;
 
-            // جلب دروس المستويات المفعلة ثم جلب التلخيصات
             loadActiveLessonsAndSummaries(activeLevels);
           }
         }
@@ -271,7 +227,6 @@
       });
     }
 
-    // جلب الدروس المفعلة وجلب التلخيصات وعرضها
     function loadActiveLessonsAndSummaries(activeLevels) {
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
@@ -286,7 +241,6 @@
             lessons.push(lesson);
           }
         });
-        // جلب التلخيصات الخاصة بالطالب لهذه الدروس فقط
         if (lessons.length === 0) {
           document.getElementById('lessonsSummariesArea').innerHTML = "";
           return;
@@ -307,14 +261,10 @@
       });
     }
 
-    // بناء واجهة التلخيصات
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
-        let sum = summariesMap[lesson.id] || {
-          summary_text: "",
-          status: "draft"
-        };
+        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft" };
         let submitted = sum.status === 'submitted';
         html += `
         <div class="lesson-summary-block">
@@ -336,7 +286,6 @@
       document.getElementById('lessonsSummariesArea').innerHTML = html;
     }
 
-    // حفظ مسودة التلخيص
     function saveSummary(lessonId) {
       let textarea = document.getElementById('sumtext_' + lessonId);
       let msg = document.getElementById('sum_msg_' + lessonId);
@@ -349,7 +298,6 @@
         .get()
         .then(function(querySnapshot){
           if (!querySnapshot.empty) {
-            // تعديل المسودة فقط إذا لم تكن submitted
             let docId = querySnapshot.docs[0].id;
             let data = querySnapshot.docs[0].data();
             if (data.status === "submitted") {
@@ -383,7 +331,6 @@
         });
     }
 
-    // تسليم التلخيص بشكل نهائي
     function submitSummary(lessonId) {
       let textarea = document.getElementById('sumtext_' + lessonId);
       let msg = document.getElementById('sum_msg_' + lessonId);
