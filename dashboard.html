@@ -17,7 +17,10 @@
     th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
     th { background: #f1f5f9;}
     .level-checkbox { width: 18px; height: 18px; }
-    #msg { color: #e63946; margin-top: 20px; }
+    #msg, #addStudentMsg { color: #e63946; margin-top: 10px; }
+    .add-student { background: #f8fafc; padding: 16px 12px; border-radius: 8px; margin-bottom: 18px;}
+    .add-student input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 220px;}
+    .add-student label {margin-left: 10px;}
   </style>
 </head>
 <body>
@@ -26,6 +29,19 @@
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
+
+    <!-- قسم إضافة طالب -->
+    <div class="add-student">
+      <form id="addStudentForm" onsubmit="addStudent(event)">
+        <label>إضافة طالب جديد (البريد الإلكتروني):</label>
+        <input type="email" id="studentEmail" placeholder="student@email.com" required>
+        <input type="text" id="studentName" placeholder="اسم الطالب" required>
+        <input type="text" id="courseNumber" placeholder="رقم المقرر" required>
+        <button class="btn" type="submit">إضافة الطالب</button>
+      </form>
+      <div id="addStudentMsg"></div>
+    </div>
+
     <h2>إدارة مستويات الطلاب</h2>
     <div id="msg"></div>
     <table id="studentsTable">
@@ -75,8 +91,57 @@
       }
     });
 
+    // إضافة طالب
+    function addStudent(e) {
+      e.preventDefault();
+      var email = document.getElementById('studentEmail').value.trim();
+      var name = document.getElementById('studentName').value.trim();
+      var courseNumber = document.getElementById('courseNumber').value.trim();
+      var msg = document.getElementById('addStudentMsg');
+      msg.innerText = '';
+      msg.style.color = "#e63946";
+      if (!validateEmail(email) || !name || !courseNumber) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+
+      // تحقق هل الطالب موجود أصلاً في lectures
+      firestore.collection('lectures').where('email', '==', email).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "هذا الطالب موجود بالفعل.";
+        } else {
+          // إضافة الطالب في lectures
+          let levelsObj = {};
+          for (let i=1; i<=7; i++) levelsObj["level"+i] = false;
+          firestore.collection('lectures').add({
+            email: email,
+            name: name,
+            course_number: courseNumber,
+            role: "student",
+            diagnosis_exam: false,
+            exam1: false,
+            oral_exam: false,
+            ...levelsObj
+          }).then(function(){
+            msg.innerText = "";
+            msg.style.color = "green";
+            msg.innerText = "تمت إضافة الطالب بنجاح!";
+            document.getElementById('addStudentForm').reset();
+            loadStudents();
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
+      });
+    }
+
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+
+    // جلب الطلاب من lectures
     function loadStudents() {
-      // جلب الطلاب من lectures
       firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
         let html = '';
         querySnapshot.forEach(function(doc){
