@@ -9,7 +9,7 @@
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f6f9fc;}
     header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 1000px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    .container { max-width: 1050px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
     .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
     .signout {background:#e63946;}
@@ -19,8 +19,12 @@
     .level-checkbox { width: 18px; height: 18px; }
     #msg, #addStudentMsg { color: #e63946; margin-top: 10px; }
     .add-student { background: #f8fafc; padding: 16px 12px; border-radius: 8px; margin-bottom: 18px;}
-    .add-student input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 220px;}
+    .add-student input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 200px;}
     .add-student label {margin-left: 10px;}
+    @media (max-width: 900px){
+      .container{padding:8px;}
+      table, thead, tbody, th, td, tr { font-size: 0.95rem;}
+    }
   </style>
 </head>
 <body>
@@ -30,7 +34,7 @@
   </header>
   <div class="container">
 
-    <!-- قسم إضافة طالب -->
+    <!-- إضافة طالب جديد -->
     <div class="add-student">
       <form id="addStudentForm" onsubmit="addStudent(event)">
         <label>إضافة طالب جديد (البريد الإلكتروني):</label>
@@ -91,10 +95,10 @@
       }
     });
 
-    // إضافة طالب
+    // إضافة طالب جديد
     function addStudent(e) {
       e.preventDefault();
-      var email = document.getElementById('studentEmail').value.trim();
+      var email = document.getElementById('studentEmail').value.trim().toLowerCase();
       var name = document.getElementById('studentName').value.trim();
       var courseNumber = document.getElementById('courseNumber').value.trim();
       var msg = document.getElementById('addStudentMsg');
@@ -123,7 +127,6 @@
             oral_exam: false,
             ...levelsObj
           }).then(function(){
-            msg.innerText = "";
             msg.style.color = "green";
             msg.innerText = "تمت إضافة الطالب بنجاح!";
             document.getElementById('addStudentForm').reset();
@@ -162,6 +165,7 @@
       });
     }
 
+    // تحديث مستوى طالب
     window.updateLevel = function(checkbox) {
       const docId = checkbox.getAttribute('data-id');
       const level = checkbox.getAttribute('data-level');
