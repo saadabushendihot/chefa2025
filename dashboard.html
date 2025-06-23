@@ -3,11 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <title>لوحة تحكم المعلم - إدارة الطلاب</title>
-  <script>
-  var role = localStorage.getItem('user_role');
-  if(role !== "teacher"){
-    window.location.href = "index.html";
-  }
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script>
+  // إعدادات Firebase
+  var allowedRole = "student";
+  var firebaseConfig = {
+    apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+    authDomain: "shefa-502fe.firebaseapp.com",
+    projectId: "shefa-502fe",
+    storageBucket: "shefa-502fe.appspot.com",
+    messagingSenderId: "639314388969",
+    appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+  };
+  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+  var auth = firebase.auth();
+  var firestore = firebase.firestore();
+
+  // حدد الدور المسموح به للصفحة (عدّل هذا السطر لكل صفحة)
+  // مثال: "teacher" لصفحة المعلم، "student" لصفحة الطالب
+  var allowedRole = "teacher"; // عدّل حسب الصفحة
+
+  auth.onAuthStateChanged(function(user) {
+    if (user) {
+      firestore.collection('users').doc(user.uid).get().then(function(doc) {
+        if (doc.exists) {
+          var role = doc.data().role;
+          // إذا لم يكن الدور مساويًا للدور المسموح به، أعد التوجيه
+          if (role !== allowedRole) {
+            // إذا كان طالب وحاول دخول صفحة المعلم يرجع لصفحة الطالب
+            if (role === "student") {
+              window.location.href = "student.html";
+            // إذا كان معلم وحاول دخول صفحة الطالب يرجع للوحة التحكم
+            } else if (role === "teacher") {
+              window.location.href = "dashboard.html";
+            } else {
+              window.location.href = "login.html";
+            }
+          }
+          // إذا كان الدور صحيح، يكمل عرض الصفحة
+        } else {
+          // لا توجد بيانات للمستخدم
+          auth.signOut().then(() => {
+            window.location.href = "login.html";
+          });
+        }
+      });
+    } else {
+      // لم يتم تسجيل الدخول
+      window.location.href = "login.html";
+    }
+  });
 </script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
