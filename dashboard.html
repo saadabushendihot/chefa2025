@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة المعلم - إدارة الطلاب</title>
+  <title>لوحة المعلم - إدارة الطلاب والدروس</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -17,19 +17,23 @@
     th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
     th { background: #f1f5f9;}
     .level-checkbox { width: 18px; height: 18px; }
-    #msg, #addStudentMsg { color: #e63946; margin-top: 10px; }
-    .add-student { background: #f8fafc; padding: 16px 12px; border-radius: 8px; margin-bottom: 18px;}
-    .add-student input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 200px;}
-    .add-student label {margin-left: 10px;}
+    #msg, #addStudentMsg, #addLessonMsg { color: #e63946; margin-top: 10px; }
+    .add-student, .add-lesson { background: #f8fafc; padding: 16px 12px; border-radius: 8px; margin-bottom: 18px;}
+    .add-student input, .add-lesson input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 200px;}
+    .add-student label, .add-lesson label {margin-left: 10px;}
+    .lessons-table th, .lessons-table td {padding: 6px;}
+    .lessons-table th {background:#eef2fa;}
+    .lessons-table {margin-top:12px;}
     @media (max-width: 900px){
       .container{padding:8px;}
       table, thead, tbody, th, td, tr { font-size: 0.95rem;}
+      .add-student input, .add-lesson input {width:140px;}
     }
   </style>
 </head>
 <body>
   <header>
-    <span>لوحة المعلم - إدارة الطلاب</span>
+    <span>لوحة المعلم - إدارة الطلاب والدروس</span>
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
@@ -44,6 +48,19 @@
         <button class="btn" type="submit">إضافة الطالب</button>
       </form>
       <div id="addStudentMsg"></div>
+    </div>
+
+    <!-- إضافة درس جديد -->
+    <div class="add-lesson">
+      <form id="addLessonForm" onsubmit="addLesson(event)">
+        <label>إضافة درس جديد:</label>
+        <input type="number" id="lessonId" placeholder="رقم الدرس" required min="1">
+        <input type="text" id="lessonTitle" placeholder="عنوان الدرس" required>
+        <input type="text" id="lessonUrl" placeholder="رابط الدرس" required>
+        <input type="text" id="lessonLevel" placeholder='المستوى (مثلاً "الأول")' required>
+        <button class="btn" type="submit">إضافة الدرس</button>
+      </form>
+      <div id="addLessonMsg"></div>
     </div>
 
     <h2>إدارة مستويات الطلاب</h2>
@@ -64,6 +81,19 @@
         </tr>
       </thead>
       <tbody id="studentsList"></tbody>
+    </table>
+
+    <h2 style="margin-top:38px;">قائمة الدروس</h2>
+    <table class="lessons-table" id="lessonsTable">
+      <thead>
+        <tr>
+          <th>رقم الدرس</th>
+          <th>العنوان</th>
+          <th>الرابط</th>
+          <th>المستوى</th>
+        </tr>
+      </thead>
+      <tbody id="lessonsList"></tbody>
     </table>
   </div>
   <script>
@@ -88,6 +118,7 @@
             window.location.href = "login.html";
           } else {
             loadStudents();
+            loadLessons();
           }
         });
       } else {
@@ -138,6 +169,43 @@
       });
     }
 
+    // إضافة درس جديد
+    function addLesson(e) {
+      e.preventDefault();
+      var id = Number(document.getElementById('lessonId').value.trim());
+      var title = document.getElementById('lessonTitle').value.trim();
+      var url = document.getElementById('lessonUrl').value.trim();
+      var level = document.getElementById('lessonLevel').value.trim();
+      var msg = document.getElementById('addLessonMsg');
+      msg.innerText = '';
+      msg.style.color = "#e63946";
+      if (!id || !title || !url || !level) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+
+      // تحقق هل الدرس برقم id موجود بالفعل
+      firestore.collection('lessons').where('id', '==', id).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "يوجد درس بنفس الرقم بالفعل.";
+        } else {
+          firestore.collection('lessons').add({
+            id: id,
+            title: title,
+            url: url,
+            level: level
+          }).then(function(){
+            msg.style.color = "green";
+            msg.innerText = "تمت إضافة الدرس بنجاح!";
+            document.getElementById('addLessonForm').reset();
+            loadLessons();
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
+      });
+    }
+
     function validateEmail(email) {
       var re = /\S+@\S+\.\S+/;
       return re.test(email);
@@ -162,6 +230,23 @@
             </tr>`;
         });
         document.getElementById('studentsList').innerHTML = html || '<tr><td colspan="10">لا يوجد طلاب بعد.</td></tr>';
+      });
+    }
+
+    // جلب الدروس من lessons
+    function loadLessons() {
+      firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
+        let html = '';
+        querySnapshot.forEach(function(doc){
+          let data = doc.data();
+          html += `<tr>
+              <td>${data.id || ''}</td>
+              <td>${data.title || ''}</td>
+              <td><a href="${data.url || ''}" target="_blank">رابط</a></td>
+              <td>${data.level || ''}</td>
+            </tr>`;
+        });
+        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="4">لا يوجد دروس بعد.</td></tr>';
       });
     }
 
