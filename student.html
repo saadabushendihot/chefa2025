@@ -27,23 +27,28 @@
     .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
     .exam-row {margin-bottom: 10px; font-size: 1.09rem;}
     .exam-row span {margin-left: 10px;}
-    /* مربع حالة القبول */
     .admission-status-box { 
-      padding: 15px 18px; 
-      margin-bottom: 18px; 
-      border-radius: 8px; 
-      font-size: 1.18rem; 
-      font-weight: bold; 
-      border: 2px solid #e4e7ef; 
+      padding: 15px 18px;
+      margin-bottom: 18px;
+      border-radius: 8px;
+      font-size: 1.18rem;
+      font-weight: bold;
+      border: 2px solid #e4e7ef;
       text-align:center;
     }
     .admission-accepted { background: #e6faea; color: #219e4b; border-color: #8be2b4;}
     .admission-rejected { background: #fff2f2; color: #e63946; border-color: #f6b8b8;}
     .admission-pending { background: #fffde6; color: #e6a100; border-color: #ffeab6;}
+    /* جدول الدروس */
+    #lessonsBox { margin:30px 0 0 0; display:none;}
+    .lessons-table {width:100%; border-collapse:collapse; margin-bottom:16px;}
+    .lessons-table th, .lessons-table td {padding:8px 6px; border-bottom:1px solid #e4e7ef; text-align:center;}
+    .lessons-table th {background:#eef2fa; color:#1b3e72;}
     @media (max-width: 700px) {
       .container {padding: 8px;}
       header {padding:10px;}
       .levels-table th, .levels-table td {padding: 7px 2px;}
+      .lessons-table th, .lessons-table td {padding: 6px 2px;}
     }
   </style>
 </head>
@@ -79,6 +84,11 @@
       <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
       <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
+    <!-- جدول الدروس حسب المستويات -->
+    <div id="lessonsBox">
+      <h3 style="color:#2260af; margin-bottom:10px;">دروسك حسب المستويات</h3>
+      <div id="lessonsTables"></div>
+    </div>
   </div>
   <script>
     // إعداد Firebase
@@ -93,6 +103,27 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
+
+    // دالة تحويل اسم المستوى الى رقم
+    function getLevelNumber(levelName) {
+      switch (levelName.replace('المستوى ', '').replace('ال', '')) {
+        case "أول": case "الأول": return 1;
+        case "ثاني": case "الثاني": return 2;
+        case "ثالث": case "الثالث": return 3;
+        case "رابع": case "الرابع": return 4;
+        case "خامس": case "الخامس": return 5;
+        case "سادس": case "السادس": return 6;
+        case "سابع": case "السابع": return 7;
+        case "1": return 1;
+        case "2": return 2;
+        case "3": return 3;
+        case "4": return 4;
+        case "5": return 5;
+        case "6": return 6;
+        case "7": return 7;
+        default: return 0;
+      }
+    }
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
@@ -126,6 +157,8 @@
       document.getElementById('levelsTable').style.display = "none";
       document.getElementById('examsBox').style.display = "none";
       document.getElementById('admissionStatusBox').style.display = "none";
+      document.getElementById('lessonsBox').style.display = "none";
+      document.getElementById('lessonsTables').innerHTML = "";
 
       firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
         if (querySnapshot.empty) {
@@ -147,7 +180,6 @@
             if (isAccepted) {
               admissionBox.className = "admission-status-box admission-accepted";
               admissionBox.innerText = "تم قبولك في الدورة ✅";
-              // فقط إذا كان مقبول تظهر المستويات والامتحانات
               document.getElementById('levelsTable').style.display = "";
               document.getElementById('examsBox').style.display = "block";
             } else if (isRejected) {
@@ -162,7 +194,6 @@
               document.getElementById('examsBox').style.display = "none";
             }
           } else {
-            // إذا لم يوجد حقل القبول اعتبره قيد المراجعة
             admissionBox.className = "admission-status-box admission-pending";
             admissionBox.innerText = "طلبك قيد المراجعة...";
             document.getElementById('levelsTable').style.display = "none";
@@ -170,12 +201,14 @@
           }
 
           // بناء جدول المستويات والامتحانات فقط إذا كان مقبول
+          let activeLevels = [];
           if (isAccepted) {
             var levelsHtml = '';
             for (var i = 1; i <= 7; i++) {
               var level = data['level'+i];
               var mark = data['level'+i+'_exam_mark'];
               var final = data['level'+i+'_final_exam'];
+              if (level) activeLevels.push(i);
               levelsHtml += `<tr>
                 <td>المستوى ${i}</td>
                 <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
@@ -184,6 +217,7 @@
               </tr>`;
             }
             document.getElementById('levelsBody').innerHTML = levelsHtml;
+            document.getElementById('levelsTable').style.display = "";
 
             // الامتحانات العامة
             let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
@@ -195,6 +229,49 @@
             document.getElementById('exam1Mark').innerText = exam1Mark;
             document.getElementById('oralExamMark').innerText = oralMark;
             document.getElementById('fExam').innerText = fMark;
+
+            // جلب الدروس حسب المستويات المفعلة
+            if (activeLevels.length > 0) {
+              firestore.collection('lessons').orderBy('id').get().then(function(lessonSnapshot) {
+                let lessonsByLevel = {};
+                lessonSnapshot.forEach(function(doc) {
+                  let lesson = doc.data();
+                  let levelNum = getLevelNumber(lesson.level);
+                  if (!lessonsByLevel[levelNum]) lessonsByLevel[levelNum] = [];
+                  lessonsByLevel[levelNum].push(lesson);
+                });
+                let html = '';
+                activeLevels.forEach(function(lvl) {
+                  let lessons = lessonsByLevel[lvl] || [];
+                  if (lessons.length > 0) {
+                    html += `<h4 style="margin-top:18px;">المستوى ${lvl}</h4>
+                    <table class="lessons-table">
+                      <thead>
+                        <tr>
+                          <th>رقم المحاضرة</th>
+                          <th>اسم المحاضرة</th>
+                          <th>رابط المحاضرة</th>
+                        </tr>
+                      </thead>
+                      <tbody>`;
+                    lessons.forEach(function(lesson) {
+                      html += `<tr>
+                        <td>${lesson.id}</td>
+                        <td>${lesson.title}</td>
+                        <td><a href="${lesson.url}" target="_blank" style="color:#4361ee;">رابط</a></td>
+                      </tr>`;
+                    });
+                    html += `</tbody></table>`;
+                  }
+                });
+                document.getElementById('lessonsTables').innerHTML = html;
+                document.getElementById('lessonsBox').style.display = html ? "block" : "none";
+              });
+            } else {
+              document.getElementById('lessonsBox').style.display = "none";
+            }
+          } else {
+            document.getElementById('lessonsBox').style.display = "none";
           }
         }
       }).catch(function(err) {
