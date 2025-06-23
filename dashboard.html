@@ -17,13 +17,17 @@
     th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
     th { background: #f1f5f9;}
     .level-checkbox { width: 18px; height: 18px; }
-    #msg, #addStudentMsg, #addLessonMsg { color: #e63946; margin-top: 10px; }
+    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #e63946; margin-top: 10px; }
     .add-student, .add-lesson { background: #f8fafc; padding: 16px 12px; border-radius: 8px; margin-bottom: 18px;}
     .add-student input, .add-lesson input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 200px;}
     .add-student label, .add-lesson label {margin-left: 10px;}
     .lessons-table th, .lessons-table td {padding: 6px;}
     .lessons-table th {background:#eef2fa;}
     .lessons-table {margin-top:12px;}
+    .edit-btn, .save-btn, .cancel-btn {padding:4px 12px; border-radius:5px; border:none; margin:0 2px; cursor:pointer;}
+    .edit-btn {background:#2196f3; color:#fff;}
+    .save-btn {background:#209e57; color:#fff;}
+    .cancel-btn {background:#e63946; color:#fff;}
     @media (max-width: 900px){
       .container{padding:8px;}
       table, thead, tbody, th, td, tr { font-size: 0.95rem;}
@@ -84,6 +88,7 @@
     </table>
 
     <h2 style="margin-top:38px;">قائمة الدروس</h2>
+    <div id="editLessonMsg"></div>
     <table class="lessons-table" id="lessonsTable">
       <thead>
         <tr>
@@ -91,6 +96,7 @@
           <th>العنوان</th>
           <th>الرابط</th>
           <th>المستوى</th>
+          <th>تعديل</th>
         </tr>
       </thead>
       <tbody id="lessonsList"></tbody>
@@ -109,6 +115,8 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
+
+    var editLessonId = null; // لتتبع الدرس الجاري تعديله
 
     // حماية الصفحة: يسمح فقط للمعلم بالدخول
     auth.onAuthStateChanged(function(user) {
@@ -233,21 +241,89 @@
       });
     }
 
-    // جلب الدروس من lessons
+    // جلب الدروس من lessons مع ميزة التعديل
     function loadLessons() {
       firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
         let html = '';
         querySnapshot.forEach(function(doc){
           let data = doc.data();
-          html += `<tr>
-              <td>${data.id || ''}</td>
-              <td>${data.title || ''}</td>
-              <td><a href="${data.url || ''}" target="_blank">رابط</a></td>
-              <td>${data.level || ''}</td>
-            </tr>`;
+          if (editLessonId === doc.id) {
+            // وضع حقول قابلة للتعديل
+            html += `
+              <tr>
+                <td><input type="number" id="editId" value="${data.id}" style="width:70px;" required></td>
+                <td><input type="text" id="editTitle" value="${data.title}" style="width:180px;" required></td>
+                <td><input type="text" id="editUrl" value="${data.url}" style="width:180px;" required></td>
+                <td><input type="text" id="editLevel" value="${data.level}" style="width:90px;" required></td>
+                <td>
+                  <button class="save-btn" onclick="saveLesson('${doc.id}')">حفظ</button>
+                  <button class="cancel-btn" onclick="cancelEditLesson()">إلغاء</button>
+                </td>
+              </tr>
+            `;
+          } else {
+            html += `<tr>
+                <td>${data.id || ''}</td>
+                <td>${data.title || ''}</td>
+                <td><a href="${data.url || ''}" target="_blank">رابط</a></td>
+                <td>${data.level || ''}</td>
+                <td>
+                  <button class="edit-btn" onclick="editLesson('${doc.id}')">تعديل</button>
+                </td>
+              </tr>`;
+          }
         });
-        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="4">لا يوجد دروس بعد.</td></tr>';
+        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="5">لا يوجد دروس بعد.</td></tr>';
       });
+    }
+
+    // بدأ تعديل الدرس
+    window.editLesson = function(docId){
+      editLessonId = docId;
+      document.getElementById('editLessonMsg').innerText = '';
+      loadLessons();
+    }
+
+    // إلغاء التعديل
+    window.cancelEditLesson = function(){
+      editLessonId = null;
+      document.getElementById('editLessonMsg').innerText = '';
+      loadLessons();
+    }
+
+    // حفظ الدرس بعد التعديل
+    window.saveLesson = function(docId){
+      var id = Number(document.getElementById('editId').value.trim());
+      var title = document.getElementById('editTitle').value.trim();
+      var url = document.getElementById('editUrl').value.trim();
+      var level = document.getElementById('editLevel').value.trim();
+      var msg = document.getElementById('editLessonMsg');
+      msg.innerText = '';
+      msg.style.color = "#e63946";
+      if (!id || !title || !url || !level) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+      // تحديث الدرس في فايربيز
+      firestore.collection('lessons').doc(docId).update({
+        id: id,
+        title: title,
+        url: url,
+        level: level
+      }).then(function(){
+        msg.style.color = "green";
+        msg.innerText = "تم تحديث الدرس بنجاح!";
+        editLessonId = null;
+        loadLessons();
+        setTimeout(()=>{msg.innerText='';}, 1500);
+      }).catch(function(err){
+        msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
+      });
+    }
+
+    // جلب الدروس عند تحميل الصفحة
+    function loadLessonsOnPage() {
+      loadLessons();
     }
 
     // تحديث مستوى طالب
