@@ -10,25 +10,68 @@
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
     .login-box { background: #fff; padding: 40px 32px; border-radius: 12px; box-shadow: 0 2px 15px #0002; text-align: center; width: 350px;}
     .logo { font-weight: bold; font-size: 2rem; color: #4361ee; margin-bottom: 10px;}
-    button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
+    button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 16px;}
     #msg { color: #e63946; margin-top: 20px; }
+    input { width: 85%; margin: 8px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem;}
   </style>
 </head>
 <body>
   <div class="login-box">
     <div class="logo">شفاء</div>
     <h2>تسجيل الدخول</h2>
-    <p>سجّل الدخول باستخدام حساب Google الخاص بك</p>
-    <button id="googleLogin">تسجيل الدخول عبر Google</button>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="البريد الإلكتروني" required><br>
+      <input type="password" id="password" placeholder="كلمة المرور" required><br>
+      <button type="submit" id="emailLoginBtn">دخول بالبريد</button>
+    </form>
+    <hr style="margin:20px 0;">
+    <button id="googleLogin">دخول عبر Google</button>
     <div id="msg"></div>
   </div>
   <script>
-    // firebase config ...
-    var firebaseConfig = { /* .... نفس الإعدادات السابقة .... */ };
+    // إعدادات Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.appspot.com",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
     firebase.initializeApp(firebaseConfig);
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
+    // دخول بالبريد وكلمة المرور
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = document.getElementById('email').value;
+      var password = document.getElementById('password').value;
+      document.getElementById('msg').innerText = '';
+      auth.signInWithEmailAndPassword(email, password)
+      .then((result)=>{
+        var user = result.user;
+        firestore.collection('users').doc(user.uid).get().then(function(doc) {
+          if (doc.exists) {
+            var role = doc.data().role;
+            if (role === "teacher") {
+              window.location.href = "dashboard.html";
+            } else if (role === "student") {
+              window.location.href = "student.html";
+            } else {
+              document.getElementById('msg').innerText = "دور المستخدم غير محدد.";
+            }
+          } else {
+            document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم.";
+          }
+        });
+      })
+      .catch((error)=>{
+        document.getElementById('msg').innerText = "خطأ: " + error.message;
+      });
+    });
+
+    // دخول عبر Google
     document.getElementById('googleLogin').addEventListener('click', function() {
       var provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
