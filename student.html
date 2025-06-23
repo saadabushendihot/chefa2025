@@ -10,31 +10,27 @@
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f8fafc;}
     header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 600px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    .container { max-width: 700px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
     .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
     .signout {background:#e63946;}
     .info { background: #f5f7fb; border-radius: 7px; padding: 10px 18px; margin: 16px 0;}
-    .levels {margin-top:24px;}
-    .level-row {display: flex; align-items: center; margin-bottom: 13px; font-size:1.08rem;}
-    .level-label {min-width: 82px;}
-    .level-status {margin: 0 8px;}
-    .level .on {color: #219e4b; font-weight: bold;}
-    .level .off {color: #e63946; font-weight: bold;}
-    .level-exam-mark {background: #eaf3fc; color:#0d4c82; border-radius: 5px; padding:2px 11px; font-weight: bold; margin-right:8px;}
-    .exams-box {background: #eaf3fc; border-radius: 7px; padding: 16px 18px; margin: 28px 0 0 0;}
-    .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
-    .exam {margin-bottom: 10px; font-size: 1.08rem;}
-    .exam-label {display:inline-block; width:110px;}
-    .exam-mark {color:#0d4c82; font-weight:bold; margin-right:8px;}
-    .exam .yes {color: #219e4b; font-weight: bold;}
-    .exam .no {color: #e63946; font-weight: bold;}
     #msg { color: #e63946; margin-top: 20px; }
+    .levels-table { width: 100%; border-collapse: collapse; margin-top: 26px; margin-bottom: 26px;}
+    .levels-table th, .levels-table td {padding: 10px 6px; border-bottom:1px solid #e4e7ef; text-align:center;}
+    .levels-table th {background:#eef2fa; color:#1b3e72;}
+    .level-on {color: #219e4b; font-weight: bold;}
+    .level-off {color: #e63946; font-weight: bold;}
+    .exam-mark, .final-mark {background: #eaf3fc; color:#0d4c82; border-radius: 5px; padding:2px 10px; font-weight: bold;}
+    .final-mark {background: #ffeeb4; color: #ad7a13;}
+    .exams-box {background: #eaf3fc; border-radius: 7px; padding: 16px 18px; margin: 30px 0 0 0;}
+    .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
+    .exam-row {margin-bottom: 10px; font-size: 1.09rem;}
+    .exam-row span {margin-left: 10px;}
     @media (max-width: 700px) {
       .container {padding: 8px;}
       header {padding:10px;}
-      .exam-label {width:90px;}
-      .level-label {min-width:57px;}
+      .levels-table th, .levels-table td {padding: 7px 2px;}
     }
   </style>
 </head>
@@ -50,32 +46,27 @@
       <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
     </div>
     <div id="msg"></div>
-    <div class="levels" id="levels"></div>
+    <table class="levels-table" id="levelsTable">
+      <thead>
+        <tr>
+          <th>المستوى</th>
+          <th>الحالة</th>
+          <th>علامة امتحان المادة</th>
+          <th>علامة الامتحان النهائي للمستوى</th>
+        </tr>
+      </thead>
+      <tbody id="levelsBody"></tbody>
+    </table>
     <div class="exams-box" id="examsBox" style="display:none;">
       <div class="exams-title">الامتحانات العامة</div>
-      <div class="exam">
-        <span class="exam-label">تشخيصي:</span>
-        <span id="diagnosisExamMark" class="exam-mark"></span>
-        <span id="diagnosisExam"></span>
-      </div>
-      <div class="exam">
-        <span class="exam-label">امتحان 1:</span>
-        <span id="exam1Mark" class="exam-mark"></span>
-        <span id="exam1"></span>
-      </div>
-      <div class="exam">
-        <span class="exam-label">شفوي:</span>
-        <span id="oralExamMark" class="exam-mark"></span>
-        <span id="oralExam"></span>
-      </div>
-      <div class="exam">
-        <span class="exam-label">العلامة النهائية:</span>
-        <span id="fExam" class="exam-mark"></span>
-      </div>
+      <div class="exam-row"><b>امتحان تشخيصي:</b> <span id="diagnosisExamMark"></span></div>
+      <div class="exam-row"><b>امتحان 1:</b> <span id="exam1Mark"></span></div>
+      <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
+      <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
   </div>
   <script>
-    // إعدادات الفايربيز
+    // Firebase setup
     var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
@@ -88,7 +79,6 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
-    // تحقق من الدخول وأضف الطالب تلقائياً إلى users إذا لم يكن موجوداً
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
@@ -112,13 +102,12 @@
       }
     });
 
-    // جلب بيانات الطالب من lectures
     function loadStudentData(userEmail) {
       document.getElementById('studentName').innerText = "";
       document.getElementById('studentEmail').innerText = "";
       document.getElementById('courseNumber').innerText = "";
       document.getElementById('msg').innerText = "";
-      document.getElementById('levels').innerHTML = "";
+      document.getElementById('levelsBody').innerHTML = "";
       document.getElementById('examsBox').style.display = "none";
 
       firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
@@ -130,34 +119,29 @@
           document.getElementById('studentEmail').innerText = data.email || "";
           document.getElementById('courseNumber').innerText = data.course_number || "";
 
-          // عرض المستويات مع امتحان كل مستوى
-          var html = '';
+          var levelsHtml = '';
           for (var i = 1; i <= 7; i++) {
             var level = data['level'+i];
             var mark = data['level'+i+'_exam_mark'];
-            html += `<div class="level-row">
-                      <span class="level-label">المستوى ${i}:</span>
-                      <span class="level-status ${level ? 'on' : 'off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</span>
-                      <span class="level-exam-mark">${mark ? mark : '—'}</span>
-                    </div>`;
+            var final = data['level'+i+'_final_exam'];
+            levelsHtml += `<tr>
+              <td>المستوى ${i}</td>
+              <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
+              <td><span class="exam-mark">${mark ? mark : '—'}</span></td>
+              <td><span class="final-mark">${final ? final : '—'}</span></td>
+            </tr>`;
           }
-          document.getElementById('levels').innerHTML = html;
+          document.getElementById('levelsBody').innerHTML = levelsHtml;
 
-          // عرض الامتحانات العامة مع العلامات
+          // الامتحانات العامة
           let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
           let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
           let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
           let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
 
           document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
-          document.getElementById('diagnosisExam').innerHTML = data.diagnosis_exam ? '<span class="yes">✅</span>' : '<span class="no">❌</span>';
-
           document.getElementById('exam1Mark').innerText = exam1Mark;
-          document.getElementById('exam1').innerHTML = data.exam1 ? '<span class="yes">✅</span>' : '<span class="no">❌</span>';
-
           document.getElementById('oralExamMark').innerText = oralMark;
-          document.getElementById('oralExam').innerHTML = data.oral_exam ? '<span class="yes">✅</span>' : '<span class="no">❌</span>';
-
           document.getElementById('fExam').innerText = fMark;
 
           document.getElementById('examsBox').style.display = "block";
