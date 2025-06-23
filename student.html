@@ -22,12 +22,15 @@
     .exams-box {background: #eaf3fc; border-radius: 7px; padding: 16px 18px; margin: 26px 0 0 0;}
     .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
     .exam {margin-bottom: 10px; font-size: 1.08rem;}
+    .exam-label {display:inline-block; width:110px;}
+    .exam-mark {color:#0d4c82; font-weight:bold; margin-right:8px;}
     .exam .yes {color: #219e4b; font-weight: bold;}
     .exam .no {color: #e63946; font-weight: bold;}
     #msg { color: #e63946; margin-top: 20px; }
     @media (max-width: 700px) {
       .container {padding: 8px;}
       header {padding:10px;}
+      .exam-label {width:90px;}
     }
   </style>
 </head>
@@ -46,10 +49,25 @@
     <div class="levels" id="levels"></div>
     <div class="exams-box" id="examsBox" style="display:none;">
       <div class="exams-title">الامتحانات</div>
-      <div class="exam">امتحان تشخيصي: <span id="diagnosisExam"></span></div>
-      <div class="exam">امتحان 1: <span id="exam1"></span></div>
-      <div class="exam">امتحان شفوي: <span id="oralExam"></span></div>
-      <div class="exam">علامة f: <span id="fExam"></span></div>
+      <div class="exam">
+        <span class="exam-label">تشخيصي:</span>
+        <span id="diagnosisExamMark" class="exam-mark"></span>
+        <span id="diagnosisExam"></span>
+      </div>
+      <div class="exam">
+        <span class="exam-label">امتحان 1:</span>
+        <span id="exam1Mark" class="exam-mark"></span>
+        <span id="exam1"></span>
+      </div>
+      <div class="exam">
+        <span class="exam-label">شفوي:</span>
+        <span id="oralExamMark" class="exam-mark"></span>
+        <span id="oralExam"></span>
+      </div>
+      <div class="exam">
+        <span class="exam-label">العلامة النهائية:</span>
+        <span id="fExam" class="exam-mark"></span>
+      </div>
     </div>
   </div>
   <script>
@@ -115,11 +133,23 @@
           }
           document.getElementById('levels').innerHTML = html;
 
-          // عرض الامتحانات في مربع منفصل
-          document.getElementById('diagnosisExam').innerHTML = data.diagnosis_exam ? '<span class="yes">مُجتاز ✅</span>' : '<span class="no">غير مجتاز ❌</span>';
-          document.getElementById('exam1').innerHTML = data.exam1 ? '<span class="yes">مُجتاز ✅</span>' : '<span class="no">غير مجتاز ❌</span>';
-          document.getElementById('oralExam').innerHTML = data.oral_exam ? '<span class="yes">مُجتاز ✅</span>' : '<span class="no">غير مجتاز ❌</span>';
-          document.getElementById('fExam').innerHTML = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? `<span class="yes">${data.f}</span>` : '<span class="no">غير متوفر</span>';
+          // عرض الامتحانات مع العلامات
+          let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
+          let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
+          let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
+          let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
+
+          document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
+          document.getElementById('diagnosisExam').innerHTML = data.diagnosis_exam ? '<span class="yes">✅</span>' : '<span class="no">❌</span>';
+
+          document.getElementById('exam1Mark').innerText = exam1Mark;
+          document.getElementById('exam1').innerHTML = data.exam1 ? '<span class="yes">✅</span>' : '<span class="no">❌</span>';
+
+          document.getElementById('oralExamMark').innerText = oralMark;
+          document.getElementById('oralExam').innerHTML = data.oral_exam ? '<span class="yes">✅</span>' : '<span class="no">❌</span>';
+
+          document.getElementById('fExam').innerText = fMark;
+
           document.getElementById('examsBox').style.display = "block";
         }
       }).catch(function(err) {
