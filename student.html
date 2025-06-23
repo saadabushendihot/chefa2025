@@ -7,10 +7,23 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- خطوط جوجل للخط العربي العصري -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f8fafc;}
-    header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 800px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    body {
+      font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
+      margin: 0; background: #f8fafc;
+    }
+    header {
+      background: #4361ee; color: #fff;
+      padding: 18px 30px; font-size: 1.5rem;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .container {
+      max-width: 800px; margin: 30px auto;
+      background: #fff; border-radius: 10px; padding: 24px;
+      box-shadow: 0 2px 8px #0001;
+    }
     h2 { color: #4361ee; margin-top:0;}
     .btn { background: #4361ee; color: #fff; border: none; padding: 7px 22px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
     .btn[disabled] {background: #bdbdbd; color: #fff; cursor: not-allowed;}
@@ -41,14 +54,25 @@
     .admission-accepted { background: #e6faea; color: #219e4b; border-color: #8be2b4;}
     .admission-rejected { background: #fff2f2; color: #e63946; border-color: #f6b8b8;}
     .admission-pending { background: #fffde6; color: #e6a100; border-color: #ffeab6;}
-    .lesson-summary-block {background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px; box-shadow: 0 2px 6px #e0e7ef33;}
+    .lesson-summary-block {
+      background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px;
+      box-shadow: 0 2px 6px #e0e7ef33;
+      font-family: 'Tajawal', 'Cairo', Arial, sans-serif;
+    }
     .lesson-summary-block h4 {margin:0 0 8px 0; color:#1b3e72;}
     .lesson-link {color:#4361ee;}
     .summary-actions {margin-top: 8px;}
     .summary-status {font-weight:bold; font-size:0.95rem; margin-right:8px;}
     .summary-status.draft { color: #e6a100;}
     .summary-status.submitted { color: #219e4b;}
-    textarea.summary-text {width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;resize:vertical;font-size:1rem; box-sizing: border-box;}
+    textarea.summary-text {
+      width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
+      resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
+      font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
+      color: #1b2a39; line-height: 1.7;
+      transition: border 0.15s;
+    }
+    textarea.summary-text:focus {border-color: #4361ee;}
     @media (max-width: 900px){
       .container{padding:8px;}
       header {padding:10px;}
@@ -64,9 +88,10 @@
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
-    <h2>مرحباً، <span id="studentName"></span></h2>
+    <h2>مرحباً، <span id="studentName"></span> <span id="studentNameDisplay" style="color:#3b5cb8;"></span></h2>
     <div class="info">
       <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
+      <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
       <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
     </div>
     <!-- مربع حالة القبول -->
@@ -157,6 +182,8 @@
       currentStudentEmail = userEmail;
       currentStudentName = userName;
       document.getElementById('studentName').innerText = userName || "";
+      document.getElementById('studentNameDisplay').innerText = userName ? `(${userName})` : "";
+      document.getElementById('studentNameInfo').innerText = userName || "";
       document.getElementById('studentEmail').innerText = userEmail || "";
       document.getElementById('courseNumber').innerText = "";
       document.getElementById('msg').innerText = "";
@@ -329,6 +356,7 @@
             }
             firestore.collection('summaries').doc(docId).update({
               summary_text: text,
+              student_name: currentStudentName || "",
               status: "draft",
               timestamp: new Date().toISOString()
             }).then(function(){
@@ -374,6 +402,7 @@
             }
             firestore.collection('summaries').doc(docId).update({
               summary_text: text,
+              student_name: currentStudentName || "",
               status: "submitted",
               timestamp: new Date().toISOString()
             }).then(function(){
