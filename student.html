@@ -2,183 +2,63 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>محاضراتي المفعلة</title>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script>
-  var allowedRole = "student";
-  // إعدادات Firebase
-  var firebaseConfig = {
-    apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-    authDomain: "shefa-502fe.firebaseapp.com",
-    projectId: "shefa-502fe",
-    storageBucket: "shefa-502fe.appspot.com",
-    messagingSenderId: "639314388969",
-    appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-  };
-  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-  var auth = firebase.auth();
-  var firestore = firebase.firestore();
-
-  // حدد الدور المسموح به للصفحة (عدّل هذا السطر لكل صفحة)
-  // مثال: "teacher" لصفحة المعلم، "student" لصفحة الطالب
-  var allowedRole = "teacher"; // عدّل حسب الصفحة
-
-  auth.onAuthStateChanged(function(user) {
-    if (user) {
-      firestore.collection('users').doc(user.uid).get().then(function(doc) {
-        if (doc.exists) {
-          var role = doc.data().role;
-          // إذا لم يكن الدور مساويًا للدور المسموح به، أعد التوجيه
-          if (role !== allowedRole) {
-            // إذا كان طالب وحاول دخول صفحة المعلم يرجع لصفحة الطالب
-            if (role === "student") {
-              window.location.href = "student.html";
-            // إذا كان معلم وحاول دخول صفحة الطالب يرجع للوحة التحكم
-            } else if (role === "teacher") {
-              window.location.href = "dashboard.html";
-            } else {
-              window.location.href = "login.html";
-            }
-          }
-          // إذا كان الدور صحيح، يكمل عرض الصفحة
-        } else {
-          // لا توجد بيانات للمستخدم
-          auth.signOut().then(() => {
-            window.location.href = "login.html";
-          });
-        }
-      });
-    } else {
-      // لم يتم تسجيل الدخول
-      window.location.href = "login.html";
-    }
-  });
-</script>
-  var firebaseConfig = {
-    apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-    authDomain: "shefa-502fe.firebaseapp.com",
-    projectId: "shefa-502fe",
-    storageBucket: "shefa-502fe.appspot.com",
-    messagingSenderId: "639314388969",
-    appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-  };
-  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-  var auth = firebase.auth();
-  var firestore = firebase.firestore();
-
-  auth.onAuthStateChanged(function(user) {
-    if (user) {
-      // جلب الدور من Firestore
-      firestore.collection('users').doc(user.uid).get().then(function(doc) {
-        if (doc.exists) {
-          var role = doc.data().role;
-          // مثال: الحماية في صفحة المدرس فقط
-          if (window.location.pathname.includes('dashboard.html') && role !== "teacher") {
-            window.location.href = "student.html";
-          }
-          // مثال: الحماية في صفحة الطالب فقط
-          if (window.location.pathname.includes('student.html') && role !== "student") {
-            window.location.href = "dashboard.html";
-          }
-        } else {
-          // إذا لم توجد بيانات، تسجيل خروج وتحويل لصفحة الدخول
-          auth.signOut().then(() => {
-            window.location.href = "login.html";
-          });
-        }
-      });
-    } else {
-      // لم يتم تسجيل الدخول
-      window.location.href = "login.html";
-    }
-  });
-</script>
-    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin: 40px; }
-    .box { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px #ccc2; margin-bottom: 20px;}
-    input[type="email"] { padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 300px; }
-    button { background: #4361ee; color: #fff; border: none; padding: 10px 25px; border-radius: 6px; font-size: 1rem; margin-right: 10px;}
-    table { border-collapse: collapse; width: 100%; margin-top: 15px;}
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-    th { background: #4361ee; color: #fff; }
+  <title>لوحة الطالب - شفاء</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <style>
+    body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f8fafc;}
+    header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
+    .container { max-width: 850px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    h2 { color: #4361ee; margin-top:0;}
+    .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+    .lessons-list {margin-top:30px;}
+    .lesson { padding: 16px; border-bottom: 1px solid #eee;}
+    .signout {background:#e63946;}
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>عرض المحاضرات المفعلة</h2>
-    <form id="emailForm">
-      <label>البريد الإلكتروني للطالب:
-        <input type="email" id="studentEmail" required>
-      </label>
-      <button type="submit">عرض المحاضرات</button>
-    </form>
+  <header>
+    <span>لوحة الطالب</span>
+    <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
+  </header>
+  <div class="container">
+    <h2>مرحباً، <span id="studentName"></span></h2>
+    <div class="lessons-list" id="lessons"></div>
   </div>
-  <div id="lecturesBox" class="box" style="display:none;">
-    <h2>المحاضرات المفعلة</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>المحاضرة/الامتحان</th>
-          <th>الحالة</th>
-        </tr>
-      </thead>
-      <tbody id="activeLecturesBody"></tbody>
-    </table>
-  </div>
-
   <script>
-    // إعدادات Firebase
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-
-    document.getElementById('emailForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var email = document.getElementById('studentEmail').value.trim();
-      if (!email) return;
-
-      db.collection("lectures").doc(email).get().then(function(doc) {
-        if (doc.exists) {
-          var data = doc.data();
-          var lectures = [
-            {name: "المستوى 1", key: "level1"},
-            {name: "المستوى 2", key: "level2"},
-            {name: "المستوى 3", key: "level3"},
-            {name: "المستوى 4", key: "level4"},
-            {name: "المستوى 5", key: "level5"},
-            {name: "المستوى 6", key: "level6"},
-            {name: "المستوى 7", key: "level7"},
-            {name: "الامتحان الكتابي الأول", key: "exam1"},
-            {name: "امتحان تشخيص الحالة", key: "diagnosis_exam"},
-            {name: "الامتحان الشفهي", key: "oral_exam"}
-          ];
-          var tbody = "";
-          lectures.forEach(function(item) {
-            if (data[item.key]) { // مفعلة فقط
-              tbody += `<tr><td>${item.name}</td><td>✅</td></tr>`;
-            }
-          });
-          if (tbody === "") {
-            tbody = '<tr><td colspan="2">لا توجد محاضرات أو امتحانات مفعلة حاليًا</td></tr>';
+    // حماية الصفحة
+    var firebaseConfig = { /* .... نفس الإعدادات السابقة .... */ };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        firestore.collection('users').doc(user.uid).get().then(function(doc) {
+          if (doc.exists && doc.data().role === "student") {
+            document.getElementById('studentName').innerText = doc.data().email;
+            // جلب الدروس (مثال: كل الدروس المتاحة)
+            firestore.collection('lessons').get().then(function(querySnapshot){
+              let html = '';
+              querySnapshot.forEach(function(lesson){
+                html += `<div class="lesson">عنوان الدرس: ${lesson.data().title || 'بدون عنوان'}</div>`;
+              });
+              document.getElementById('lessons').innerHTML = html || "لا توجد دروس متاحة.";
+            });
+          } else if (doc.exists && doc.data().role === "teacher") {
+            window.location.href = "dashboard.html";
+          } else {
+            window.location.href = "login.html";
           }
-          document.getElementById('activeLecturesBody').innerHTML = tbody;
-          document.getElementById('lecturesBox').style.display = "block";
-        } else {
-          alert("لا يوجد بيانات لهذا الطالب.");
-          document.getElementById('lecturesBox').style.display = "none";
-        }
-      }).catch(function(error) {
-        alert("حدث خطأ أثناء جلب البيانات: " + error.message);
-      });
+        });
+      } else {
+        window.location.href = "login.html";
+      }
     });
+
+    function logout() {
+      auth.signOut().then(()=>{window.location.href='login.html';});
+    }
   </script>
 </body>
 </html>
