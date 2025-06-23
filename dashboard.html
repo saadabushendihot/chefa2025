@@ -2,263 +2,67 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة تحكم المعلم - إدارة الطلاب</title>
-
+  <title>لوحة المعلم - شفاء</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-<script>
-  // إعدادات Firebase
-  var allowedRole = "student";
-  var firebaseConfig = {
-    apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-    authDomain: "shefa-502fe.firebaseapp.com",
-    projectId: "shefa-502fe",
-    storageBucket: "shefa-502fe.appspot.com",
-    messagingSenderId: "639314388969",
-    appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-  };
-  if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-  var auth = firebase.auth();
-  var firestore = firebase.firestore();
-
-  // حدد الدور المسموح به للصفحة (عدّل هذا السطر لكل صفحة)
-  // مثال: "teacher" لصفحة المعلم، "student" لصفحة الطالب
-  var allowedRole = "teacher"; // عدّل حسب الصفحة
-
-  auth.onAuthStateChanged(function(user) {
-    if (user) {
-      firestore.collection('users').doc(user.uid).get().then(function(doc) {
-        if (doc.exists) {
-          var role = doc.data().role;
-          // إذا لم يكن الدور مساويًا للدور المسموح به، أعد التوجيه
-          if (role !== allowedRole) {
-            // إذا كان طالب وحاول دخول صفحة المعلم يرجع لصفحة الطالب
-            if (role === "student") {
-              window.location.href = "student.html";
-            // إذا كان معلم وحاول دخول صفحة الطالب يرجع للوحة التحكم
-            } else if (role === "teacher") {
-              window.location.href = "dashboard.html";
-            } else {
-              window.location.href = "login.html";
-            }
-          }
-          // إذا كان الدور صحيح، يكمل عرض الصفحة
-        } else {
-          // لا توجد بيانات للمستخدم
-          auth.signOut().then(() => {
-            window.location.href = "login.html";
-          });
-        }
-      });
-    } else {
-      // لم يتم تسجيل الدخول
-      window.location.href = "login.html";
-    }
-  });
-</script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
-    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin: 40px; }
-    .box { background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 8px #ccc2; margin-bottom: 20px;}
-    label { display: inline-block; margin: 10px 12px 10px 0;}
-    input[type="text"], input[type="email"] { width: 230px; padding: 7px; border-radius: 4px; border: 1px solid #ccc; }
-    .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; margin: 10px 0 0 0; }
-    button { background: #4361ee; color: #fff; border: none; padding: 10px 25px; border-radius: 6px; font-size: 1rem; margin: 8px 0;}
-    table { border-collapse: collapse; width: 100%; background: #fff; box-shadow: 0 2px 8px #ccc2; margin-top: 20px;}
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #4361ee; color: #fff; }
-    .edit-btn, .save-btn, .cancel-btn, .delete-btn {
-      border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; font-weight: bold;
-    }
-    .edit-btn { background: #fbbc05; color: #222; }
-    .save-btn { background: #06d6a0; color: #222; }
-    .cancel-btn { background: #ef476f; color: #fff; }
-    .delete-btn { background: #eb2f06; color: #fff; }
-    .msg { margin: 10px 0; color: #4361ee; font-weight: bold; }
+    body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f6f9fc;}
+    header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
+    .container { max-width: 900px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    h2 { color: #4361ee; margin-top:0;}
+    .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+    .lessons-list {margin-top:30px;}
+    .lesson { padding: 16px; border-bottom: 1px solid #eee;}
+    .signout {background:#e63946;}
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>إضافة أو تعديل طالب</h2>
-    <form id="studentForm">
-      <label>رقم الدورة: <input type="text" id="course_number" required></label>
-      <label>اسم الطالب: <input type="text" id="name" required></label>
-      <label>البريد الإلكتروني: <input type="email" id="email" required></label>
-      <div class="checkbox-group">
-        <label>المستوى 1 <input type="checkbox" id="level1"></label>
-        <label>المستوى 2 <input type="checkbox" id="level2"></label>
-        <label>المستوى 3 <input type="checkbox" id="level3"></label>
-        <label>المستوى 4 <input type="checkbox" id="level4"></label>
-        <label>المستوى 5 <input type="checkbox" id="level5"></label>
-        <label>المستوى 6 <input type="checkbox" id="level6"></label>
-        <label>المستوى 7 <input type="checkbox" id="level7"></label>
-      </div>
-      <div class="checkbox-group">
-        <label>الامتحان الكتابي الأول <input type="checkbox" id="exam1"></label>
-        <label>امتحان تشخيص الحالة <input type="checkbox" id="diagnosis_exam"></label>
-        <label>الامتحان الشفهي <input type="checkbox" id="oral_exam"></label>
-      </div>
-      <button type="submit" id="saveBtn">حفظ</button>
-      <button type="button" id="cancelEditBtn" style="display:none;" class="cancel-btn">إلغاء التعديل</button>
-    </form>
-    <div class="msg" id="msg"></div>
+  <header>
+    <span>لوحة المعلم</span>
+    <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
+  </header>
+  <div class="container">
+    <h2>مرحباً، <span id="teacherName"></span></h2>
+    <button class="btn" onclick="addLesson()">إضافة درس جديد</button>
+    <div class="lessons-list" id="lessons"></div>
   </div>
-
-  <div class="box">
-    <h2>الطلاب المسجلون</h2>
-    <table id="studentsTable">
-      <thead>
-        <tr>
-          <th>رقم الدورة</th>
-          <th>الاسم</th>
-          <th>البريد الإلكتروني</th>
-          <th>م1</th>
-          <th>م2</th>
-          <th>م3</th>
-          <th>م4</th>
-          <th>م5</th>
-          <th>م6</th>
-          <th>م7</th>
-          <th>كتابي</th>
-          <th>تشخيص</th>
-          <th>شفهي</th>
-          <th>تعديل</th>
-          <th>حذف</th>
-        </tr>
-      </thead>
-      <tbody id="studentsBody"></tbody>
-    </table>
-  </div>
-
   <script>
-    // إعدادات Firebase
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-
-    let editingEmail = null;
-
-    // تعبئة النموذج
-    function fillForm(d) {
-      document.getElementById('course_number').value = d.course_number || "";
-      document.getElementById('name').value = d.name || "";
-      document.getElementById('email').value = d.email || "";
-      document.getElementById('level1').checked = !!d.level1;
-      document.getElementById('level2').checked = !!d.level2;
-      document.getElementById('level3').checked = !!d.level3;
-      document.getElementById('level4').checked = !!d.level4;
-      document.getElementById('level5').checked = !!d.level5;
-      document.getElementById('level6').checked = !!d.level6;
-      document.getElementById('level7').checked = !!d.level7;
-      document.getElementById('exam1').checked = !!d.exam1;
-      document.getElementById('diagnosis_exam').checked = !!d.diagnosis_exam;
-      document.getElementById('oral_exam').checked = !!d.oral_exam;
-    }
-
-    document.getElementById('studentForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      let email = document.getElementById('email').value.trim().toLowerCase();
-      let data = {
-        course_number: document.getElementById('course_number').value,
-        name: document.getElementById('name').value,
-        email: email,
-        level1: document.getElementById('level1').checked,
-        level2: document.getElementById('level2').checked,
-        level3: document.getElementById('level3').checked,
-        level4: document.getElementById('level4').checked,
-        level5: document.getElementById('level5').checked,
-        level6: document.getElementById('level6').checked,
-        level7: document.getElementById('level7').checked,
-        exam1: document.getElementById('exam1').checked,
-        diagnosis_exam: document.getElementById('diagnosis_exam').checked,
-        oral_exam: document.getElementById('oral_exam').checked,
-        role: "student"
-      };
-
-      db.collection("lectures").doc(email).set(data)
-        .then(function() {
-          document.getElementById('msg').innerText = editingEmail ? "تم تعديل بيانات الطالب بنجاح" : "تم إضافة الطالب بنجاح";
-          document.getElementById('studentForm').reset();
-          document.getElementById('saveBtn').innerText = "حفظ";
-          document.getElementById('cancelEditBtn').style.display = "none";
-          editingEmail = null;
-          loadStudents();
-        })
-        .catch(function(error) {
-          document.getElementById('msg').innerText = "حدث خطأ: " + error;
+    // حماية الصفحة
+    var firebaseConfig = { /* .... نفس الإعدادات السابقة .... */ };
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        firestore.collection('users').doc(user.uid).get().then(function(doc) {
+          if (doc.exists && doc.data().role === "teacher") {
+            document.getElementById('teacherName').innerText = doc.data().email;
+            // جلب الدروس (مثال: من مجموعة lessons)
+            firestore.collection('lessons').where('teacher', '==', user.uid).get().then(function(querySnapshot){
+              let html = '';
+              querySnapshot.forEach(function(lesson){
+                html += `<div class="lesson">عنوان الدرس: ${lesson.data().title || 'بدون عنوان'}</div>`;
+              });
+              document.getElementById('lessons').innerHTML = html || "لا توجد دروس حالياً.";
+            });
+          } else if (doc.exists && doc.data().role === "student") {
+            window.location.href = "student.html";
+          } else {
+            window.location.href = "login.html";
+          }
         });
+      } else {
+        window.location.href = "login.html";
+      }
     });
 
-    function loadStudents() {
-      db.collection("lectures").where("role", "==", "student").get().then(function(querySnapshot) {
-        var body = "";
-        querySnapshot.forEach(function(doc) {
-          var d = doc.data();
-          body += `<tr>
-            <td>${d.course_number || ""}</td>
-            <td>${d.name || ""}</td>
-            <td>${d.email || ""}</td>
-            <td>${d.level1 ? "✅" : ""}</td>
-            <td>${d.level2 ? "✅" : ""}</td>
-            <td>${d.level3 ? "✅" : ""}</td>
-            <td>${d.level4 ? "✅" : ""}</td>
-            <td>${d.level5 ? "✅" : ""}</td>
-            <td>${d.level6 ? "✅" : ""}</td>
-            <td>${d.level7 ? "✅" : ""}</td>
-            <td>${d.exam1 ? "✅" : ""}</td>
-            <td>${d.diagnosis_exam ? "✅" : ""}</td>
-            <td>${d.oral_exam ? "✅" : ""}</td>
-            <td><button class="edit-btn" onclick="editStudent('${d.email}')">تعديل</button></td>
-            <td><button class="delete-btn" onclick="deleteStudent('${d.email}')">حذف</button></td>
-          </tr>`;
-        });
-        document.getElementById('studentsBody').innerHTML = body;
-      });
+    function addLesson() {
+      alert("هنا يمكنك فتح نافذة لإضافة درس جديد (برمجة لاحقًا).");
     }
-
-    // تعديل بيانات طالب
-    window.editStudent = function(email) {
-      db.collection("lectures").doc(email).get().then(function(doc) {
-        if(doc.exists) {
-          fillForm(doc.data());
-          editingEmail = email;
-          document.getElementById('saveBtn').innerText = "تعديل";
-          document.getElementById('cancelEditBtn').style.display = "inline-block";
-          window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-      });
+    function logout() {
+      auth.signOut().then(()=>{window.location.href='login.html';});
     }
-
-    // إلغاء التعديل
-    document.getElementById('cancelEditBtn').onclick = function() {
-      document.getElementById('studentForm').reset();
-      editingEmail = null;
-      document.getElementById('saveBtn').innerText = "حفظ";
-      this.style.display = "none";
-      document.getElementById('msg').innerText = "";
-    };
-
-    // حذف طالب
-    window.deleteStudent = function(email) {
-      if(confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
-        db.collection("lectures").doc(email).delete().then(function() {
-          loadStudents();
-          document.getElementById('msg').innerText = "تم حذف الطالب.";
-        });
-      }
-    }
-
-    // تحميل الطلاب عند الفتح
-    window.onload = loadStudents;
   </script>
 </body>
 </html>
