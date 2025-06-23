@@ -16,10 +16,13 @@
     .signout {background:#e63946;}
     .info { background: #f5f7fb; border-radius: 7px; padding: 10px 18px; margin: 16px 0;}
     .levels {margin-top:24px;}
-    .level {margin-bottom:14px; font-size:1.1rem;}
+    .level-row {display: flex; align-items: center; margin-bottom: 13px; font-size:1.08rem;}
+    .level-label {min-width: 82px;}
+    .level-status {margin: 0 8px;}
     .level .on {color: #219e4b; font-weight: bold;}
     .level .off {color: #e63946; font-weight: bold;}
-    .exams-box {background: #eaf3fc; border-radius: 7px; padding: 16px 18px; margin: 26px 0 0 0;}
+    .level-exam-mark {background: #eaf3fc; color:#0d4c82; border-radius: 5px; padding:2px 11px; font-weight: bold; margin-right:8px;}
+    .exams-box {background: #eaf3fc; border-radius: 7px; padding: 16px 18px; margin: 28px 0 0 0;}
     .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
     .exam {margin-bottom: 10px; font-size: 1.08rem;}
     .exam-label {display:inline-block; width:110px;}
@@ -31,6 +34,7 @@
       .container {padding: 8px;}
       header {padding:10px;}
       .exam-label {width:90px;}
+      .level-label {min-width:57px;}
     }
   </style>
 </head>
@@ -48,7 +52,7 @@
     <div id="msg"></div>
     <div class="levels" id="levels"></div>
     <div class="exams-box" id="examsBox" style="display:none;">
-      <div class="exams-title">الامتحانات</div>
+      <div class="exams-title">الامتحانات العامة</div>
       <div class="exam">
         <span class="exam-label">تشخيصي:</span>
         <span id="diagnosisExamMark" class="exam-mark"></span>
@@ -126,14 +130,20 @@
           document.getElementById('studentEmail').innerText = data.email || "";
           document.getElementById('courseNumber').innerText = data.course_number || "";
 
-          // عرض المستويات
+          // عرض المستويات مع امتحان كل مستوى
           var html = '';
           for (var i = 1; i <= 7; i++) {
-            html += `<div class="level">المستوى ${i}: <span class="${data['level'+i] ? 'on' : 'off'}">${data['level'+i] ? 'مُفعل ✅' : 'غير مفعل ❌'}</span></div>`;
+            var level = data['level'+i];
+            var mark = data['level'+i+'_exam_mark'];
+            html += `<div class="level-row">
+                      <span class="level-label">المستوى ${i}:</span>
+                      <span class="level-status ${level ? 'on' : 'off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</span>
+                      <span class="level-exam-mark">${mark ? mark : '—'}</span>
+                    </div>`;
           }
           document.getElementById('levels').innerHTML = html;
 
-          // عرض الامتحانات مع العلامات
+          // عرض الامتحانات العامة مع العلامات
           let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
           let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
           let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
