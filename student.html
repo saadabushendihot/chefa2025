@@ -27,7 +27,7 @@
     .exams-title {font-size: 1.2rem; color: #2260af; font-weight: bold; margin-bottom: 10px;}
     .exam-row {margin-bottom: 10px; font-size: 1.09rem;}
     .exam-row span {margin-left: 10px;}
-    /* جديد: مربع حالة القبول */
+    /* مربع حالة القبول */
     .admission-status-box { 
       padding: 15px 18px; 
       margin-bottom: 18px; 
@@ -61,7 +61,7 @@
     <!-- مربع حالة القبول -->
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
-    <table class="levels-table" id="levelsTable">
+    <table class="levels-table" id="levelsTable" style="display:none;">
       <thead>
         <tr>
           <th>المستوى</th>
@@ -81,7 +81,7 @@
     </div>
   </div>
   <script>
-    // Firebase setup
+    // إعداد Firebase
     var firebaseConfig = {
       apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
       authDomain: "shefa-502fe.firebaseapp.com",
@@ -123,9 +123,10 @@
       document.getElementById('courseNumber').innerText = "";
       document.getElementById('msg').innerText = "";
       document.getElementById('levelsBody').innerHTML = "";
+      document.getElementById('levelsTable').style.display = "none";
       document.getElementById('examsBox').style.display = "none";
-      // مربع القبول اخفاء مبدئي
       document.getElementById('admissionStatusBox').style.display = "none";
+
       firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
         if (querySnapshot.empty) {
           document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم في النظام. تواصل مع الإدارة.";
@@ -137,49 +138,64 @@
 
           // عرض حالة القبول
           var admissionBox = document.getElementById('admissionStatusBox');
-          var status = data.accepted; // أو admissionStatus حسب تسمية الحقل لديك
-          // يمكن أن يكون status === true أو "مقبول" أو "قيد المراجعة" أو false أو "مرفوض"
+          var status = data.accepted;
+          let isAccepted = (status === true || status === "مقبول" || status === "accepted");
+          let isRejected = (status === false || status === "مرفوض" || status === "rejected");
+
+          admissionBox.style.display = "block";
           if (typeof status !== "undefined") {
-            admissionBox.style.display = "block";
-            // دعم الأنواع المختلفة للحقل
-            if (status === true || status === "مقبول" || status === "accepted") {
+            if (isAccepted) {
               admissionBox.className = "admission-status-box admission-accepted";
               admissionBox.innerText = "تم قبولك في الدورة ✅";
-            } else if (status === false || status === "مرفوض" || status === "rejected") {
+              // فقط إذا كان مقبول تظهر المستويات والامتحانات
+              document.getElementById('levelsTable').style.display = "";
+              document.getElementById('examsBox').style.display = "block";
+            } else if (isRejected) {
               admissionBox.className = "admission-status-box admission-rejected";
               admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
+              document.getElementById('levelsTable').style.display = "none";
+              document.getElementById('examsBox').style.display = "none";
             } else {
               admissionBox.className = "admission-status-box admission-pending";
               admissionBox.innerText = "طلبك قيد المراجعة...";
+              document.getElementById('levelsTable').style.display = "none";
+              document.getElementById('examsBox').style.display = "none";
             }
+          } else {
+            // إذا لم يوجد حقل القبول اعتبره قيد المراجعة
+            admissionBox.className = "admission-status-box admission-pending";
+            admissionBox.innerText = "طلبك قيد المراجعة...";
+            document.getElementById('levelsTable').style.display = "none";
+            document.getElementById('examsBox').style.display = "none";
           }
 
-          var levelsHtml = '';
-          for (var i = 1; i <= 7; i++) {
-            var level = data['level'+i];
-            var mark = data['level'+i+'_exam_mark'];
-            var final = data['level'+i+'_final_exam'];
-            levelsHtml += `<tr>
-              <td>المستوى ${i}</td>
-              <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
-              <td><span class="exam-mark">${mark ? mark : '—'}</span></td>
-              <td><span class="final-mark">${final ? final : '—'}</span></td>
-            </tr>`;
+          // بناء جدول المستويات والامتحانات فقط إذا كان مقبول
+          if (isAccepted) {
+            var levelsHtml = '';
+            for (var i = 1; i <= 7; i++) {
+              var level = data['level'+i];
+              var mark = data['level'+i+'_exam_mark'];
+              var final = data['level'+i+'_final_exam'];
+              levelsHtml += `<tr>
+                <td>المستوى ${i}</td>
+                <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
+                <td><span class="exam-mark">${mark ? mark : '—'}</span></td>
+                <td><span class="final-mark">${final ? final : '—'}</span></td>
+              </tr>`;
+            }
+            document.getElementById('levelsBody').innerHTML = levelsHtml;
+
+            // الامتحانات العامة
+            let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
+            let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
+            let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
+            let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
+
+            document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
+            document.getElementById('exam1Mark').innerText = exam1Mark;
+            document.getElementById('oralExamMark').innerText = oralMark;
+            document.getElementById('fExam').innerText = fMark;
           }
-          document.getElementById('levelsBody').innerHTML = levelsHtml;
-
-          // الامتحانات العامة
-          let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
-          let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
-          let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
-          let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
-
-          document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
-          document.getElementById('exam1Mark').innerText = exam1Mark;
-          document.getElementById('oralExamMark').innerText = oralMark;
-          document.getElementById('fExam').innerText = fMark;
-
-          document.getElementById('examsBox').style.display = "block";
         }
       }).catch(function(err) {
         document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
