@@ -15,6 +15,12 @@
     .lessons-list {margin-top:30px;}
     .lesson { padding: 16px; border-bottom: 1px solid #eee;}
     .signout {background:#e63946;}
+    .student-form { margin: 36px 0 0 0; padding: 18px; background: #f1f5f9; border-radius: 8px;}
+    .student-form input { padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 5px; width: 70%; max-width: 300px;}
+    .student-form label { display: block; margin-bottom: 8px; color: #4361ee;}
+    #addStudentMsg {color:#e63946; margin-top:10px;}
+    .student-list {margin-top:20px;}
+    .student-item {border-bottom:1px solid #eee;padding:8px 0;}
   </style>
 </head>
 <body>
@@ -25,20 +31,43 @@
   <div class="container">
     <h2>مرحباً، <span id="teacherName"></span></h2>
     <button class="btn" onclick="addLesson()">إضافة درس جديد</button>
+
+    <div class="student-form">
+      <label>إضافة طالب جديد (البريد الإلكتروني فقط):</label>
+      <input type="email" id="studentEmail" placeholder="ex: student@email.com" required>
+      <button class="btn" onclick="addStudent()">إضافة الطالب</button>
+      <div id="addStudentMsg"></div>
+    </div>
+
+    <div class="student-list" id="students">
+      <strong>قائمة الطلاب:</strong>
+      <div id="studentListContent"></div>
+    </div>
+
     <div class="lessons-list" id="lessons"></div>
   </div>
   <script>
-    // حماية الصفحة
-    var firebaseConfig = { /* .... نفس الإعدادات السابقة .... */ };
+    // إعدادات الفايربيز
+    var firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.appspot.com",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
+
+    // حماية الصفحة
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
           if (doc.exists && doc.data().role === "teacher") {
             document.getElementById('teacherName').innerText = doc.data().email;
-            // جلب الدروس (مثال: من مجموعة lessons)
+            loadStudents();
+            // جلب الدروس (مثال)
             firestore.collection('lessons').where('teacher', '==', user.uid).get().then(function(querySnapshot){
               let html = '';
               querySnapshot.forEach(function(lesson){
@@ -56,6 +85,56 @@
         window.location.href = "login.html";
       }
     });
+
+    // إضافة طالب جديد
+    function addStudent() {
+      var email = document.getElementById('studentEmail').value.trim();
+      var msg = document.getElementById('addStudentMsg');
+      msg.innerText = '';
+      if (!email || !validateEmail(email)) {
+        msg.innerText = "يرجى إدخال بريد إلكتروني صحيح.";
+        return;
+      }
+      // البحث عن الطالب في Authentication
+      firestore.collection('users').where('email', '==', email).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "هذا الطالب موجود بالفعل.";
+        } else {
+          // إضافة الطالب كـ student في Firestore (سيحتاج لتسجيل الدخول لاحقاً لأول مرة)
+          // يتم توليد UID مؤقت وسيتم تحديثه عند أول دخول حقيقي للطالب
+          var fakeUid = 'uid_' + Math.random().toString(36).substr(2, 12);
+          firestore.collection('users').doc(fakeUid).set({
+            email: email,
+            role: "student"
+          }).then(function(){
+            msg.style.color = "green";
+            msg.innerText = "تمت إضافة الطالب بنجاح! يجب أن يقوم الطالب بالتسجيل والدخول بالبريد ليتم تفعيل حسابه.";
+            document.getElementById('studentEmail').value = '';
+            loadStudents();
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
+      });
+    }
+
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+
+    // جلب الطلاب
+    function loadStudents() {
+      var studentsDiv = document.getElementById('studentListContent');
+      studentsDiv.innerHTML = "جاري التحميل...";
+      firestore.collection('users').where('role', '==', 'student').get().then(function(querySnapshot){
+        let html = '';
+        querySnapshot.forEach(function(doc){
+          html += `<div class="student-item">${doc.data().email}</div>`;
+        });
+        studentsDiv.innerHTML = html || "لا يوجد طلاب بعد.";
+      });
+    }
 
     function addLesson() {
       alert("هنا يمكنك فتح نافذة لإضافة درس جديد (برمجة لاحقًا).");
