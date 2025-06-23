@@ -9,23 +9,13 @@
   <style>
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh;}
     .box { background: #fff; padding: 40px 30px; border-radius: 10px; box-shadow: 0 2px 15px #0002; text-align: center;}
-    label { display: block; margin-top: 16px; font-size: 1.1rem;}
-    input[type="email"], input[type="password"] { padding: 10px; width: 260px; border: 1px solid #ccc; border-radius: 4px; margin-top: 8px;}
     button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
   </style>
 </head>
 <body>
   <div class="box">
-    <h2>  44تسجيل الدخول</h2>
-    <form id="loginForm">
-      <label>البريد الإلكتروني:
-        <input type="email" id="email" required>
-      </label>
-      <label>كلمة المرور:
-        <input type="password" id="password" required>
-      </label>
-      <button type="submit">دخول</button>
-    </form>
+    <h2>تسجيل الدخول</h2>
+    <button id="googleLogin">تسجيل الدخول عبر Google</button>
     <div id="msg"></div>
   </div>
   <script>
@@ -41,25 +31,15 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      var email = document.getElementById('email').value.trim();
-      var password = document.getElementById('password').value.trim();
-
-      if (!email || !password) {
-        document.getElementById('msg').innerText = "يرجى إدخال بيانات الدخول.";
-        return;
-      }
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          var user = userCredential.user;
+    document.getElementById('googleLogin').addEventListener('click', function() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          var user = result.user;
           firestore.collection('users').doc(user.uid).get().then(function(doc) {
             if (doc.exists) {
               var role = doc.data().role;
-              // حفظ البريد في localStorage لاستخدامه في الصفحات الأخرى
               localStorage.setItem('user_email', user.email);
-              // تحويل حسب الدور
               if (role === "teacher") {
                 window.location.href = "dashboard.html";
               } else if (role === "student") {
