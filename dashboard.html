@@ -6,75 +6,146 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f6f9fc;}
-header {
-  background: linear-gradient(90deg,#4361ee 0%, #48b1f3 100%);
-  color: #fff; padding: 18px 30px; font-size: 1.5rem;
-  display:flex; justify-content:space-between; align-items:center;
-  box-shadow:0 4px 16px #4361ee22;
-}
-.container { max-width: 1050px; margin: 30px auto; padding: 24px; }
-
-.add-student {
-  background: linear-gradient(90deg,#e0c3fc 0%, #8ec5fc 100%);
-  padding: 18px 12px; border-radius: 10px; margin-bottom: 20px;
-  box-shadow: 0 2px 8px #8ec5fc33;
-}
-.add-student label {margin-left: 10px;}
-.add-student input { padding: 8px; margin-left: 8px; border: 1px solid #bbb; border-radius: 5px; width: 180px;}
-.add-student form button { background: #7f53ac; color: #fff;}
-
-.add-lesson {
-  background: linear-gradient(90deg,#fbc2eb 0%, #a6c1ee 100%);
-  padding: 18px 12px; border-radius: 10px; margin-bottom: 25px;
-  box-shadow: 0 2px 8px #fbc2eb33;
-}
-.add-lesson label {margin-left: 10px;}
-.add-lesson input { padding: 8px; margin-left: 8px; border: 1px solid #bbb; border-radius: 5px; width: 180px;}
-.add-lesson form button { background: #b721ff; color: #fff;}
-
-.students-area {
-  background: linear-gradient(90deg,#f2fcfe 0%, #1c92d2 100%);
-  border-radius: 12px; box-shadow: 0 2px 8px #1c92d233;
-  padding: 20px 10px; margin-bottom: 30px;
-}
-.lessons-area {
-  background: linear-gradient(90deg,#fff6b7 0%, #f6416c 100%);
-  border-radius: 12px; box-shadow: 0 2px 8px #f6416c22;
-  padding: 20px 10px; margin-bottom: 30px;
-}
-
-h2 { color: #4361ee; margin-top:0;}
-.btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
-.signout {background:#e63946;}
-table { width: 100%; border-collapse: collapse; margin-top: 20px;}
-th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
-th { background: #f1f5f9;}
-.level-checkbox { width: 18px; height: 18px; }
-#msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #e63946; margin-top: 10px; }
-.lessons-table th, .lessons-table td {padding: 6px;}
-.lessons-table th {background:#eef2fa;}
-.lessons-table {margin-top:12px;}
-.edit-btn, .save-btn, .cancel-btn {padding:4px 12px; border-radius:5px; border:none; margin:0 2px; cursor:pointer;}
-.edit-btn {background:#2196f3; color:#fff;}
-.save-btn {background:#209e57; color:#fff;}
-.cancel-btn {background:#e63946; color:#fff;}
-@media (max-width: 900px){
-  .container{padding:8px;}
-  table, thead, tbody, th, td, tr { font-size: 0.95rem;}
-  .add-student input, .add-lesson input {width:120px;}
-}
-
-    /* ألوان مخصصة لكل مستوى في جدول الدروس */
-.level-color-1 { background: #e3f6fc; }
-.level-color-2 { background: #fde2e4; }
-.level-color-3 { background: #e4f9ef; }
-.level-color-4 { background: #fff9db; }
-.level-color-5 { background: #f3e8ff; }
-.level-color-6 { background: #f1faee; }
-.level-color-7 { background: #fce4ec; }
-</style>
+    body {
+      font-family: Tajawal, Arial, sans-serif;
+      margin: 0;
+      background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+      min-height: 100vh;
+    }
+    header {
+      background: linear-gradient(90deg, #4361ee 0%, #48b1f3 100%);
+      color: #fff;
+      padding: 18px 30px;
+      font-size: 1.7rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 16px #4361ee22;
+      border-bottom-left-radius: 20px;
+      border-bottom-right-radius: 20px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 32px auto 24px auto;
+      padding: 0;
+    }
+    h2 {
+      color: #4361ee;
+      margin-top: 0;
+      margin-bottom: 18px;
+      letter-spacing: 1px;
+    }
+    .btn {
+      background: linear-gradient(90deg, #4361ee 0%, #48b1f3 100%);
+      color: #fff;
+      border: none;
+      padding: 8px 24px;
+      border-radius: 7px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: linear-gradient(90deg, #3c5ec2 0%, #2ea0df 100%);}
+    .signout { background: #e63946; }
+    .signout:hover { background: #ad2330; }
+    /* ثيم منطقة إضافة طالب */
+    .add-student {
+      background: linear-gradient(90deg,#e0c3fc 0%, #8ec5fc 100%);
+      padding: 18px 16px; border-radius: 12px; margin-bottom: 22px;
+      box-shadow: 0 2px 10px #8ec5fc33;
+      display: flex; align-items: center; gap: 18px;
+      flex-wrap: wrap;
+    }
+    .add-student input { padding: 8px; border: 1px solid #bbb; border-radius: 5px; width: 160px;}
+    .add-student label {margin-left: 10px;}
+    .add-student form {display: flex; align-items: center; gap: 12px;}
+    /* ثيم منطقة إضافة درس */
+    .add-lesson {
+      background: linear-gradient(90deg,#fbc2eb 0%, #a6c1ee 100%);
+      padding: 18px 16px; border-radius: 12px; margin-bottom: 28px;
+      box-shadow: 0 2px 10px #fbc2eb44;
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .add-lesson input { padding: 8px; border: 1px solid #bbb; border-radius: 5px; width: 120px;}
+    .add-lesson label {margin-left: 10px;}
+    .add-lesson form {display: flex; align-items: center; gap: 12px;}
+    /* ثيم إدارة الطلاب */
+    .students-area {
+      background: linear-gradient(90deg,#f2fcfe 0%, #1c92d2 100%);
+      border-radius: 14px; box-shadow: 0 2px 10px #1c92d244;
+      padding: 22px 16px; margin-bottom: 32px;
+    }
+    /* ثيم قائمة الدروس */
+    .lessons-area {
+      background: linear-gradient(90deg,#fff6b7 0%, #f6416c 100%);
+      border-radius: 14px; box-shadow: 0 2px 10px #f6416c33;
+      padding: 22px 16px; margin-bottom: 32px;
+    }
+    /* جدول عام */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px #bdbdbd22;
+    }
+    th, td {
+      padding: 10px 6px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+      font-size: 1rem;
+    }
+    th { background: #f1f5f9; color: #2c3e50; font-weight: bold;}
+    tr:last-child td { border-bottom: none;}
+    .level-checkbox { width: 18px; height: 18px; }
+    /* جدول الدروس بألوان المستويات */
+    .lessons-table th, .lessons-table td {padding: 8px;}
+    .lessons-table th {background: #eef2fa;}
+    .lessons-table {margin-top:10px;}
+    /* ثيم ألوان لكل مستوى */
+    .level-color-1 { background: #e3f6fc !important;}
+    .level-color-2 { background: #fde2e4 !important;}
+    .level-color-3 { background: #e4f9ef !important;}
+    .level-color-4 { background: #fff9db !important;}
+    .level-color-5 { background: #f3e8ff !important;}
+    .level-color-6 { background: #f1faee !important;}
+    .level-color-7 { background: #fce4ec !important;}
+    /* أزرار التعديل */
+    .edit-btn, .save-btn, .cancel-btn {
+      padding: 4px 14px;
+      border-radius: 5px;
+      border: none;
+      margin: 0 2px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.98rem;
+      transition: background 0.2s;
+    }
+    .edit-btn {background:#2196f3; color:#fff;}
+    .edit-btn:hover {background:#1b79c3;}
+    .save-btn {background:#209e57; color:#fff;}
+    .save-btn:hover {background:#16723e;}
+    .cancel-btn {background:#e63946; color:#fff;}
+    .cancel-btn:hover {background:#ad2330;}
+    /* رسائل */
+    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
+      color: #e63946; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
+    }
+    /* استجابة للشاشات الصغيرة */
+    @media (max-width: 900px){
+      .container {padding:8px;}
+      .add-student input, .add-lesson input {width:100px;}
+      th, td {font-size: 0.93rem;}
+      h2 {font-size:1.1rem;}
+      .add-student, .add-lesson, .students-area, .lessons-area {padding:10px 4px;}
+      header {font-size:1.05rem; padding:10px;}
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -108,40 +179,44 @@ th { background: #f1f5f9;}
       <div id="addLessonMsg"></div>
     </div>
 
-    <h2>إدارة مستويات الطلاب</h2>
-    <div id="msg"></div>
-    <table id="studentsTable">
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>البريد</th>
-          <th>المقرر</th>
-          <th>المستوى 1</th>
-          <th>المستوى 2</th>
-          <th>المستوى 3</th>
-          <th>المستوى 4</th>
-          <th>المستوى 5</th>
-          <th>المستوى 6</th>
-          <th>المستوى 7</th>
-        </tr>
-      </thead>
-      <tbody id="studentsList"></tbody>
-    </table>
+    <div class="students-area">
+      <h2>إدارة مستويات الطلاب</h2>
+      <div id="msg"></div>
+      <table id="studentsTable">
+        <thead>
+          <tr>
+            <th>الاسم</th>
+            <th>البريد</th>
+            <th>المقرر</th>
+            <th>المستوى 1</th>
+            <th>المستوى 2</th>
+            <th>المستوى 3</th>
+            <th>المستوى 4</th>
+            <th>المستوى 5</th>
+            <th>المستوى 6</th>
+            <th>المستوى 7</th>
+          </tr>
+        </thead>
+        <tbody id="studentsList"></tbody>
+      </table>
+    </div>
 
-    <h2 style="margin-top:38px;">قائمة الدروس</h2>
-    <div id="editLessonMsg"></div>
-    <table class="lessons-table" id="lessonsTable">
-      <thead>
-        <tr>
-          <th>رقم الدرس</th>
-          <th>العنوان</th>
-          <th>الرابط</th>
-          <th>المستوى</th>
-          <th>تعديل</th>
-        </tr>
-      </thead>
-      <tbody id="lessonsList"></tbody>
-    </table>
+    <div class="lessons-area">
+      <h2 style="margin-top:0;">قائمة الدروس</h2>
+      <div id="editLessonMsg"></div>
+      <table class="lessons-table" id="lessonsTable">
+        <thead>
+          <tr>
+            <th>رقم الدرس</th>
+            <th>العنوان</th>
+            <th>الرابط</th>
+            <th>المستوى</th>
+            <th>تعديل</th>
+          </tr>
+        </thead>
+        <tbody id="lessonsList"></tbody>
+      </table>
+    </div>
   </div>
   <script>
     // إعدادات الفايربيز
@@ -282,16 +357,33 @@ th { background: #f1f5f9;}
       });
     }
 
-    // جلب الدروس من lessons مع ميزة التعديل
+    // تحويل اسم المستوى إلى رقم
+    function getLevelNumFromText(levelText) {
+      if (!levelText) return 0;
+      const map = {
+        "الأول": 1, "اول": 1, "1": 1,
+        "الثاني": 2, "ثاني": 2, "2": 2,
+        "الثالث": 3, "ثالث": 3, "3": 3,
+        "الرابع": 4, "رابع": 4, "4": 4,
+        "الخامس": 5, "خامس": 5, "5": 5,
+        "السادس": 6, "سادس": 6, "6": 6,
+        "السابع": 7, "سابع": 7, "7": 7,
+      };
+      let txt = levelText.trim().replace('المستوى', '').replace(/\s/g, '');
+      return map[txt] || 0;
+    }
+
+    // جلب الدروس مع ألوان المستويات
     function loadLessons() {
       firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
         let html = '';
         querySnapshot.forEach(function(doc){
           let data = doc.data();
+          let levelNum = getLevelNumFromText(data.level);
+          let rowClass = levelNum ? `level-color-${levelNum}` : '';
           if (editLessonId === doc.id) {
-            // وضع حقول قابلة للتعديل
             html += `
-              <tr>
+              <tr class="${rowClass}">
                 <td><input type="number" id="editId" value="${data.id}" style="width:70px;" required></td>
                 <td><input type="text" id="editTitle" value="${data.title}" style="width:180px;" required></td>
                 <td><input type="text" id="editUrl" value="${data.url}" style="width:180px;" required></td>
@@ -303,7 +395,7 @@ th { background: #f1f5f9;}
               </tr>
             `;
           } else {
-            html += `<tr>
+            html += `<tr class="${rowClass}">
                 <td>${data.id || ''}</td>
                 <td>${data.title || ''}</td>
                 <td><a href="${data.url || ''}" target="_blank">رابط</a></td>
@@ -345,7 +437,6 @@ th { background: #f1f5f9;}
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
       }
-      // تحديث الدرس في فايربيز
       firestore.collection('lessons').doc(docId).update({
         id: id,
         title: title,
@@ -360,11 +451,6 @@ th { background: #f1f5f9;}
       }).catch(function(err){
         msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
       });
-    }
-
-    // جلب الدروس عند تحميل الصفحة
-    function loadLessonsOnPage() {
-      loadLessons();
     }
 
     // تحديث مستوى طالب
