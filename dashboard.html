@@ -7,33 +7,65 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <style>
-    body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f6f9fc;}
-    header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 1050px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
-    h2 { color: #4361ee; margin-top:0;}
-    .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
-    .signout {background:#e63946;}
-    table { width: 100%; border-collapse: collapse; margin-top: 20px;}
-    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
-    th { background: #f1f5f9;}
-    .level-checkbox { width: 18px; height: 18px; }
-    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #e63946; margin-top: 10px; }
-    .add-student, .add-lesson { background: #f8fafc; padding: 16px 12px; border-radius: 8px; margin-bottom: 18px;}
-    .add-student input, .add-lesson input { padding: 8px; margin-left: 8px; border: 1px solid #ddd; border-radius: 5px; width: 200px;}
-    .add-student label, .add-lesson label {margin-left: 10px;}
-    .lessons-table th, .lessons-table td {padding: 6px;}
-    .lessons-table th {background:#eef2fa;}
-    .lessons-table {margin-top:12px;}
-    .edit-btn, .save-btn, .cancel-btn {padding:4px 12px; border-radius:5px; border:none; margin:0 2px; cursor:pointer;}
-    .edit-btn {background:#2196f3; color:#fff;}
-    .save-btn {background:#209e57; color:#fff;}
-    .cancel-btn {background:#e63946; color:#fff;}
-    @media (max-width: 900px){
-      .container{padding:8px;}
-      table, thead, tbody, th, td, tr { font-size: 0.95rem;}
-      .add-student input, .add-lesson input {width:140px;}
-    }
-  </style>
+body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f6f9fc;}
+header {
+  background: linear-gradient(90deg,#4361ee 0%, #48b1f3 100%);
+  color: #fff; padding: 18px 30px; font-size: 1.5rem;
+  display:flex; justify-content:space-between; align-items:center;
+  box-shadow:0 4px 16px #4361ee22;
+}
+.container { max-width: 1050px; margin: 30px auto; padding: 24px; }
+
+.add-student {
+  background: linear-gradient(90deg,#e0c3fc 0%, #8ec5fc 100%);
+  padding: 18px 12px; border-radius: 10px; margin-bottom: 20px;
+  box-shadow: 0 2px 8px #8ec5fc33;
+}
+.add-student label {margin-left: 10px;}
+.add-student input { padding: 8px; margin-left: 8px; border: 1px solid #bbb; border-radius: 5px; width: 180px;}
+.add-student form button { background: #7f53ac; color: #fff;}
+
+.add-lesson {
+  background: linear-gradient(90deg,#fbc2eb 0%, #a6c1ee 100%);
+  padding: 18px 12px; border-radius: 10px; margin-bottom: 25px;
+  box-shadow: 0 2px 8px #fbc2eb33;
+}
+.add-lesson label {margin-left: 10px;}
+.add-lesson input { padding: 8px; margin-left: 8px; border: 1px solid #bbb; border-radius: 5px; width: 180px;}
+.add-lesson form button { background: #b721ff; color: #fff;}
+
+.students-area {
+  background: linear-gradient(90deg,#f2fcfe 0%, #1c92d2 100%);
+  border-radius: 12px; box-shadow: 0 2px 8px #1c92d233;
+  padding: 20px 10px; margin-bottom: 30px;
+}
+.lessons-area {
+  background: linear-gradient(90deg,#fff6b7 0%, #f6416c 100%);
+  border-radius: 12px; box-shadow: 0 2px 8px #f6416c22;
+  padding: 20px 10px; margin-bottom: 30px;
+}
+
+h2 { color: #4361ee; margin-top:0;}
+.btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+.signout {background:#e63946;}
+table { width: 100%; border-collapse: collapse; margin-top: 20px;}
+th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: center;}
+th { background: #f1f5f9;}
+.level-checkbox { width: 18px; height: 18px; }
+#msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #e63946; margin-top: 10px; }
+.lessons-table th, .lessons-table td {padding: 6px;}
+.lessons-table th {background:#eef2fa;}
+.lessons-table {margin-top:12px;}
+.edit-btn, .save-btn, .cancel-btn {padding:4px 12px; border-radius:5px; border:none; margin:0 2px; cursor:pointer;}
+.edit-btn {background:#2196f3; color:#fff;}
+.save-btn {background:#209e57; color:#fff;}
+.cancel-btn {background:#e63946; color:#fff;}
+@media (max-width: 900px){
+  .container{padding:8px;}
+  table, thead, tbody, th, td, tr { font-size: 0.95rem;}
+  .add-student input, .add-lesson input {width:120px;}
+}
+</style>
 </head>
 <body>
   <header>
