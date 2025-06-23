@@ -10,9 +10,11 @@
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f8fafc;}
     header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
-    .container { max-width: 700px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+    .container { max-width: 800px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
-    .btn { background: #4361ee; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+    .btn { background: #4361ee; color: #fff; border: none; padding: 7px 22px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+    .btn[disabled] {background: #bdbdbd; color: #fff; cursor: not-allowed;}
+    .btn.submit {background: #1dad87;}
     .signout {background:#e63946;}
     .info { background: #f5f7fb; border-radius: 7px; padding: 10px 18px; margin: 16px 0;}
     #msg { color: #e63946; margin-top: 20px; }
@@ -28,27 +30,31 @@
     .exam-row {margin-bottom: 10px; font-size: 1.09rem;}
     .exam-row span {margin-left: 10px;}
     .admission-status-box { 
-      padding: 15px 18px;
-      margin-bottom: 18px;
-      border-radius: 8px;
-      font-size: 1.18rem;
-      font-weight: bold;
-      border: 2px solid #e4e7ef;
+      padding: 15px 18px; 
+      margin-bottom: 18px; 
+      border-radius: 8px; 
+      font-size: 1.18rem; 
+      font-weight: bold; 
+      border: 2px solid #e4e7ef; 
       text-align:center;
     }
     .admission-accepted { background: #e6faea; color: #219e4b; border-color: #8be2b4;}
     .admission-rejected { background: #fff2f2; color: #e63946; border-color: #f6b8b8;}
     .admission-pending { background: #fffde6; color: #e6a100; border-color: #ffeab6;}
-    /* جدول الدروس */
-    #lessonsBox { margin:30px 0 0 0; display:none;}
-    .lessons-table {width:100%; border-collapse:collapse; margin-bottom:16px;}
-    .lessons-table th, .lessons-table td {padding:8px 6px; border-bottom:1px solid #e4e7ef; text-align:center;}
-    .lessons-table th {background:#eef2fa; color:#1b3e72;}
-    @media (max-width: 700px) {
-      .container {padding: 8px;}
+    .lesson-summary-block {background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px; box-shadow: 0 2px 6px #e0e7ef33;}
+    .lesson-summary-block h4 {margin:0 0 8px 0; color:#1b3e72;}
+    .lesson-link {color:#4361ee;}
+    .summary-actions {margin-top: 8px;}
+    .summary-status {font-weight:bold; font-size:0.95rem; margin-right:8px;}
+    .summary-status.draft { color: #e6a100;}
+    .summary-status.submitted { color: #219e4b;}
+    textarea.summary-text {width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;resize:vertical;font-size:1rem; box-sizing: border-box;}
+    @media (max-width: 900px){
+      .container{padding:8px;}
       header {padding:10px;}
       .levels-table th, .levels-table td {padding: 7px 2px;}
-      .lessons-table th, .lessons-table td {padding: 6px 2px;}
+      .lesson-summary-block{padding:10px 4px;}
+      textarea.summary-text {width:96%;}
     }
   </style>
 </head>
@@ -61,7 +67,7 @@
     <h2>مرحباً، <span id="studentName"></span></h2>
     <div class="info">
       <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
-      <div><b>رقم الدورة:</b> <span id="courseNumber"></span></div>
+      <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
     </div>
     <!-- مربع حالة القبول -->
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
@@ -84,11 +90,8 @@
       <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
       <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
-    <!-- جدول الدروس حسب المستويات -->
-    <div id="lessonsBox">
-      <h3 style="color:#2260af; margin-bottom:10px;">دروسك حسب المستويات</h3>
-      <div id="lessonsTables"></div>
-    </div>
+    <!-- تلخيص الدروس -->
+    <div id="lessonsSummariesArea"></div>
   </div>
   <script>
     // إعداد Firebase
@@ -103,8 +106,10 @@
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
+    var currentStudentEmail = "";
+    var currentStudentName = "";
 
-    // دالة تحويل اسم المستوى الى رقم
+    // تحويل اسم المستوى الى رقم
     function getLevelNumber(levelName) {
       switch (levelName.replace('المستوى ', '').replace('ال', '')) {
         case "أول": case "الأول": return 1;
@@ -133,7 +138,7 @@
               window.location.href = "dashboard.html";
               return;
             }
-            loadStudentData(doc.data().email);
+            loadStudentData(doc.data().email, doc.data().name);
           } else {
             firestore.collection('users').doc(user.uid).set({
               email: user.email,
@@ -148,25 +153,24 @@
       }
     });
 
-    function loadStudentData(userEmail) {
-      document.getElementById('studentName').innerText = "";
-      document.getElementById('studentEmail').innerText = "";
+    function loadStudentData(userEmail, userName) {
+      currentStudentEmail = userEmail;
+      currentStudentName = userName;
+      document.getElementById('studentName').innerText = userName || "";
+      document.getElementById('studentEmail').innerText = userEmail || "";
       document.getElementById('courseNumber').innerText = "";
       document.getElementById('msg').innerText = "";
       document.getElementById('levelsBody').innerHTML = "";
       document.getElementById('levelsTable').style.display = "none";
       document.getElementById('examsBox').style.display = "none";
       document.getElementById('admissionStatusBox').style.display = "none";
-      document.getElementById('lessonsBox').style.display = "none";
-      document.getElementById('lessonsTables').innerHTML = "";
+      document.getElementById('lessonsSummariesArea').innerHTML = "";
 
       firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
         if (querySnapshot.empty) {
           document.getElementById('msg').innerText = "لا توجد بيانات لهذا المستخدم في النظام. تواصل مع الإدارة.";
         } else {
           var data = querySnapshot.docs[0].data();
-          document.getElementById('studentName').innerText = data.name || "";
-          document.getElementById('studentEmail').innerText = data.email || "";
           document.getElementById('courseNumber').innerText = data.course_number || "";
 
           // عرض حالة القبول
@@ -230,53 +234,172 @@
             document.getElementById('oralExamMark').innerText = oralMark;
             document.getElementById('fExam').innerText = fMark;
 
-            // جلب الدروس حسب المستويات المفعلة
-            if (activeLevels.length > 0) {
-              firestore.collection('lessons').orderBy('id').get().then(function(lessonSnapshot) {
-                let lessonsByLevel = {};
-                lessonSnapshot.forEach(function(doc) {
-                  let lesson = doc.data();
-                  let levelNum = getLevelNumber(lesson.level);
-                  if (!lessonsByLevel[levelNum]) lessonsByLevel[levelNum] = [];
-                  lessonsByLevel[levelNum].push(lesson);
-                });
-                let html = '';
-                activeLevels.forEach(function(lvl) {
-                  let lessons = lessonsByLevel[lvl] || [];
-                  if (lessons.length > 0) {
-                    html += `<h4 style="margin-top:18px;">المستوى ${lvl}</h4>
-                    <table class="lessons-table">
-                      <thead>
-                        <tr>
-                          <th>رقم المحاضرة</th>
-                          <th>اسم المحاضرة</th>
-                          <th>رابط المحاضرة</th>
-                        </tr>
-                      </thead>
-                      <tbody>`;
-                    lessons.forEach(function(lesson) {
-                      html += `<tr>
-                        <td>${lesson.id}</td>
-                        <td>${lesson.title}</td>
-                        <td><a href="${lesson.url}" target="_blank" style="color:#4361ee;">رابط</a></td>
-                      </tr>`;
-                    });
-                    html += `</tbody></table>`;
-                  }
-                });
-                document.getElementById('lessonsTables').innerHTML = html;
-                document.getElementById('lessonsBox').style.display = html ? "block" : "none";
-              });
-            } else {
-              document.getElementById('lessonsBox').style.display = "none";
-            }
-          } else {
-            document.getElementById('lessonsBox').style.display = "none";
+            // جلب دروس المستويات المفعلة ثم جلب التلخيصات
+            loadActiveLessonsAndSummaries(activeLevels);
           }
         }
       }).catch(function(err) {
         document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
       });
+    }
+
+    // جلب الدروس المفعلة وجلب التلخيصات وعرضها
+    function loadActiveLessonsAndSummaries(activeLevels) {
+      if (!activeLevels.length) {
+        document.getElementById('lessonsSummariesArea').innerHTML = "";
+        return;
+      }
+      firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot) {
+        let lessons = [];
+        querySnapshot.forEach(function(doc) {
+          let lesson = doc.data();
+          let levelNum = getLevelNumber(lesson.level);
+          if (activeLevels.includes(levelNum)) {
+            lessons.push(lesson);
+          }
+        });
+        // جلب التلخيصات الخاصة بالطالب لهذه الدروس فقط
+        if (lessons.length === 0) {
+          document.getElementById('lessonsSummariesArea').innerHTML = "";
+          return;
+        }
+        let lessonIds = lessons.map(l=>l.id);
+        firestore.collection('summaries')
+          .where('student_email', '==', currentStudentEmail)
+          .where('lesson_id', 'in', lessonIds)
+          .get()
+          .then(function(summarySnapshot){
+            let summariesMap = {};
+            summarySnapshot.forEach(function(doc){
+              let s = doc.data();
+              summariesMap[s.lesson_id] = { ...s, docId: doc.id };
+            });
+            renderSummariesLessonsUI(lessons, summariesMap);
+          });
+      });
+    }
+
+    // بناء واجهة التلخيصات
+    function renderSummariesLessonsUI(lessons, summariesMap) {
+      let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
+      lessons.forEach(function(lesson){
+        let sum = summariesMap[lesson.id] || {
+          summary_text: "",
+          status: "draft"
+        };
+        let submitted = sum.status === 'submitted';
+        html += `
+        <div class="lesson-summary-block">
+          <h4>(${lesson.id}) ${lesson.title}</h4>
+          <a href="${lesson.url}" target="_blank" class="lesson-link">رابط المحاضرة</a>
+          <div style="margin:12px 0 5px 0;">
+            <textarea class="summary-text" id="sumtext_${lesson.id}" ${submitted ? 'readonly' : ''} placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
+          </div>
+          <div class="summary-actions">
+            <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
+            <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
+            <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
+          </div>
+          <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
+        </div>
+        `;
+      });
+      document.getElementById('lessonsSummariesArea').innerHTML = html;
+    }
+
+    // حفظ مسودة التلخيص
+    function saveSummary(lessonId) {
+      let textarea = document.getElementById('sumtext_' + lessonId);
+      let msg = document.getElementById('sum_msg_' + lessonId);
+      let text = textarea.value.trim();
+      msg.innerText = "";
+      if (!text) { msg.innerText = "يرجى كتابة التلخيص أولاً."; return; }
+      firestore.collection('summaries')
+        .where('student_email', '==', currentStudentEmail)
+        .where('lesson_id', '==', lessonId)
+        .get()
+        .then(function(querySnapshot){
+          if (!querySnapshot.empty) {
+            // تعديل المسودة فقط إذا لم تكن submitted
+            let docId = querySnapshot.docs[0].id;
+            let data = querySnapshot.docs[0].data();
+            if (data.status === "submitted") {
+              msg.innerText = "تم تسليم التلخيص النهائي ولا يمكن التعديل.";
+              return;
+            }
+            firestore.collection('summaries').doc(docId).update({
+              summary_text: text,
+              status: "draft",
+              timestamp: new Date().toISOString()
+            }).then(function(){
+              msg.style.color = "#1dad87";
+              msg.innerText = "تم حفظ المسودة.";
+              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
+            });
+          } else {
+            firestore.collection('summaries').add({
+              student_email: currentStudentEmail,
+              student_name: currentStudentName || "",
+              lesson_id: lessonId,
+              summary_text: text,
+              status: "draft",
+              timestamp: new Date().toISOString()
+            }).then(function(){
+              msg.style.color = "#1dad87";
+              msg.innerText = "تم حفظ المسودة.";
+              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
+            });
+          }
+        });
+    }
+
+    // تسليم التلخيص بشكل نهائي
+    function submitSummary(lessonId) {
+      let textarea = document.getElementById('sumtext_' + lessonId);
+      let msg = document.getElementById('sum_msg_' + lessonId);
+      let text = textarea.value.trim();
+      msg.innerText = "";
+      if (!text) { msg.innerText = "يرجى كتابة التلخيص أولاً."; return; }
+      firestore.collection('summaries')
+        .where('student_email', '==', currentStudentEmail)
+        .where('lesson_id', '==', lessonId)
+        .get()
+        .then(function(querySnapshot){
+          if (!querySnapshot.empty) {
+            let docId = querySnapshot.docs[0].id;
+            let data = querySnapshot.docs[0].data();
+            if (data.status === "submitted") {
+              msg.innerText = "تم تسليم التلخيص بالفعل.";
+              return;
+            }
+            firestore.collection('summaries').doc(docId).update({
+              summary_text: text,
+              status: "submitted",
+              timestamp: new Date().toISOString()
+            }).then(function(){
+              msg.style.color = "#1dad87";
+              msg.innerText = "تم تسليم التلخيص بنجاح.";
+              textarea.readOnly = true;
+              loadStudentData(currentStudentEmail, currentStudentName);
+              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
+            });
+          } else {
+            firestore.collection('summaries').add({
+              student_email: currentStudentEmail,
+              student_name: currentStudentName || "",
+              lesson_id: lessonId,
+              summary_text: text,
+              status: "submitted",
+              timestamp: new Date().toISOString()
+            }).then(function(){
+              msg.style.color = "#1dad87";
+              msg.innerText = "تم تسليم التلخيص بنجاح.";
+              textarea.readOnly = true;
+              loadStudentData(currentStudentEmail, currentStudentName);
+              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
+            });
+          }
+        });
     }
 
     function logout() {
