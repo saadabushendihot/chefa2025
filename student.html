@@ -6,6 +6,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- استيراد إعدادات فايربيز من ملف ثابت خارجي -->
+  <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- خط عربي عصري -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
@@ -94,14 +96,8 @@
     <div id="lessonsSummariesArea"></div>
   </div>
   <script>
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
+    // لا تكتب متغير firebaseConfig هنا، بل يتم جلبه من الملف الخارجي
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
