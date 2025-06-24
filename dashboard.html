@@ -9,30 +9,188 @@
   <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {font-family: Tajawal, Arial, sans-serif; margin:0; background: #f5f7fa; color: #23272f;}
-    header {background: #3b5cb8; color: #fff; padding: 18px 30px; font-size: 1.4rem; display: flex; justify-content: space-between; align-items: center;}
-    .container {max-width: 900px; margin: 32px auto; padding: 0 8px;}
-    .btn {background: #3b5cb8; color: #fff; border: none; padding: 7px 20px; border-radius: 7px; cursor: pointer;}
-    .btn:hover {background: #26407a;}
-    .students-area {background: #fff; border-radius: 10px; box-shadow: 0 1px 4px #00000009; padding: 18px 14px;}
-    .field-label {font-size: 1rem; color: #2e4061; margin-bottom: 3px; font-weight: 500;}
-    .student-fields {display: flex; gap:18px; flex-wrap:wrap; margin-bottom:20px;}
-    .student-fields > div {flex:1; min-width:180px;}
-    .student-fields input, .student-fields select {padding:7px; border-radius:5px; border:1px solid #c5c9d2; font-size:1rem; width:95%;}
-    .student-fields .btn {margin-right:8px;}
-    .student-data-table {width: 100%; border-collapse: collapse; margin-top:10px;}
-    .student-data-table td, .student-data-table th {padding:8px 4px; text-align:center; border-bottom:1px solid #e5e7ea;}
-    .student-data-table th {background:#f2f5fc; color:#294169;}
-    .exam-btn {padding:3px 10px; font-size:0.93rem; border-radius:4px; border:none; margin:0 2px; cursor:pointer;}
-    .exam-true {background:#1dad87; color:#fff;}
-    .exam-false {background:#e63946; color:#fff;}
-    .level-checkbox {width: 20px; height: 20px;}
-    #studentMsg {color:#b83b3b; margin-top:10px; min-height:18px;}
-    @media (max-width:900px){
-      .container{padding:8px;}
-      .student-fields{flex-direction:column;}
-      .students-area{padding:10px 4px;}
-      .student-fields input, .student-fields select{width:97%;}
+    body {
+      font-family: Tajawal, Arial, sans-serif;
+      margin: 0;
+      background: #f5f7fa;
+      color: #23272f;
+      min-height: 100vh;
+    }
+    header {
+      background: #3b5cb8;
+      color: #fff;
+      padding: 18px 30px;
+      font-size: 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px #3b5cb820;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 32px auto 24px auto;
+      padding: 0 8px;
+    }
+    h2 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.22rem;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
+    .btn {
+      background: #3b5cb8;
+      color: #fff;
+      border: none;
+      padding: 7px 20px;
+      border-radius: 7px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #26407a; }
+    .signout { background: #b83b3b;}
+    .signout:hover { background: #7a2626;}
+    .students-area, .lessons-area {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      margin-bottom: 22px;
+      padding: 18px 14px;
+    }
+    .add-section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 7px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .add-section-toggle .toggle-icon {
+      background: #3b5cb8;
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      margin-left: 8px;
+      transition: background 0.2s;
+    }
+    .add-section-toggle .toggle-icon:hover { background: #26407a; }
+    .add-section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      padding: 18px 14px;
+      margin-bottom: 18px;
+      max-width: 500px;
+      margin-right: auto;
+      margin-left: auto;
+      display: none;
+      animation: fadein 0.3s;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .add-section h3 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .add-section form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .add-section label {
+      font-size: 1rem;
+      color: #2e4061;
+      margin-bottom: 4px;
+      margin-right: 2px;
+      font-weight: 500;
+    }
+    .add-section input {
+      padding: 9px;
+      border: 1px solid #c5c9d2;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #f7f8fa;
+      color: #23272f;
+      transition: border 0.15s;
+      margin-bottom: 6px;
+    }
+    .add-section input:focus {
+      border-color: #3b5cb8;
+      outline: none;
+    }
+    .add-section .btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px 0;
+      font-size: 1.1rem;
+      border-radius: 7px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px #00000008;
+    }
+    th, td {
+      padding: 9px 6px;
+      border-bottom: 1px solid #e5e7ea;
+      text-align: center;
+      font-size: 1rem;
+      color: #23272f;
+    }
+    th { background: #f2f5fc; color: #294169; font-weight: bold;}
+    tr:last-child td { border-bottom: none; }
+    .level-checkbox { width: 18px; height: 18px; }
+    .exam-btn { padding: 3px 10px; font-size: 0.9rem; border-radius: 4px; border: none; color: #fff; cursor: pointer;}
+    .exam-true { background: #1dad87;}
+    .exam-false { background: #e63946;}
+    .edit-btn, .save-btn, .cancel-btn {
+      padding: 4px 14px;
+      border-radius: 5px;
+      border: none;
+      margin: 0 2px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.98rem;
+      transition: background 0.2s;
+    }
+    .edit-btn {background:#5a7be4; color:#fff;}
+    .edit-btn:hover {background:#294169;}
+    .save-btn {background:#1dad87; color:#fff;}
+    .save-btn:hover {background:#156c59;}
+    .cancel-btn {background:#b83b3b; color:#fff;}
+    .cancel-btn:hover {background:#7a2626;}
+    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
+      color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
+    }
+    @media (max-width: 900px){
+      .container {padding:8px;}
+      th, td {font-size: 0.91rem;}
+      h2 {font-size:1rem;}
+      .students-area, .lessons-area, .add-section {padding:10px 4px;}
+      header {font-size:1rem; padding:10px;}
+      .add-section {max-width: 99vw;}
     }
   </style>
 </head>
@@ -42,34 +200,67 @@
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
+
+    <!-- أيقونة إظهار/إخفاء إضافة طالب -->
+    <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
+      <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
+      <span style="font-weight:bold;">إضافة طالب جديد</span>
+    </div>
+    <div class="add-section" id="addStudentSection">
+      <h3>إضافة طالب جديد</h3>
+      <form id="addStudentForm" onsubmit="addStudent(event)">
+        <label for="studentEmail">البريد الإلكتروني</label>
+        <input type="email" id="studentEmail" placeholder="student@email.com" required>
+        <label for="studentName">اسم الطالب</label>
+        <input type="text" id="studentName" placeholder="اسم الطالب" required>
+        <label for="courseNumber">رقم الدورة</label>
+        <input type="text" id="courseNumber" placeholder="رقم الدورة" required>
+        <button class="btn" type="submit">إضافة الطالب</button>
+      </form>
+      <div id="addStudentMsg"></div>
+    </div>
+
+    <!-- أيقونة إظهار/إخفاء إضافة درس -->
+    <div class="add-section-toggle" onclick="toggleSection('addLessonSection')">
+      <span class="toggle-icon" id="addLessonToggleIcon">➕</span>
+      <span style="font-weight:bold;">إضافة درس جديد</span>
+    </div>
+    <div class="add-section" id="addLessonSection">
+      <h3>إضافة درس جديد</h3>
+      <form id="addLessonForm" onsubmit="addLesson(event)">
+        <label for="lessonId">رقم الدرس</label>
+        <input type="number" id="lessonId" placeholder="مثال: 1" required min="1">
+        <label for="lessonTitle">عنوان الدرس</label>
+        <input type="text" id="lessonTitle" placeholder="عنوان الدرس" required>
+        <label for="lessonUrl">رابط الدرس (للتنزيل)</label>
+        <input type="text" id="lessonUrl" placeholder="رابط التحميل" required>
+        <label for="lessonVoice">رابط الصوت (للاستماع)</label>
+        <input type="text" id="lessonVoice" placeholder="رابط الصوت (mp3 أو غيره)">
+        <label for="lessonLevel">المستوى</label>
+        <input type="text" id="lessonLevel" placeholder='مثال: "الأول"' required>
+        <button class="btn" type="submit">إضافة الدرس</button>
+      </form>
+      <div id="addLessonMsg"></div>
+    </div>
+
     <div class="students-area">
-      <h2>إدارة بيانات الطلاب</h2>
-      <div class="student-fields">
-        <div>
-          <label class="field-label" for="studentsListSelect">اختر الطالب</label>
-          <select id="studentsListSelect" onchange="onStudentSelect()">
-            <option value="">-- اختر طالباً --</option>
-          </select>
-        </div>
-        <div>
-          <label class="field-label">اسم الطالب</label>
-          <input type="text" id="studentNameEdit" disabled>
-        </div>
-        <div>
-          <label class="field-label">البريد الإلكتروني</label>
-          <input type="email" id="studentEmailEdit" disabled>
-        </div>
-        <div>
-          <label class="field-label">رقم الدورة</label>
-          <input type="text" id="studentCourseEdit" disabled>
-        </div>
-        <div>
-          <button class="btn" id="editBtn" onclick="enableEditFields()" disabled>تعديل البيانات</button>
-          <button class="btn" id="saveBtn" onclick="saveStudentData()" style="display:none;">حفظ</button>
-        </div>
+      <h2>إدارة مستويات الطلاب والاختبارات</h2>
+      <div id="msg"></div>
+      <!-- قائمة اختيار الطلاب -->
+      <div style="margin-bottom:20px;">
+        <label for="studentsListSelect" style="font-weight:bold;">اختر الطالب:</label>
+        <select id="studentsListSelect" style="padding:7px 14px; border-radius:6px; font-size:1rem; margin-right:10px;" onchange="onStudentSelect()">
+          <option value="">-- اختر طالباً --</option>
+        </select>
       </div>
-      <div id="studentMsg"></div>
-      <table class="student-data-table" id="studentLevelsTable" style="display:none;">
+      <!-- بيانات الطالب المختار -->
+      <div id="studentInfo" style="display:none; margin-bottom:18px;">
+        <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
+        <div><b>البريد:</b> <span id="studentEmailInfo"></span></div>
+        <div><b>رقم الدورة:</b> <span id="studentCourseInfo"></span></div>
+      </div>
+      <!-- جدول المستويات والامتحانات -->
+      <table id="studentLevelsTable" style="display:none;">
         <thead>
           <tr>
             <th>المستوى</th>
@@ -80,134 +271,325 @@
         <tbody id="studentLevelsTbody"></tbody>
       </table>
     </div>
+
+    <div class="lessons-area">
+      <h2 style="margin-top:0;">قائمة الدروس</h2>
+      <div id="editLessonMsg"></div>
+      <table class="lessons-table" id="lessonsTable">
+        <thead>
+          <tr>
+            <th>رقم الدرس</th>
+            <th>العنوان</th>
+            <th>رابط الدرس</th>
+            <th>الصوت</th>
+            <th>المستوى</th>
+            <th>تعديل</th>
+          </tr>
+        </thead>
+        <tbody id="lessonsList"></tbody>
+      </table>
+    </div>
   </div>
   <script>
+    function toggleSection(sectionId){
+      var sec = document.getElementById(sectionId);
+      var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
+      var icon = document.getElementById(iconId);
+      if (sec.style.display === "block") {
+        sec.style.display = "none";
+        icon.textContent = "➕";
+      } else {
+        sec.style.display = "block";
+        icon.textContent = "✖";
+      }
+    }
+    window.onload = function() {
+      document.getElementById('addStudentSection').style.display = "none";
+      document.getElementById('addLessonSection').style.display = "none";
+    };
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
-    var allStudents = [];
-    var currentStudent = null;
-    var currentStudentDocId = null;
+
+    var editLessonId = null;
+    var _studentsArr = [];
+    var _currentStudent = null;
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
-          if (!doc.exists || doc.data().role !== "teacher") window.location.href = "login.html";
-          else loadStudentsList();
+          if (!doc.exists || doc.data().role !== "teacher") {
+            window.location.href = "login.html";
+          } else {
+            loadStudents();
+            loadLessons();
+          }
         });
-      } else { window.location.href = "login.html"; }
+      } else {
+        window.location.href = "login.html";
+      }
     });
 
-    function logout() { auth.signOut().then(()=>{window.location.href='login.html';}); }
-
-    function loadStudentsList() {
-      firestore.collection('lectures').where('role', '==', 'student').orderBy('name').get()
-        .then(function(querySnapshot){
-          allStudents = [];
-          let select = document.getElementById('studentsListSelect');
-          select.innerHTML = '<option value="">-- اختر طالباً --</option>';
-          querySnapshot.forEach(function(doc){
-            let data = doc.data();
-            allStudents.push({ ...data, docId: doc.id });
-            select.innerHTML += `<option value="${doc.id}">${data.name} (${data.email})</option>`;
-          });
-        });
-    }
-
-    window.onStudentSelect = function() {
-      var id = document.getElementById('studentsListSelect').value;
-      let student = allStudents.find(s=>s.docId===id);
-      showStudentFields(student || null);
-    }
-
-    function showStudentFields(student) {
-      currentStudent = student;
-      currentStudentDocId = student ? student.docId : null;
-      document.getElementById('studentNameEdit').value = student ? student.name : '';
-      document.getElementById('studentEmailEdit').value = student ? student.email : '';
-      document.getElementById('studentCourseEdit').value = student ? student.course_number : '';
-      document.getElementById('studentMsg').innerText = '';
-      document.getElementById('editBtn').disabled = !student;
-      document.getElementById('saveBtn').style.display = 'none';
-      document.getElementById('studentNameEdit').disabled = true;
-      document.getElementById('studentEmailEdit').disabled = true;
-      document.getElementById('studentCourseEdit').disabled = true;
-      renderStudentLevelsTable(student);
-    }
-
-    function enableEditFields() {
-      document.getElementById('studentNameEdit').disabled = false;
-      document.getElementById('studentEmailEdit').disabled = false;
-      document.getElementById('studentCourseEdit').disabled = false;
-      document.getElementById('saveBtn').style.display = '';
-      document.getElementById('editBtn').disabled = true;
-    }
-
-    function saveStudentData() {
-      if (!currentStudentDocId) return;
-      let name = document.getElementById('studentNameEdit').value.trim();
-      let email = document.getElementById('studentEmailEdit').value.trim();
-      let course = document.getElementById('studentCourseEdit').value.trim();
-      if (!name || !email || !course) {
-        document.getElementById('studentMsg').innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+    function addStudent(e) {
+      e.preventDefault();
+      var email = document.getElementById('studentEmail').value.trim().toLowerCase();
+      var name = document.getElementById('studentName').value.trim();
+      var courseNumber = document.getElementById('courseNumber').value.trim();
+      var msg = document.getElementById('addStudentMsg');
+      msg.innerText = '';
+      msg.style.color = "#b83b3b";
+      if (!validateEmail(email) || !name || !courseNumber) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
       }
-      firestore.collection('lectures').doc(currentStudentDocId).update({
-        name: name, email: email, course_number: course
-      }).then(function(){
-        document.getElementById('studentMsg').style.color = "#1dad87";
-        document.getElementById('studentMsg').innerText = "تم تحديث البيانات بنجاح!";
-        setTimeout(()=>{document.getElementById('studentMsg').innerText="";document.getElementById('studentMsg').style.color="#b83b3b";}, 1500);
-        loadStudentsList();
-        document.getElementById('studentNameEdit').disabled = true;
-        document.getElementById('studentEmailEdit').disabled = true;
-        document.getElementById('studentCourseEdit').disabled = true;
-        document.getElementById('saveBtn').style.display = 'none';
-        document.getElementById('editBtn').disabled = false;
-      }).catch(function(err){
-        document.getElementById('studentMsg').innerText = "خطأ أثناء التحديث: " + err.message;
+      firestore.collection('lectures').where('email', '==', email).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "هذا الطالب موجود بالفعل.";
+        } else {
+          let levelsObj = {}, examsObj = {};
+          for (let i=1; i<=7; i++) {
+            levelsObj["level"+i] = false;
+            examsObj["exam"+i+"_passed"] = false;
+          }
+          firestore.collection('lectures').add({
+            email: email,
+            name: name,
+            course_number: courseNumber,
+            role: "student",
+            diagnosis_exam: false,
+            exam1: false,
+            oral_exam: false,
+            ...levelsObj,
+            ...examsObj
+          }).then(function(){
+            msg.style.color = "#1dad87";
+            msg.innerText = "تمت إضافة الطالب بنجاح!";
+            document.getElementById('addStudentForm').reset();
+            loadStudents();
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
       });
     }
 
-    function renderStudentLevelsTable(student) {
-      let tbody = document.getElementById('studentLevelsTbody');
-      if (!student) { tbody.innerHTML = ""; document.getElementById('studentLevelsTable').style.display = "none"; return; }
-      let rows = '';
-      for (let i = 1; i <= 7; i++) {
-        let level = student['level'+i];
-        let exam = student['exam'+i+'_passed'];
-        rows += `<tr>
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+
+    function addLesson(e) {
+      e.preventDefault();
+      var id = Number(document.getElementById('lessonId').value.trim());
+      var title = document.getElementById('lessonTitle').value.trim();
+      var url = document.getElementById('lessonUrl').value.trim();
+      var voice = document.getElementById('lessonVoice').value.trim();
+      var level = document.getElementById('lessonLevel').value.trim();
+      var msg = document.getElementById('addLessonMsg');
+      msg.innerText = '';
+      msg.style.color = "#b83b3b";
+      if (!id || !title || !url || !level) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+      firestore.collection('lessons').where('id', '==', id).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "يوجد درس بنفس الرقم بالفعل.";
+        } else {
+          let lessonObj = {
+            id: id,
+            title: title,
+            url: url,
+            level: level
+          };
+          if (voice) lessonObj.voice = voice;
+          firestore.collection('lessons').add(lessonObj).then(function(){
+            msg.style.color = "#1dad87";
+            msg.innerText = "تمت إضافة الدرس بنجاح!";
+            document.getElementById('addLessonForm').reset();
+            loadLessons();
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
+      });
+    }
+
+    // تحميل قائمة الطلاب لقائمة select
+    function loadStudents() {
+      firestore.collection('lectures').where('role', '==', 'student').orderBy('name').get().then(function(querySnapshot){
+        let select = document.getElementById('studentsListSelect');
+        select.innerHTML = '<option value="">-- اختر طالباً --</option>';
+        _studentsArr = [];
+        querySnapshot.forEach(function(doc){
+          let data = doc.data();
+          data.docId = doc.id;
+          _studentsArr.push(data);
+          select.innerHTML += `<option value="${doc.id}">${data.name} (${data.email})</option>`;
+        });
+        // إخفاء بيانات الطالب وجدول المستويات عند تحميل الصفحة
+        document.getElementById('studentInfo').style.display = 'none';
+        document.getElementById('studentLevelsTable').style.display = 'none';
+        document.getElementById('studentLevelsTbody').innerHTML = "";
+      });
+    }
+
+    // عند اختيار طالب من القائمة
+    window.onStudentSelect = function() {
+      let id = document.getElementById('studentsListSelect').value;
+      let student = _studentsArr.find(s=>s.docId===id);
+      _currentStudent = student;
+      if (!student) {
+        document.getElementById('studentInfo').style.display = 'none';
+        document.getElementById('studentLevelsTable').style.display = 'none';
+        document.getElementById('studentLevelsTbody').innerHTML = "";
+        return;
+      }
+      document.getElementById('studentInfo').style.display = '';
+      document.getElementById('studentNameInfo').innerText = student.name || '';
+      document.getElementById('studentEmailInfo').innerText = student.email || '';
+      document.getElementById('studentCourseInfo').innerText = student.course_number || '';
+      // عرض جدول المستويات
+      let tbody = '';
+      for(let i=1;i<=7;i++){
+        let level = student["level"+i];
+        let exam = student["exam"+i+"_passed"];
+        tbody += `<tr>
           <td>المستوى ${i}</td>
           <td>
-            <input type="checkbox" class="level-checkbox" onchange="updateLevel(${i}, this.checked)" ${level ? 'checked' : ''}>
+            <input type="checkbox" onchange="updateLevel('${student.docId}',${i},this.checked)" ${level ? 'checked' : ''}>
           </td>
           <td>
-            <button class="exam-btn ${exam?'exam-true':'exam-false'}" onclick="toggleExam(${i})">
+            <button class="exam-btn ${exam ? 'exam-true':'exam-false'}"
+              onclick="toggleExamPassed('${student.docId}',${i},${exam ? 'false':'true'})">
               ${exam ? '✅ اجتاز (اضغط للإلغاء)' : '❌ لم يجتز (اضغط للإجتياز)'}
             </button>
           </td>
         </tr>`;
       }
-      tbody.innerHTML = rows;
+      document.getElementById('studentLevelsTbody').innerHTML = tbody;
       document.getElementById('studentLevelsTable').style.display = '';
     }
 
-    window.updateLevel = function(levelNum, checked) {
-      if (!currentStudentDocId) return;
-      let obj = {}; obj['level'+levelNum] = checked;
-      firestore.collection('lectures').doc(currentStudentDocId).update(obj)
-        .then(()=>{ document.getElementById('studentMsg').style.color="#1dad87"; document.getElementById('studentMsg').innerText='تم تحديث المستوى!'; setTimeout(()=>{document.getElementById('studentMsg').innerText="";document.getElementById('studentMsg').style.color="#b83b3b";},1200); loadStudentsList(); })
-        .catch(err=>{ document.getElementById('studentMsg').innerText = "خطأ أثناء تحديث المستوى: "+err.message; });
+    // تفعيل/إلغاء تفعيل مستوى
+    window.updateLevel = function(docId, levelNum, checked) {
+      let obj = {}; obj["level"+levelNum] = checked;
+      firestore.collection('lectures').doc(docId).update(obj).then(()=>{ onStudentSelect(); });
+    }
+    // اجتياز/إلغاء اجتياز امتحان
+    window.toggleExamPassed = function(docId, levelNum, pass) {
+      let obj = {}; obj["exam"+levelNum+"_passed"] = (pass==='true');
+      firestore.collection('lectures').doc(docId).update(obj).then(()=>{ onStudentSelect(); });
     }
 
-    window.toggleExam = function(levelNum) {
-      if (!currentStudentDocId) return;
-      let examField = 'exam'+levelNum+'_passed';
-      let currentState = !!currentStudent[examField];
-      let obj = {}; obj[examField] = !currentState;
-      firestore.collection('lectures').doc(currentStudentDocId).update(obj)
-        .then(()=>{ document.getElementById('studentMsg').style.color="#1dad87"; document.getElementById('studentMsg').innerText='تم تحديث الامتحان!'; setTimeout(()=>{document.getElementById('studentMsg').innerText="";document.getElementById('studentMsg').style.color="#b83b3b";},1200); currentStudent[examField]=!currentState; renderStudentLevelsTable(currentStudent); loadStudentsList(); })
-        .catch(err=>{ document.getElementById('studentMsg').innerText = "خطأ أثناء تحديث الامتحان: "+err.message; });
+    function getLevelNumFromText(levelText) {
+      if (!levelText) return 0;
+      const map = {
+        "الأول": 1, "اول": 1, "1": 1,
+        "الثاني": 2, "ثاني": 2, "2": 2,
+        "الثالث": 3, "ثالث": 3, "3": 3,
+        "الرابع": 4, "رابع": 4, "4": 4,
+        "الخامس": 5, "خامس": 5, "5": 5,
+        "السادس": 6, "سادس": 6, "6": 6,
+        "السابع": 7, "سابع": 7, "7": 7,
+      };
+      let txt = levelText.trim().replace('المستوى', '').replace(/\s/g, '');
+      return map[txt] || 0;
+    }
+
+    function loadLessons() {
+      firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
+        let html = '';
+        querySnapshot.forEach(function(doc){
+          let data = doc.data();
+          let levelNum = getLevelNumFromText(data.level);
+          let rowClass = levelNum ? `level-color-${levelNum}` : '';
+          if (editLessonId === doc.id) {
+            html += `
+              <tr class="${rowClass}">
+                <td><input type="number" id="editId" value="${data.id}" style="width:70px;" required></td>
+                <td><input type="text" id="editTitle" value="${data.title}" style="width:180px;" required></td>
+                <td><input type="text" id="editUrl" value="${data.url}" style="width:180px;" required></td>
+                <td>
+                  <input type="text" id="editVoice" value="${data.voice ? data.voice : ''}" placeholder="رابط الصوت (اختياري)" style="width:180px;">
+                </td>
+                <td><input type="text" id="editLevel" value="${data.level}" style="width:90px;" required></td>
+                <td>
+                  <button class="save-btn" onclick="saveLesson('${doc.id}')">حفظ</button>
+                  <button class="cancel-btn" onclick="cancelEditLesson()">إلغاء</button>
+                </td>
+              </tr>
+            `;
+          } else {
+            html += `<tr class="${rowClass}">
+                <td>${data.id || ''}</td>
+                <td>${data.title || ''}</td>
+                <td>
+                  <a href="${data.url || ''}" target="_blank">تحميل</a>
+                </td>
+                <td>
+                  ${data.voice ? `<audio controls style="width:120px;">
+                    <source src="${data.voice}" type="audio/mpeg">
+                    </audio>` : ''}
+                </td>
+                <td>${data.level || ''}</td>
+                <td>
+                  <button class="edit-btn" onclick="editLesson('${doc.id}')">تعديل</button>
+                </td>
+              </tr>`;
+          }
+        });
+        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="6">لا يوجد دروس بعد.</td></tr>';
+      });
+    }
+
+    window.editLesson = function(docId){
+      editLessonId = docId;
+      document.getElementById('editLessonMsg').innerText = '';
+      loadLessons();
+    }
+
+    window.cancelEditLesson = function(){
+      editLessonId = null;
+      document.getElementById('editLessonMsg').innerText = '';
+      loadLessons();
+    }
+
+    window.saveLesson = function(docId){
+      var id = Number(document.getElementById('editId').value.trim());
+      var title = document.getElementById('editTitle').value.trim();
+      var url = document.getElementById('editUrl').value.trim();
+      var voice = document.getElementById('editVoice').value.trim();
+      var level = document.getElementById('editLevel').value.trim();
+      var msg = document.getElementById('editLessonMsg');
+      msg.innerText = '';
+      msg.style.color = "#b83b3b";
+      if (!id || !title || !url || !level) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+      let lessonObj = {
+        id: id,
+        title: title,
+        url: url,
+        level: level
+      };
+      if (voice) lessonObj.voice = voice;
+      else lessonObj.voice = firebase.firestore.FieldValue.delete();
+      firestore.collection('lessons').doc(docId).update(lessonObj).then(function(){
+        msg.style.color = "#1dad87";
+        msg.innerText = "تم تحديث الدرس بنجاح!";
+        editLessonId = null;
+        loadLessons();
+        setTimeout(()=>{msg.innerText='';}, 1500);
+      }).catch(function(err){
+        msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
+      });
+    }
+
+    function logout() {
+      auth.signOut().then(()=>{window.location.href='login.html';});
     }
   </script>
 </body>
