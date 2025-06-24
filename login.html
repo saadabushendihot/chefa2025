@@ -7,6 +7,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+  <script src="firebase-config.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin:0;}
     .login-container { max-width: 380px; margin: 60px auto; background: #fff; border-radius: 12px; padding: 32px 24px; box-shadow: 0 2px 10px #0002;}
@@ -37,15 +39,7 @@
   </div>
 
   <script>
-    // إعدادات فايربيز
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
