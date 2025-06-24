@@ -55,25 +55,54 @@
     .btn:hover { background: #26407a; }
     .signout { background: #b83b3b;}
     .signout:hover { background: #7a2626;}
-    .add-student, .students-area, .lessons-area {
+    .students-area, .lessons-area {
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 1px 4px #00000009;
       margin-bottom: 22px;
       padding: 18px 14px;
     }
-    /* ====== إضافة درس جديد متقدمة ====== */
-    .add-lesson-pro {
+    /* ====== إضافة درس وطالب متقدمة ====== */
+    .add-section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 7px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .add-section-toggle .toggle-icon {
+      background: #3b5cb8;
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      margin-left: 8px;
+      transition: background 0.2s;
+    }
+    .add-section-toggle .toggle-icon:hover { background: #26407a; }
+    .add-section {
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 1px 4px #00000009;
-      margin-bottom: 22px;
       padding: 18px 14px;
+      margin-bottom: 18px;
       max-width: 500px;
       margin-right: auto;
       margin-left: auto;
+      display: none;
+      animation: fadein 0.3s;
     }
-    .add-lesson-pro h3 {
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .add-section h3 {
       color: #294169;
       margin-top: 0;
       margin-bottom: 18px;
@@ -82,19 +111,19 @@
       letter-spacing: 0.5px;
       text-align: center;
     }
-    .add-lesson-pro form {
+    .add-section form {
       display: flex;
       flex-direction: column;
       gap: 14px;
     }
-    .add-lesson-pro label {
+    .add-section label {
       font-size: 1rem;
       color: #2e4061;
       margin-bottom: 4px;
       margin-right: 2px;
       font-weight: 500;
     }
-    .add-lesson-pro input {
+    .add-section input {
       padding: 9px;
       border: 1px solid #c5c9d2;
       border-radius: 6px;
@@ -104,19 +133,18 @@
       transition: border 0.15s;
       margin-bottom: 6px;
     }
-    .add-lesson-pro input:focus {
+    .add-section input:focus {
       border-color: #3b5cb8;
       outline: none;
     }
-    .add-lesson-pro .btn {
+    .add-section .btn {
       margin-top: 8px;
       width: 100%;
       padding: 10px 0;
       font-size: 1.1rem;
       border-radius: 7px;
     }
-    .students-area { margin-bottom: 28px; }
-    .lessons-area { margin-bottom: 28px; }
+    /* الجداول */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -164,11 +192,11 @@
     }
     @media (max-width: 900px){
       .container {padding:8px;}
-      .add-student input {width:110px;}
       th, td {font-size: 0.91rem;}
       h2 {font-size:1rem;}
-      .add-student, .students-area, .lessons-area, .add-lesson-pro {padding:10px 4px;}
+      .students-area, .lessons-area, .add-section {padding:10px 4px;}
       header {font-size:1rem; padding:10px;}
+      .add-section {max-width: 99vw;}
     }
   </style>
 </head>
@@ -179,37 +207,43 @@
   </header>
   <div class="container">
 
-    <!-- إضافة طالب جديد -->
-    <div class="add-student">
+    <!-- أيقونة إظهار/إخفاء إضافة طالب -->
+    <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
+      <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
+      <span style="font-weight:bold;">إضافة طالب جديد</span>
+    </div>
+    <div class="add-section" id="addStudentSection">
+      <h3>إضافة طالب جديد</h3>
       <form id="addStudentForm" onsubmit="addStudent(event)">
-        <label>إضافة طالب جديد (البريد الإلكتروني):</label>
+        <label for="studentEmail">البريد الإلكتروني</label>
         <input type="email" id="studentEmail" placeholder="student@email.com" required>
+        <label for="studentName">اسم الطالب</label>
         <input type="text" id="studentName" placeholder="اسم الطالب" required>
+        <label for="courseNumber">رقم الدورة</label>
         <input type="text" id="courseNumber" placeholder="رقم الدورة" required>
         <button class="btn" type="submit">إضافة الطالب</button>
       </form>
       <div id="addStudentMsg"></div>
     </div>
 
-    <!-- إضافة درس جديد بشكل احترافي -->
-    <div class="add-lesson-pro">
+    <!-- أيقونة إظهار/إخفاء إضافة درس -->
+    <div class="add-section-toggle" onclick="toggleSection('addLessonSection')">
+      <span class="toggle-icon" id="addLessonToggleIcon">➕</span>
+      <span style="font-weight:bold;">إضافة درس جديد</span>
+    </div>
+    <div class="add-section" id="addLessonSection">
       <h3>إضافة درس جديد</h3>
       <form id="addLessonForm" onsubmit="addLesson(event)">
         <label for="lessonId">رقم الدرس</label>
         <input type="number" id="lessonId" placeholder="مثال: 1" required min="1">
-
         <label for="lessonTitle">عنوان الدرس</label>
         <input type="text" id="lessonTitle" placeholder="عنوان الدرس" required>
-
         <label for="lessonUrl">رابط الدرس (للتنزيل)</label>
         <input type="text" id="lessonUrl" placeholder="رابط التحميل" required>
-
         <label for="lessonVoice">رابط الصوت (للاستماع)</label>
         <input type="text" id="lessonVoice" placeholder="رابط الصوت (mp3 أو غيره)">
-
         <label for="lessonLevel">المستوى</label>
         <input type="text" id="lessonLevel" placeholder='مثال: "الأول"' required>
-
         <button class="btn" type="submit">إضافة الدرس</button>
       </form>
       <div id="addLessonMsg"></div>
@@ -256,11 +290,30 @@
     </div>
   </div>
   <script>
+    // إظهار/إخفاء أقسام الإضافة
+    function toggleSection(sectionId){
+      var sec = document.getElementById(sectionId);
+      var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
+      var icon = document.getElementById(iconId);
+      if (sec.style.display === "block") {
+        sec.style.display = "none";
+        icon.textContent = "➕";
+      } else {
+        sec.style.display = "block";
+        icon.textContent = "✖";
+      }
+    }
+    // إخفاء الأقسام افتراضيًا
+    window.onload = function() {
+      document.getElementById('addStudentSection').style.display = "none";
+      document.getElementById('addLessonSection').style.display = "none";
+    };
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
-    var editLessonId = null; // لتتبع الدرس الجاري تعديله
+    var editLessonId = null;
 
     // حماية الصفحة: يسمح فقط للمعلم بالدخول
     auth.onAuthStateChanged(function(user) {
@@ -318,6 +371,11 @@
       });
     }
 
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+
     // إضافة درس جديد
     function addLesson(e) {
       e.preventDefault();
@@ -356,11 +414,6 @@
       });
     }
 
-    function validateEmail(email) {
-      var re = /\S+@\S+\.\S+/;
-      return re.test(email);
-    }
-
     // جلب الطلاب من lectures
     function loadStudents() {
       firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
@@ -383,6 +436,7 @@
       });
     }
 
+    // تحويل اسم المستوى إلى رقم
     function getLevelNumFromText(levelText) {
       if (!levelText) return 0;
       const map = {
