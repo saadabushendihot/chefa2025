@@ -6,7 +6,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <!-- تحميل إعدادات الفايربيز من ملف خارجي -->
   <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -56,7 +55,6 @@
     .btn:hover { background: #26407a; }
     .signout { background: #b83b3b;}
     .signout:hover { background: #7a2626;}
-
     .add-student, .add-lesson, .students-area, .lessons-area {
       background: #fff;
       border-radius: 10px;
@@ -79,11 +77,8 @@
     .add-student input:focus, .add-lesson input:focus {
       border-color: #3b5cb8; outline: none;
     }
-
-    /* مناطق الجداول */
     .students-area { margin-bottom: 28px; }
     .lessons-area { margin-bottom: 28px; }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -103,8 +98,6 @@
     th { background: #f2f5fc; color: #294169; font-weight: bold;}
     tr:last-child td { border-bottom: none; }
     .level-checkbox { width: 18px; height: 18px; }
-
-    /* ألوان صفوف الدروس حسب المستوى */
     .level-color-1 { background: #e7f2fa !important; }
     .level-color-2 { background: #f8e7fa !important; }
     .level-color-3 { background: #e7faf0 !important; }
@@ -112,7 +105,6 @@
     .level-color-5 { background: #f3e7fa !important; }
     .level-color-6 { background: #e7faee !important; }
     .level-color-7 { background: #fae7e7 !important; }
-    /* أزرار التعديل */
     .edit-btn, .save-btn, .cancel-btn {
       padding: 4px 14px;
       border-radius: 5px;
@@ -129,11 +121,9 @@
     .save-btn:hover {background:#156c59;}
     .cancel-btn {background:#b83b3b; color:#fff;}
     .cancel-btn:hover {background:#7a2626;}
-    /* رسائل */
     #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
       color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
     }
-    /* استجابة للشاشات الصغيرة */
     @media (max-width: 900px){
       .container {padding:8px;}
       .add-student input, .add-lesson input {width:110px;}
@@ -170,6 +160,7 @@
         <input type="number" id="lessonId" placeholder="رقم الدرس" required min="1">
         <input type="text" id="lessonTitle" placeholder="عنوان الدرس" required>
         <input type="text" id="lessonUrl" placeholder="رابط الدرس" required>
+        <input type="text" id="lessonVoice" placeholder="رابط الصوت (اختياري)">
         <input type="text" id="lessonLevel" placeholder='المستوى (مثلاً "الأول")' required>
         <button class="btn" type="submit">إضافة الدرس</button>
       </form>
@@ -206,7 +197,8 @@
           <tr>
             <th>رقم الدرس</th>
             <th>العنوان</th>
-            <th>الرابط</th>
+            <th>رابط الدرس</th>
+            <th>الصوت</th>
             <th>المستوى</th>
             <th>تعديل</th>
           </tr>
@@ -216,7 +208,7 @@
     </div>
   </div>
   <script>
-       if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
@@ -251,13 +243,10 @@
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
       }
-
-      // تحقق هل الطالب موجود أصلاً في lectures
       firestore.collection('lectures').where('email', '==', email).get().then(function(querySnapshot){
         if (!querySnapshot.empty) {
           msg.innerText = "هذا الطالب موجود بالفعل.";
         } else {
-          // إضافة الطالب في lectures
           let levelsObj = {};
           for (let i=1; i<=7; i++) levelsObj["level"+i] = false;
           firestore.collection('lectures').add({
@@ -287,6 +276,7 @@
       var id = Number(document.getElementById('lessonId').value.trim());
       var title = document.getElementById('lessonTitle').value.trim();
       var url = document.getElementById('lessonUrl').value.trim();
+      var voice = document.getElementById('lessonVoice').value.trim();
       var level = document.getElementById('lessonLevel').value.trim();
       var msg = document.getElementById('addLessonMsg');
       msg.innerText = '';
@@ -295,18 +285,18 @@
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
       }
-
-      // تحقق هل الدرس برقم id موجود بالفعل
       firestore.collection('lessons').where('id', '==', id).get().then(function(querySnapshot){
         if (!querySnapshot.empty) {
           msg.innerText = "يوجد درس بنفس الرقم بالفعل.";
         } else {
-          firestore.collection('lessons').add({
+          let lessonObj = {
             id: id,
             title: title,
             url: url,
             level: level
-          }).then(function(){
+          };
+          if (voice) lessonObj.voice = voice;
+          firestore.collection('lessons').add(lessonObj).then(function(){
             msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الدرس بنجاح!";
             document.getElementById('addLessonForm').reset();
@@ -345,7 +335,6 @@
       });
     }
 
-    // تحويل اسم المستوى إلى رقم
     function getLevelNumFromText(levelText) {
       if (!levelText) return 0;
       const map = {
@@ -375,6 +364,9 @@
                 <td><input type="number" id="editId" value="${data.id}" style="width:70px;" required></td>
                 <td><input type="text" id="editTitle" value="${data.title}" style="width:180px;" required></td>
                 <td><input type="text" id="editUrl" value="${data.url}" style="width:180px;" required></td>
+                <td>
+                  <input type="text" id="editVoice" value="${data.voice ? data.voice : ''}" placeholder="رابط الصوت (اختياري)" style="width:180px;">
+                </td>
                 <td><input type="text" id="editLevel" value="${data.level}" style="width:90px;" required></td>
                 <td>
                   <button class="save-btn" onclick="saveLesson('${doc.id}')">حفظ</button>
@@ -386,7 +378,14 @@
             html += `<tr class="${rowClass}">
                 <td>${data.id || ''}</td>
                 <td>${data.title || ''}</td>
-                <td><a href="${data.url || ''}" target="_blank">رابط</a></td>
+                <td>
+                  <a href="${data.url || ''}" target="_blank">رابط</a>
+                </td>
+                <td>
+                  ${data.voice ? `<audio controls style="width:120px;">
+                    <source src="${data.voice}" type="audio/mpeg">
+                    </audio>` : ''}
+                </td>
                 <td>${data.level || ''}</td>
                 <td>
                   <button class="edit-btn" onclick="editLesson('${doc.id}')">تعديل</button>
@@ -394,29 +393,27 @@
               </tr>`;
           }
         });
-        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="5">لا يوجد دروس بعد.</td></tr>';
+        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="6">لا يوجد دروس بعد.</td></tr>';
       });
     }
 
-    // بدأ تعديل الدرس
     window.editLesson = function(docId){
       editLessonId = docId;
       document.getElementById('editLessonMsg').innerText = '';
       loadLessons();
     }
 
-    // إلغاء التعديل
     window.cancelEditLesson = function(){
       editLessonId = null;
       document.getElementById('editLessonMsg').innerText = '';
       loadLessons();
     }
 
-    // حفظ الدرس بعد التعديل
     window.saveLesson = function(docId){
       var id = Number(document.getElementById('editId').value.trim());
       var title = document.getElementById('editTitle').value.trim();
       var url = document.getElementById('editUrl').value.trim();
+      var voice = document.getElementById('editVoice').value.trim();
       var level = document.getElementById('editLevel').value.trim();
       var msg = document.getElementById('editLessonMsg');
       msg.innerText = '';
@@ -425,12 +422,15 @@
         msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
         return;
       }
-      firestore.collection('lessons').doc(docId).update({
+      let lessonObj = {
         id: id,
         title: title,
         url: url,
         level: level
-      }).then(function(){
+      };
+      if (voice) lessonObj.voice = voice;
+      else lessonObj.voice = firebase.firestore.FieldValue.delete();
+      firestore.collection('lessons').doc(docId).update(lessonObj).then(function(){
         msg.style.color = "#1dad87";
         msg.innerText = "تم تحديث الدرس بنجاح!";
         editLessonId = null;
@@ -441,7 +441,6 @@
       });
     }
 
-    // تحديث مستوى طالب
     window.updateLevel = function(checkbox) {
       const docId = checkbox.getAttribute('data-id');
       const level = checkbox.getAttribute('data-level');
