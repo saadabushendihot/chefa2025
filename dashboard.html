@@ -216,9 +216,7 @@
     </div>
   </div>
   <script>
-    // لا حاجة لتعريف firebaseConfig هنا، يتم تحميله من الملف الخارجي
-
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+       if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
