@@ -6,7 +6,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f5f7fa; color: #23272f; min-height: 100vh; }
@@ -17,7 +16,7 @@
     .btn:hover { background: #26407a; }
     .signout { background: #b83b3b; }
     .signout:hover { background: #7a2626; }
-    .students-area, .lessons-area { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px #00000009; margin-bottom: 22px; padding: 18px 14px; }
+    .students-area, .lessons-area, .add-section { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px #00000009; margin-bottom: 22px; padding: 18px 14px; }
     table { width: 100%; border-collapse: collapse; margin-top: 14px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px #00000008; }
     th, td { padding: 9px 6px; border-bottom: 1px solid #e5e7ea; text-align: center; font-size: 1rem; color: #23272f; }
     th { background: #f2f5fc; color: #294169; font-weight: bold; }
@@ -32,6 +31,7 @@
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
+    <!-- سيتم إعادة إضافة أقسام إضافة طالب وإضافة درس هنا لاحقًا -->
     <div class="students-area">
       <h2>إدارة مستويات الطلاب</h2>
       <div id="msg"></div>
@@ -59,8 +59,22 @@
         <tbody id="studentDetailRow"></tbody>
       </table>
     </div>
+
+    <div class="lessons-area">
+      <h2>قائمة الدروس</h2>
+      <div id="lessonsList">(سيتم تحميل الدروس هنا)</div>
+    </div>
   </div>
   <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     const auth = firebase.auth();
     const firestore = firebase.firestore();
@@ -72,6 +86,7 @@
             window.location.href = "login.html";
           } else {
             loadStudents();
+            // يمكنك استدعاء loadLessons() لاحقًا هنا إذا كانت متوفرة
           }
         });
       } else {
