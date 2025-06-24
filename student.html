@@ -96,8 +96,7 @@
     <div id="lessonsSummariesArea"></div>
   </div>
   <script>
-    // لا تكتب متغير firebaseConfig هنا، بل يتم جلبه من الملف الخارجي
-
+  
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
     var firestore = firebase.firestore();
