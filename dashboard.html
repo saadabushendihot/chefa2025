@@ -55,27 +55,65 @@
     .btn:hover { background: #26407a; }
     .signout { background: #b83b3b;}
     .signout:hover { background: #7a2626;}
-    .add-student, .add-lesson, .students-area, .lessons-area {
+    .add-student, .students-area, .lessons-area {
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 1px 4px #00000009;
       margin-bottom: 22px;
       padding: 18px 14px;
     }
-    .add-student, .add-lesson {
-      display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
+    /* ====== إضافة درس جديد متقدمة ====== */
+    .add-lesson-pro {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      margin-bottom: 22px;
+      padding: 18px 14px;
+      max-width: 500px;
+      margin-right: auto;
+      margin-left: auto;
     }
-    .add-student form, .add-lesson form {
-      display: flex; align-items: center; flex-wrap: wrap; gap: 10px;
+    .add-lesson-pro h3 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-align: center;
     }
-    .add-student label, .add-lesson label {margin-left: 10px;}
-    .add-student input, .add-lesson input {
-      padding: 7px; border: 1px solid #c5c9d2; border-radius: 5px; width: 170px; font-size: 1rem;
-      background: #f7f8fa; color: #23272f;
+    .add-lesson-pro form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .add-lesson-pro label {
+      font-size: 1rem;
+      color: #2e4061;
+      margin-bottom: 4px;
+      margin-right: 2px;
+      font-weight: 500;
+    }
+    .add-lesson-pro input {
+      padding: 9px;
+      border: 1px solid #c5c9d2;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #f7f8fa;
+      color: #23272f;
       transition: border 0.15s;
+      margin-bottom: 6px;
     }
-    .add-student input:focus, .add-lesson input:focus {
-      border-color: #3b5cb8; outline: none;
+    .add-lesson-pro input:focus {
+      border-color: #3b5cb8;
+      outline: none;
+    }
+    .add-lesson-pro .btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px 0;
+      font-size: 1.1rem;
+      border-radius: 7px;
     }
     .students-area { margin-bottom: 28px; }
     .lessons-area { margin-bottom: 28px; }
@@ -126,10 +164,10 @@
     }
     @media (max-width: 900px){
       .container {padding:8px;}
-      .add-student input, .add-lesson input {width:110px;}
+      .add-student input {width:110px;}
       th, td {font-size: 0.91rem;}
       h2 {font-size:1rem;}
-      .add-student, .add-lesson, .students-area, .lessons-area {padding:10px 4px;}
+      .add-student, .students-area, .lessons-area, .add-lesson-pro {padding:10px 4px;}
       header {font-size:1rem; padding:10px;}
     }
   </style>
@@ -153,15 +191,25 @@
       <div id="addStudentMsg"></div>
     </div>
 
-    <!-- إضافة درس جديد -->
-    <div class="add-lesson">
+    <!-- إضافة درس جديد بشكل احترافي -->
+    <div class="add-lesson-pro">
+      <h3>إضافة درس جديد</h3>
       <form id="addLessonForm" onsubmit="addLesson(event)">
-        <label>إضافة درس جديد:</label>
-        <input type="number" id="lessonId" placeholder="رقم الدرس" required min="1">
+        <label for="lessonId">رقم الدرس</label>
+        <input type="number" id="lessonId" placeholder="مثال: 1" required min="1">
+
+        <label for="lessonTitle">عنوان الدرس</label>
         <input type="text" id="lessonTitle" placeholder="عنوان الدرس" required>
-        <input type="text" id="lessonUrl" placeholder="رابط الدرس" required>
-        <input type="text" id="lessonVoice" placeholder="رابط الصوت (اختياري)">
-        <input type="text" id="lessonLevel" placeholder='المستوى (مثلاً "الأول")' required>
+
+        <label for="lessonUrl">رابط الدرس (للتنزيل)</label>
+        <input type="text" id="lessonUrl" placeholder="رابط التحميل" required>
+
+        <label for="lessonVoice">رابط الصوت (للاستماع)</label>
+        <input type="text" id="lessonVoice" placeholder="رابط الصوت (mp3 أو غيره)">
+
+        <label for="lessonLevel">المستوى</label>
+        <input type="text" id="lessonLevel" placeholder='مثال: "الأول"' required>
+
         <button class="btn" type="submit">إضافة الدرس</button>
       </form>
       <div id="addLessonMsg"></div>
@@ -379,7 +427,7 @@
                 <td>${data.id || ''}</td>
                 <td>${data.title || ''}</td>
                 <td>
-                  <a href="${data.url || ''}" target="_blank">رابط</a>
+                  <a href="${data.url || ''}" target="_blank">تحميل</a>
                 </td>
                 <td>
                   ${data.voice ? `<audio controls style="width:120px;">
