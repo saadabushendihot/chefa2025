@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- تأكد من وجود ملف firebase-config.js في نفس المجلد ويحتوي على تهيئة Firebase الخاصة بك -->
   <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -123,7 +124,7 @@
       margin-right: 2px;
       font-weight: 500;
     }
-    .add-section input {
+    .add-section input, .add-section select { /* إضافة select */
       padding: 9px;
       border: 1px solid #c5c9d2;
       border-radius: 6px;
@@ -133,7 +134,7 @@
       transition: border 0.15s;
       margin-bottom: 6px;
     }
-    .add-section input:focus {
+    .add-section input:focus, .add-section select:focus { /* إضافة select */
       border-color: #3b5cb8;
       outline: none;
     }
@@ -163,7 +164,73 @@
     }
     th { background: #f2f5fc; color: #294169; font-weight: bold;}
     tr:last-child td { border-bottom: none; }
-    .level-checkbox { width: 18px; height: 18px; }
+
+    /* تعديلات لعرض تفاصيل الطالب بدلاً من الجدول */
+    .student-selection-area {
+      margin-bottom: 20px;
+    }
+    #selectedStudentDetails {
+      background: #f9fbfd;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e0e4e8;
+      display: none; /* مخفي افتراضياً */
+    }
+    #selectedStudentDetails h3 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: right;
+    }
+    #selectedStudentDetails p {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: #23272f;
+      text-align: right;
+    }
+    #selectedStudentDetails p strong {
+      color: #294169;
+    }
+    #selectedStudentDetails h4 {
+      color: #294169;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      text-align: right;
+    }
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .level-item {
+      display: flex;
+      align-items: center;
+      background: #f2f5fc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e5e7ea;
+      cursor: pointer; /* لجعل العنصر بأكمله قابلاً للنقر */
+      user-select: none; /* لمنع تحديد النص عند النقر */
+    }
+    .level-item input[type="checkbox"] {
+      margin-left: 8px; /* المسافة بين النص والمربع */
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .level-item label {
+      font-size: 0.95rem;
+      color: #294169;
+      font-weight: 500;
+      flex-grow: 1;
+      cursor: pointer;
+    }
+    /* ألوان المستويات (يمكن الاحتفاظ بها إذا أردت خلفية للمربعات) */
     .level-color-1 { background: #e7f2fa !important; }
     .level-color-2 { background: #f8e7fa !important; }
     .level-color-3 { background: #e7faf0 !important; }
@@ -171,6 +238,9 @@
     .level-color-5 { background: #f3e7fa !important; }
     .level-color-6 { background: #e7faee !important; }
     .level-color-7 { background: #fae7e7 !important; }
+    /* نهاية تعديلات عرض الطالب */
+
+
     .edit-btn, .save-btn, .cancel-btn {
       padding: 4px 14px;
       border-radius: 5px;
@@ -189,6 +259,7 @@
     .cancel-btn:hover {background:#7a2626;}
     #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
       color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
+      text-align: center; /* توسيط الرسائل */
     }
     @media (max-width: 900px){
       .container {padding:8px;}
@@ -197,6 +268,10 @@
       .students-area, .lessons-area, .add-section {padding:10px 4px;}
       header {font-size:1rem; padding:10px;}
       .add-section {max-width: 99vw;}
+      /* تعديلات للجوال */
+      .levels-grid {
+        grid-template-columns: 1fr; /* عمود واحد في الشاشات الصغيرة */
+      }
     }
   </style>
 </head>
@@ -252,23 +327,22 @@
     <div class="students-area">
       <h2>إدارة مستويات الطلاب</h2>
       <div id="msg"></div>
-      <table id="studentsTable">
-        <thead>
-          <tr>
-            <th>الاسم</th>
-            <th>البريد</th>
-            <th>الدورة</th>
-            <th>المستوى 1</th>
-            <th>المستوى 2</th>
-            <th>المستوى 3</th>
-            <th>المستوى 4</th>
-            <th>المستوى 5</th>
-            <th>المستوى 6</th>
-            <th>المستوى 7</th>
-          </tr>
-        </thead>
-        <tbody id="studentsList"></tbody>
-      </table>
+      <div class="student-selection-area">
+        <label for="studentSelect" style="font-weight:bold; margin-bottom: 10px; display: block; text-align: right;">اختر الطالب:</label>
+        <select id="studentSelect" onchange="showSelectedStudentDetails(this.value)" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #c5c9d2; font-size: 1rem; background: #f7f8fa; color: #23272f;">
+          <option value="">-- اختر طالباً لعرض بياناته --</option>
+        </select>
+      </div>
+      <div id="selectedStudentDetails" style="background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; margin-top: 20px; display: none;">
+        <h3>تفاصيل الطالب المحدد:</h3>
+        <p><strong>الاسم:</strong> <span id="detailName"></span></p>
+        <p><strong>البريد الإلكتروني:</strong> <span id="detailEmail"></span></p>
+        <p><strong>رقم الدورة:</strong> <span id="detailCourseNumber"></span></p>
+        <h4>المستويات:</h4>
+        <div id="detailLevels" class="levels-grid">
+          <!-- Levels will be populated here -->
+        </div>
+      </div>
     </div>
 
     <div class="lessons-area">
@@ -314,6 +388,7 @@
     var firestore = firebase.firestore();
 
     var editLessonId = null;
+    var allStudentsData = {}; // لتخزين بيانات الطلاب للوصول السريع
 
     // حماية الصفحة: يسمح فقط للمعلم بالدخول
     auth.onAuthStateChanged(function(user) {
@@ -325,6 +400,9 @@
             loadStudents();
             loadLessons();
           }
+        }).catch(function(error) {
+          console.error("خطأ في جلب دور المستخدم:", error);
+          window.location.href = "login.html"; // إعادة التوجيه في حالة وجود خطأ
         });
       } else {
         window.location.href = "login.html";
@@ -363,11 +441,14 @@
             msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الطالب بنجاح!";
             document.getElementById('addStudentForm').reset();
-            loadStudents();
+            loadStudents(); // إعادة تحميل قائمة الطلاب بعد الإضافة
           }).catch(function(err){
             msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
           });
         }
+      }).catch(function(error) {
+        console.error("خطأ في التحقق من وجود الطالب:", error);
+        msg.innerText = "حدث خطأ في التحقق من وجود الطالب.";
       });
     }
 
@@ -406,35 +487,91 @@
             msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الدرس بنجاح!";
             document.getElementById('addLessonForm').reset();
-            loadLessons();
+            loadLessons(); // إعادة تحميل قائمة الدروس بعد الإضافة
           }).catch(function(err){
             msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
           });
         }
+      }).catch(function(error) {
+        console.error("خطأ في التحقق من وجود الدرس:", error);
+        msg.innerText = "حدث خطأ في التحقق من وجود الدرس.";
       });
     }
 
-    // جلب الطلاب من lectures
+    // جلب الطلاب من lectures وتعبئة القائمة المنسدلة
     function loadStudents() {
       firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
-        let html = '';
+        let studentSelect = document.getElementById('studentSelect');
+        studentSelect.innerHTML = '<option value="">-- اختر طالباً لعرض بياناته --</option>'; // إعادة تعيين القائمة
+
+        allStudentsData = {}; // مسح البيانات القديمة
+
         querySnapshot.forEach(function(doc){
           let data = doc.data();
-          html += `<tr>
-              <td>${data.name || ''}</td>
-              <td>${data.email || ''}</td>
-              <td>${data.course_number || ''}</td>
-              ${Array.from({length: 7}, (_, i) => {
-                const level = 'level' + (i+1);
-                return `<td>
-                  <input type="checkbox" class="level-checkbox" data-id="${doc.id}" data-level="${level}" ${data[level] ? 'checked' : ''} onchange="updateLevel(this)">
-                </td>`;
-              }).join('')}
-            </tr>`;
+          allStudentsData[doc.id] = data; // تخزين البيانات باستخدام الـ doc.id كمفتاح
+          let option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = data.name || 'غير معروف';
+          studentSelect.appendChild(option);
         });
-        document.getElementById('studentsList').innerHTML = html || '<tr><td colspan="10">لا يوجد طلاب بعد.</td></tr>';
+
+        // إذا كان هناك طالب محدد مسبقاً، أعد عرضه
+        const currentSelectedStudentId = studentSelect.value;
+        if (currentSelectedStudentId && allStudentsData[currentSelectedStudentId]) {
+            showSelectedStudentDetails(currentSelectedStudentId);
+        } else {
+            // إخفاء التفاصيل إذا لم يكن هناك طالب محدد أو لم يعد موجوداً
+            document.getElementById('selectedStudentDetails').style.display = 'none';
+        }
+
+        // إذا كانت هذه أول مرة يتم فيها تحميل الطلاب وكان هناك طالب واحد فقط، قم باختياره
+        if (querySnapshot.size === 1 && !currentSelectedStudentId) {
+            studentSelect.value = querySnapshot.docs[0].id;
+            showSelectedStudentDetails(querySnapshot.docs[0].id);
+        }
+
+      }).catch(function(error) {
+        console.error("خطأ في جلب بيانات الطلاب:", error);
+        document.getElementById('msg').innerText = "خطأ في تحميل بيانات الطلاب.";
       });
     }
+
+    // عرض تفاصيل الطالب المحدد في القائمة المنسدلة
+    window.showSelectedStudentDetails = function(studentId) {
+      const studentDetailsDiv = document.getElementById('selectedStudentDetails');
+      if (!studentId) {
+        studentDetailsDiv.style.display = 'none';
+        return;
+      }
+
+      const student = allStudentsData[studentId];
+      if (student) {
+        document.getElementById('detailName').textContent = student.name || 'غير معروف';
+        document.getElementById('detailEmail').textContent = student.email || 'غير معروف';
+        document.getElementById('detailCourseNumber').textContent = student.course_number || 'غير معروف';
+
+        const detailLevelsDiv = document.getElementById('detailLevels');
+        detailLevelsDiv.innerHTML = ''; // مسح المستويات القديمة
+
+        for (let i = 1; i <= 7; i++) {
+          const level = 'level' + i;
+          const isChecked = student[level] ? 'checked' : '';
+          const levelItem = document.createElement('div');
+          levelItem.className = `level-item level-color-${i}`; // لإضافة ألوان الخلفية
+          levelItem.innerHTML = `
+            <input type="checkbox" class="level-checkbox" id="level-${studentId}-${i}" data-id="${studentId}" data-level="${level}" ${isChecked} onchange="updateLevel(this)">
+            <label for="level-${studentId}-${i}">المستوى ${i}</label>
+          `;
+          detailLevelsDiv.appendChild(levelItem);
+        }
+        studentDetailsDiv.style.display = 'block'; // إظهار قسم التفاصيل
+      } else {
+        studentDetailsDiv.style.display = 'none';
+        document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
+        setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
+      }
+    };
+
 
     // تحويل اسم المستوى إلى رقم
     function getLevelNumFromText(levelText) {
@@ -496,6 +633,9 @@
           }
         });
         document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="6">لا يوجد دروس بعد.</td></tr>';
+      }).catch(function(error) {
+        console.error("خطأ في جلب بيانات الدروس:", error);
+        document.getElementById('editLessonMsg').innerText = "خطأ في تحميل بيانات الدروس.";
       });
     }
 
@@ -543,6 +683,7 @@
       });
     }
 
+    // تحديث مستوى الطالب في Firestore وإعادة عرض التفاصيل
     window.updateLevel = function(checkbox) {
       const docId = checkbox.getAttribute('data-id');
       const level = checkbox.getAttribute('data-level');
@@ -550,6 +691,11 @@
       firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
         document.getElementById('msg').style.color = '#1dad87';
         document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
+        // تحديث البيانات المخزنة محلياً ثم إعادة عرض التفاصيل
+        if (allStudentsData[docId]) {
+            allStudentsData[docId][level] = value;
+            showSelectedStudentDetails(docId); // إعادة عرض التفاصيل لتحديث حالة مربع الاختيار
+        }
         setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
       }).catch(function(err){
         document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
@@ -557,7 +703,9 @@
     }
 
     function logout() {
-      auth.signOut().then(()=>{window.location.href='login.html';});
+      auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
+        console.error("خطأ في تسجيل الخروج:", error);
+      });
     }
   </script>
 </body>
