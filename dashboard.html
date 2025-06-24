@@ -62,7 +62,6 @@
       margin-bottom: 22px;
       padding: 18px 14px;
     }
-    /* ====== إضافة درس وطالب متقدمة ====== */
     .add-section-toggle {
       display: flex;
       align-items: center;
@@ -144,7 +143,6 @@
       font-size: 1.1rem;
       border-radius: 7px;
     }
-    /* الجداول */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -164,6 +162,9 @@
     th { background: #f2f5fc; color: #294169; font-weight: bold;}
     tr:last-child td { border-bottom: none; }
     .level-checkbox { width: 18px; height: 18px; }
+    .exam-btn { padding: 3px 10px; font-size: 0.9rem; border-radius: 4px; border: none; background: #1dad87; color: #fff; cursor: pointer;}
+    .exam-btn[disabled] { background: #bcbcbc; cursor: not-allowed;}
+    .exam-done { color: #1dad87; font-weight: bold;}
     .level-color-1 { background: #e7f2fa !important; }
     .level-color-2 { background: #f8e7fa !important; }
     .level-color-3 { background: #e7faf0 !important; }
@@ -250,21 +251,27 @@
     </div>
 
     <div class="students-area">
-      <h2>إدارة مستويات الطلاب</h2>
+      <h2>إدارة مستويات الطلاب والاختبارات</h2>
       <div id="msg"></div>
       <table id="studentsTable">
         <thead>
           <tr>
-            <th>الاسم</th>
-            <th>البريد</th>
-            <th>الدورة</th>
-            <th>المستوى 1</th>
-            <th>المستوى 2</th>
-            <th>المستوى 3</th>
-            <th>المستوى 4</th>
-            <th>المستوى 5</th>
-            <th>المستوى 6</th>
-            <th>المستوى 7</th>
+            <th rowspan="2">الاسم</th>
+            <th rowspan="2">البريد</th>
+            <th rowspan="2">الدورة</th>
+            <th colspan="2">المستوى 1</th>
+            <th colspan="2">المستوى 2</th>
+            <th colspan="2">المستوى 3</th>
+            <th colspan="2">المستوى 4</th>
+            <th colspan="2">المستوى 5</th>
+            <th colspan="2">المستوى 6</th>
+            <th colspan="2">المستوى 7</th>
+          </tr>
+          <tr>
+            ${[1,2,3,4,5,6,7].map(i=>`
+              <th>امتحان</th>
+              <th>تفعيل</th>
+            `).join('')}
           </tr>
         </thead>
         <tbody id="studentsList"></tbody>
@@ -290,7 +297,6 @@
     </div>
   </div>
   <script>
-    // إظهار/إخفاء أقسام الإضافة
     function toggleSection(sectionId){
       var sec = document.getElementById(sectionId);
       var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
@@ -303,7 +309,6 @@
         icon.textContent = "✖";
       }
     }
-    // إخفاء الأقسام افتراضيًا
     window.onload = function() {
       document.getElementById('addStudentSection').style.display = "none";
       document.getElementById('addLessonSection').style.display = "none";
@@ -315,7 +320,6 @@
 
     var editLessonId = null;
 
-    // حماية الصفحة: يسمح فقط للمعلم بالدخول
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
@@ -331,7 +335,6 @@
       }
     });
 
-    // إضافة طالب جديد
     function addStudent(e) {
       e.preventDefault();
       var email = document.getElementById('studentEmail').value.trim().toLowerCase();
@@ -348,8 +351,11 @@
         if (!querySnapshot.empty) {
           msg.innerText = "هذا الطالب موجود بالفعل.";
         } else {
-          let levelsObj = {};
-          for (let i=1; i<=7; i++) levelsObj["level"+i] = false;
+          let levelsObj = {}, examsObj = {};
+          for (let i=1; i<=7; i++) {
+            levelsObj["level"+i] = false;
+            examsObj["exam"+i+"_passed"] = false;
+          }
           firestore.collection('lectures').add({
             email: email,
             name: name,
@@ -358,7 +364,8 @@
             diagnosis_exam: false,
             exam1: false,
             oral_exam: false,
-            ...levelsObj
+            ...levelsObj,
+            ...examsObj
           }).then(function(){
             msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الطالب بنجاح!";
@@ -376,7 +383,6 @@
       return re.test(email);
     }
 
-    // إضافة درس جديد
     function addLesson(e) {
       e.preventDefault();
       var id = Number(document.getElementById('lessonId').value.trim());
@@ -414,7 +420,7 @@
       });
     }
 
-    // جلب الطلاب من lectures
+    // تحميل الطلاب مع التحكم في المستويات والامتحانات
     function loadStudents() {
       firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
         let html = '';
@@ -425,18 +431,39 @@
               <td>${data.email || ''}</td>
               <td>${data.course_number || ''}</td>
               ${Array.from({length: 7}, (_, i) => {
-                const level = 'level' + (i+1);
-                return `<td>
-                  <input type="checkbox" class="level-checkbox" data-id="${doc.id}" data-level="${level}" ${data[level] ? 'checked' : ''} onchange="updateLevel(this)">
-                </td>`;
+                let level = 'level' + (i+1);
+                let exam = 'exam' + (i+1) + '_passed';
+                let examPassed = data[exam];
+                // زر اجتياز الامتحان أو علامة النجاح
+                let examBtn = examPassed
+                  ? `<span class="exam-done">✅</span>`
+                  : `<button class="exam-btn" onclick="setExamPassed('${doc.id}', ${i+1})">اجتياز</button>`;
+                // تعطيل التفعيل إذا لم يجتز الامتحان الحالي أو إذا لم يكن المستوى السابق مفعل
+                let canActivate = false;
+                if (i === 0) {
+                  canActivate = data[exam]; // مستوى 1: التفعيل فقط إذا اجتاز امتحان المستوى 1
+                } else {
+                  // المستوى التالي: لا يمكن تفعيله إلا إذا كان المستوى السابق مفعل وامتحان هذا المستوى ناجح
+                  canActivate = data['level'+i] && data[exam];
+                }
+                // checkbox تفعيل المستوى
+                let levelCheck = `<input type="checkbox" class="level-checkbox" data-id="${doc.id}" data-level="${level}" 
+                    ${data[level] ? 'checked' : ''} 
+                    ${canActivate ? '' : 'disabled'} 
+                    onchange="updateLevel(this)">`;
+                return `<td>${examBtn}</td><td>${levelCheck}</td>`;
               }).join('')}
             </tr>`;
         });
-        document.getElementById('studentsList').innerHTML = html || '<tr><td colspan="10">لا يوجد طلاب بعد.</td></tr>';
+        document.getElementById('studentsList').innerHTML = html || '<tr><td colspan="17">لا يوجد طلاب بعد.</td></tr>';
       });
     }
 
-    // تحويل اسم المستوى إلى رقم
+    // اجتياز الامتحان لمستوى محدد
+    window.setExamPassed = function(docId, levelNum) {
+      firestore.collection('lectures').doc(docId).update({ ['exam'+levelNum+'_passed']: true }).then(loadStudents);
+    }
+
     function getLevelNumFromText(levelText) {
       if (!levelText) return 0;
       const map = {
@@ -452,7 +479,6 @@
       return map[txt] || 0;
     }
 
-    // جلب الدروس مع ألوان المستويات
     function loadLessons() {
       firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
         let html = '';
@@ -551,6 +577,7 @@
         document.getElementById('msg').style.color = '#1dad87';
         document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
         setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
+        loadStudents();
       }).catch(function(err){
         document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
       });
