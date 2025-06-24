@@ -25,6 +25,9 @@
     .levels-table th {background:#eef2fa; color:#1b3e72;}
     .level-on {color: #219e4b; font-weight: bold;}
     .level-off {color: #e63946; font-weight: bold;}
+    .exam-status {font-weight:bold;}
+    .exam-success {color:#219e4b;}
+    .exam-fail {color:#e63946;}
     .exam-mark, .final-mark {background: #eaf3fc; color:#0d4c82; border-radius: 5px; padding:2px 10px; font-weight: bold;}
     .final-mark {background: #ffeeb4; color: #ad7a13;}
     .exams-box {background: #eaf3fc; border-radius: 7px; padding: 16px 18px; margin: 30px 0 0 0;}
@@ -74,13 +77,13 @@
     </div>
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
+    <!-- جدول المستويات والامتحانات -->
     <table class="levels-table" id="levelsTable" style="display:none;">
       <thead>
         <tr>
           <th>المستوى</th>
           <th>الحالة</th>
-          <th>علامة امتحان المادة</th>
-          <th>علامة الامتحان النهائي للمستوى</th>
+          <th>اجتياز الامتحان</th>
         </tr>
       </thead>
       <tbody id="levelsBody"></tbody>
@@ -113,6 +116,20 @@
         case "1": return 1; case "2": return 2; case "3": return 3; case "4": return 4; case "5": return 5; case "6": return 6; case "7": return 7;
         default: return 0;
       }
+    }
+
+    // يعرض فقط الدروس للمستوى المجتاز امتحانه
+    function getAllowedLevels(data) {
+      let allowed = [];
+      for(let i=1;i<=7;i++){
+        // المستوى 1: يظهر إذا كان level1=true و exam1_passed=true
+        // المستوى n: يظهر إذا كان levelN=true و examN_passed=true و exam(N-1)_passed=true
+        let level = data['level'+i];
+        let exam = data['exam'+i+'_passed'];
+        let prevExam = i === 1 ? true : data['exam'+(i-1)+'_passed'];
+        if(level && exam && prevExam) allowed.push(i);
+      }
+      return allowed;
     }
 
     auth.onAuthStateChanged(function(user) {
@@ -184,36 +201,34 @@
             document.getElementById('examsBox').style.display = "none";
           }
 
-          let activeLevels = [];
-          if (isAccepted) {
-            var levelsHtml = '';
-            for (var i = 1; i <= 7; i++) {
-              var level = data['level'+i];
-              var mark = data['level'+i+'_exam_mark'];
-              var final = data['level'+i+'_final_exam'];
-              if (level) activeLevels.push(i);
-              levelsHtml += `<tr>
+          // جدول المستويات والامتحان
+          let levelsHtml = '';
+          for (var i = 1; i <= 7; i++) {
+            var level = data['level'+i];
+            var exam = data['exam'+i+'_passed'];
+            levelsHtml += `<tr>
                 <td>المستوى ${i}</td>
                 <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
-                <td><span class="exam-mark">${mark ? mark : '—'}</span></td>
-                <td><span class="final-mark">${final ? final : '—'}</span></td>
+                <td class="exam-status ${exam ? 'exam-success' : 'exam-fail'}">${exam ? '✅ اجتاز الامتحان' : '❌ لم يجتز الامتحان'}</td>
               </tr>`;
-            }
-            document.getElementById('levelsBody').innerHTML = levelsHtml;
-            document.getElementById('levelsTable').style.display = "";
-
-            let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
-            let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
-            let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
-            let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
-
-            document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
-            document.getElementById('exam1Mark').innerText = exam1Mark;
-            document.getElementById('oralExamMark').innerText = oralMark;
-            document.getElementById('fExam').innerText = fMark;
-
-            loadActiveLessonsAndSummaries(activeLevels);
           }
+          document.getElementById('levelsBody').innerHTML = levelsHtml;
+          document.getElementById('levelsTable').style.display = "";
+
+          // الامتحانات العامة
+          let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
+          let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
+          let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
+          let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
+
+          document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
+          document.getElementById('exam1Mark').innerText = exam1Mark;
+          document.getElementById('oralExamMark').innerText = oralMark;
+          document.getElementById('fExam').innerText = fMark;
+
+          // عرض الدروس فقط للمستويات التي فعّلت وامتحانها ناجح
+          let allowedLevels = getAllowedLevels(data);
+          loadActiveLessonsAndSummaries(allowedLevels);
         }
       }).catch(function(err) {
         document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
@@ -254,7 +269,6 @@
       });
     }
 
-    // الدالة المعدلة كما طلبت
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
