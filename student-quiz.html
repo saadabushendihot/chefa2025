@@ -49,7 +49,6 @@
     </form>
     <div class="result" id="resultArea"></div>
   </div>
-
   <script>
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
     var auth = firebase.auth();
@@ -57,12 +56,11 @@
 
     let questions = [];
     let randomizedQuestions = [];
-    let questionsLimit = null; // عدد الأسئلة المخصص للمستوى
-    let studentLevel = null;   // المستوى الحالي
+    let questionsLimit = null;
+    let studentLevel = null;
     let studentName = '';
     let studentEmail = '';
 
-    // دالة خلط عشوائي لمصفوفة
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -71,13 +69,12 @@
       return array;
     }
 
-    // حماية الصفحة - فقط للطلاب
     auth.onAuthStateChanged(function(user){
       if (user) {
         const uid = user.uid;
         firestore.collection('lectures').doc(uid).get().then(function(doc){
           if (!doc.exists || doc.data().role !== "student") {
-            window.location.href = "login.html";
+            window.location.href = "student.html";
             return;
           }
           const data = doc.data();
@@ -85,7 +82,7 @@
           studentEmail = data.email || '';
           // استخراج آخر مستوى مفعل
           let maxLevel = 0;
-          for(let i=1; i<=7; i++) {
+          for(let i=1; i<=20; i++) { // عدّل الرقم إذا زاد عدد المستويات
             if(data['level'+i] === true) maxLevel = i;
           }
           if (maxLevel === 0) {
@@ -93,15 +90,14 @@
             return;
           }
           studentLevel = maxLevel;
-          // عرض بيانات الطالب والمستوى
           document.getElementById('studentInfo').innerHTML =
             `<b>اسم الطالب:</b> ${studentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${studentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${studentLevel}`;
           getQuestionsLimit();
         }).catch(function(){
-          window.location.href = "login.html";
+          window.location.href = "student.html";
         });
       } else {
-        window.location.href = "login.html";
+        window.location.href = "student.html";
       }
     });
 
@@ -109,7 +105,6 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
-    // جلب عدد الأسئلة للمستوى من exam_settings
     function getQuestionsLimit() {
       firestore.collection('exam_settings').doc('level_' + studentLevel).get().then(function(settingDoc){
         if(settingDoc.exists && settingDoc.data().question_num){
@@ -125,7 +120,6 @@
       });
     }
 
-    // جلب أسئلة المستوى المطلوب
     function loadQuestions() {
       firestore.collection('questions').where('level', '==', studentLevel).get().then(snap=>{
         questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
@@ -134,16 +128,13 @@
       });
     }
 
-    // تجهيز نسخة عشوائية من الأسئلة وترتيب الخيارات
     function prepareRandomized() {
       let shuffled = shuffleArray(questions.map(q => {
-        // خلط الخيارات
         let choiceObjs = (q.choices||[]).map((choice, idx) => ({
           text: choice,
           origIndex: idx
         }));
         let shuffledChoices = shuffleArray(choiceObjs);
-        // تعيين correct الجديدة بحسب ترتيب الخيارات الجديد
         let newCorrect = [];
         shuffledChoices.forEach((ch, ix) => {
           if(q.correct && q.correct.includes(ch.origIndex)) newCorrect.push(ix);
@@ -154,7 +145,6 @@
           correct: newCorrect
         };
       }));
-      // إذا كان هناك حد للأسئلة، اقتطع فقط العدد المطلوب
       randomizedQuestions = questionsLimit ? shuffled.slice(0, questionsLimit) : shuffled;
     }
 
@@ -201,7 +191,6 @@
 
         if (selected.length===0) { empty++; return; }
 
-        // التصحيح التفاضلي
         if(q.correct.length > 1) {
           let perMark = mark / q.correct.length;
           let countCorrect = 0;
@@ -215,7 +204,6 @@
           gainedMark += gained;
         }
         else {
-          // سؤال بإجابة واحدة فقط: العلامة كاملة إذا كانت الإجابة صحيحة فقط
           if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
         }
       });
@@ -223,7 +211,6 @@
         showFormMsg('يرجى الإجابة على جميع الأسئلة!');
         return;
       }
-      // تقريب العلامة النهائية إلى منزلتين
       gainedMark = Math.round(gainedMark * 100) / 100;
       showResult(`درجتك: ${gainedMark} من ${totalMark}`);
       showFormMsg('');
