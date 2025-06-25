@@ -327,10 +327,14 @@
             setTimeout(function() {
               var btn = document.getElementById('goToExamBtn');
               if(btn){
-                btn.onclick = function(){
-                  currentExamLevel = lastActiveLevelIndex;
-                  showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
-                };
+               btn.onclick = function(){
+                currentExamLevel = lastActiveLevelIndex;
+                showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
+                // التمرير التلقائي لصندوق الاختبار بعد ظهوره
+                setTimeout(function(){
+                  document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+                }, 300);
+              };
               }
             }, 100);
           }
