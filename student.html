@@ -3,19 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>لوحة الطالب - شفاء</title>
-  <!-- استيراد خطوط جوجل -->
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
-      font-family: 'Tajawal','Cairo',Arial,sans-serif;
-      margin: 0;
-      background: #f8fafc;
-    }
+    body { font-family: 'Tajawal','Cairo',Arial,sans-serif; margin: 0; background: #f8fafc;}
     header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
     .container { max-width: 800px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
     h2 { color: #4361ee; margin-top:0;}
@@ -394,6 +388,7 @@
       }
       gainedMark = Math.round(gainedMark * 100) / 100;
 
+      // تحقق أخير من عدم وجود نتيجة سابقة قبل الحفظ
       firestore.collection('exam_results')
         .where('student_email', '==', currentStudentEmail)
         .where('level', '==', currentExamLevel)
