@@ -322,19 +322,18 @@
           document.getElementById('levelsBody').innerHTML = levelsHtml;
           document.getElementById('levelsTable').style.display = "";
 
-          // زر الانتقال للاختبار
+          // زر الانتقال للاختبار مع التمرير التلقائي
           if(lastActiveLevelIndex && isAccepted){
             setTimeout(function() {
               var btn = document.getElementById('goToExamBtn');
               if(btn){
-               btn.onclick = function(){
-                currentExamLevel = lastActiveLevelIndex;
-                showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
-                // التمرير التلقائي لصندوق الاختبار بعد ظهوره
-                setTimeout(function(){
-                  document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
-                }, 300);
-              };
+                btn.onclick = function(){
+                  currentExamLevel = lastActiveLevelIndex;
+                  showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
+                  setTimeout(function(){
+                    document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+                  }, 300);
+                };
               }
             }, 100);
           }
@@ -446,6 +445,7 @@
     document.getElementById('examForm').onsubmit = function(e){
       e.preventDefault();
       let totalMark = 0, gainedMark = 0, empty = 0;
+      let details = [];
       randomizedExamQuestions.forEach((q, i) => {
         let nodes = document.getElementsByName('q'+i);
         let selected = [];
@@ -456,6 +456,14 @@
 
         if (selected.length===0) { empty++; return; }
 
+        // حفظ تفاصيل كل سؤال
+        details.push({
+          question_id: q.id,
+          selected: selected,
+          correct: q.correct
+        });
+
+        // التصحيح
         if(q.correct.length > 1) {
           let perMark = mark / q.correct.length;
           let countCorrect = 0;
@@ -477,7 +485,27 @@
         return;
       }
       gainedMark = Math.round(gainedMark * 100) / 100;
-      showResult(`درجتك: ${gainedMark} من ${totalMark}`);
+
+      // --- حفظ النتيجة في exam_results ---
+      const resultDoc = {
+        student_email: currentStudentEmail,
+        student_name: currentStudentName,
+        level: currentExamLevel,
+        score: gainedMark,
+        total: totalMark,
+        details: details,
+        submitted_at: firebase.firestore.Timestamp.now()
+      };
+
+      firestore.collection('exam_results').add(resultDoc)
+        .then(() => {
+          showResult(`تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}`);
+        })
+        .catch((error) => {
+          showResult(`درجتك: ${gainedMark} من ${totalMark}`);
+          showFormMsg('حدث خطأ أثناء حفظ النتيجة: ' + error.message);
+        });
+
       showFormMsg('');
     };
 
@@ -496,8 +524,6 @@
     };
 
     // باقي الدوال: جدول الامتحانات، الدروس، التلخيصات، تسجيل الخروج (بدون تغيير)
-    // ... كل الأكواد السابقة في ملفك الأصلي دون تغيير
-
     function renderExamsTable(data) {
       let html = `
         <div class="exams-title-bar">نتائج امتحانات المستويات</div>
