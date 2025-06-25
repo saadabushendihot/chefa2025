@@ -333,11 +333,22 @@
                 .where('lesson_id', 'in', lessonIds)
                 .get()
                 .then(function(summariesSnap){
-                  let allSummarized = true, allGraded = true, foundIds = [];
+                 let validSummaries = 0;
                   summariesSnap.forEach(doc=>{
-                    foundIds.push(doc.data().lesson_id);
-                    if(!doc.data().hasOwnProperty('mark') || doc.data().mark === null || doc.data().mark === undefined) allGraded = false;
+                    let data = doc.data();
+                    // يجب أن يكون status = "submitted" ويوجد mark
+                    if(data.status === "submitted" && data.hasOwnProperty('mark') && data.mark !== null && data.mark !== undefined){
+                      validSummaries++;
+                    }
                   });
+                  if(validSummaries === lessons.length){
+                    btn.style.display="";
+                    warn.innerText = '';
+                    // ...
+                  } else {
+                    btn.style.display="none";
+                    warn.innerText = 'لا يمكن تقديم الاختبار';
+                   });
                   lessons.forEach(l=>{
                     if(foundIds.indexOf(l.id) === -1) allSummarized = false;
                   });
