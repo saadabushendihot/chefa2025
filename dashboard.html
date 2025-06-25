@@ -6,6 +6,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- تأكد من وجود ملف firebase-config.js في نفس المجلد ويحتوي على تهيئة Firebase الخاصة بك -->
   <script src="firebase-config.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
@@ -33,6 +34,14 @@
       margin: 32px auto 24px auto;
       padding: 0 8px;
     }
+    h2 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.22rem;
+      letter-spacing: 0.5px;
+      font-weight: 700;
+    }
     .btn {
       background: #3b5cb8;
       color: #fff;
@@ -42,14 +51,19 @@
       font-size: 1rem;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.15s, transform 0.2s;
+      transition: background 0.15s;
     }
-    .btn:hover {
-      background: #26407a;
-      transform: scale(1.05);
-    }
+    .btn:hover { background: #26407a; }
     .signout { background: #b83b3b;}
     .signout:hover { background: #7a2626;}
+    .students-area, .lessons-area {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      margin-bottom: 22px;
+      padding: 18px 14px;
+    }
+    /* ====== إضافة درس وطالب متقدمة ====== */
     .add-section-toggle {
       display: flex;
       align-items: center;
@@ -59,6 +73,20 @@
       cursor: pointer;
       user-select: none;
     }
+    .add-section-toggle .toggle-icon {
+      background: #3b5cb8;
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      margin-left: 8px;
+      transition: background 0.2s;
+    }
+    .add-section-toggle .toggle-icon:hover { background: #26407a; }
     .add-section {
       background: #fff;
       border-radius: 10px;
@@ -69,12 +97,11 @@
       margin-right: auto;
       margin-left: auto;
       display: none;
-      opacity: 0;
-      transition: opacity 0.5s ease;
+      animation: fadein 0.3s;
     }
-    .add-section.show {
-      display: block;
-      opacity: 1;
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-20px);}
+      to { opacity: 1; transform: translateY(0);}
     }
     .add-section h3 {
       color: #294169;
@@ -97,7 +124,7 @@
       margin-right: 2px;
       font-weight: 500;
     }
-    .add-section input, .add-section select {
+    .add-section input, .add-section select { /* إضافة select */
       padding: 9px;
       border: 1px solid #c5c9d2;
       border-radius: 6px;
@@ -107,11 +134,18 @@
       transition: border 0.15s;
       margin-bottom: 6px;
     }
-    .add-section input:focus, .add-section select:focus {
+    .add-section input:focus, .add-section select:focus { /* إضافة select */
       border-color: #3b5cb8;
       outline: none;
     }
-    /* إضافة التعديلات على الجداول */
+    .add-section .btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px 0;
+      font-size: 1.1rem;
+      border-radius: 7px;
+    }
+    /* الجداول */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -130,6 +164,115 @@
     }
     th { background: #f2f5fc; color: #294169; font-weight: bold;}
     tr:last-child td { border-bottom: none; }
+
+    /* تعديلات لعرض تفاصيل الطالب بدلاً من الجدول */
+    .student-selection-area {
+      margin-bottom: 20px;
+    }
+    #selectedStudentDetails {
+      background: #f9fbfd;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e0e4e8;
+      display: none; /* مخفي افتراضياً */
+    }
+    #selectedStudentDetails h3 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      text-align: right;
+    }
+    #selectedStudentDetails p {
+      margin-bottom: 8px;
+      font-size: 1rem;
+      color: #23272f;
+      text-align: right;
+    }
+    #selectedStudentDetails p strong {
+      color: #294169;
+    }
+    #selectedStudentDetails h4 {
+      color: #294169;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 1.05rem;
+      font-weight: bold;
+      text-align: right;
+    }
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .level-item {
+      display: flex;
+      align-items: center;
+      background: #f2f5fc;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e5e7ea;
+      cursor: pointer; /* لجعل العنصر بأكمله قابلاً للنقر */
+      user-select: none; /* لمنع تحديد النص عند النقر */
+    }
+    .level-item input[type="checkbox"] {
+      margin-left: 8px; /* المسافة بين النص والمربع */
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+    .level-item label {
+      font-size: 0.95rem;
+      color: #294169;
+      font-weight: 500;
+      flex-grow: 1;
+      cursor: pointer;
+    }
+    /* ألوان المستويات (يمكن الاحتفاظ بها إذا أردت خلفية للمربعات) */
+    .level-color-1 { background: #e7f2fa !important; }
+    .level-color-2 { background: #f8e7fa !important; }
+    .level-color-3 { background: #e7faf0 !important; }
+    .level-color-4 { background: #f9f6e7 !important; }
+    .level-color-5 { background: #f3e7fa !important; }
+    .level-color-6 { background: #e7faee !important; }
+    .level-color-7 { background: #fae7e7 !important; }
+    /* نهاية تعديلات عرض الطالب */
+
+
+    .edit-btn, .save-btn, .cancel-btn {
+      padding: 4px 14px;
+      border-radius: 5px;
+      border: none;
+      margin: 0 2px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.98rem;
+      transition: background 0.2s;
+    }
+    .edit-btn {background:#5a7be4; color:#fff;}
+    .edit-btn:hover {background:#294169;}
+    .save-btn {background:#1dad87; color:#fff;}
+    .save-btn:hover {background:#156c59;}
+    .cancel-btn {background:#b83b3b; color:#fff;}
+    .cancel-btn:hover {background:#7a2626;}
+    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
+      color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
+      text-align: center; /* توسيط الرسائل */
+    }
+    @media (max-width: 900px){
+      .container {padding:8px;}
+      th, td {font-size: 0.91rem;}
+      h2 {font-size:1rem;}
+      .students-area, .lessons-area, .add-section {padding:10px 4px;}
+      header {font-size:1rem; padding:10px;}
+      .add-section {max-width: 99vw;}
+      /* تعديلات للجوال */
+      .levels-grid {
+        grid-template-columns: 1fr; /* عمود واحد في الشاشات الصغيرة */
+      }
+    }
   </style>
 </head>
 <body>
@@ -181,7 +324,6 @@
       <div id="addLessonMsg"></div>
     </div>
 
-    <!-- المحتوى الإضافي الحالي يظل كما هو -->
     <div class="students-area">
       <h2> ******** إدارة مستويات الطلاب **********</h2>
       <div id="msg"></div>
@@ -220,12 +362,350 @@
         <tbody id="lessonsList"></tbody>
       </table>
     </div>
-
   </div>
   <script>
+    // إظهار/إخفاء أقسام الإضافة
     function toggleSection(sectionId){
       var sec = document.getElementById(sectionId);
-      sec.classList.toggle('show');
+      var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
+      var icon = document.getElementById(iconId);
+      if (sec.style.display === "block") {
+        sec.style.display = "none";
+        icon.textContent = "➕";
+      } else {
+        sec.style.display = "block";
+        icon.textContent = "✖";
+      }
+    }
+    // إخفاء الأقسام افتراضيًا
+    window.onload = function() {
+      document.getElementById('addStudentSection').style.display = "none";
+      document.getElementById('addLessonSection').style.display = "none";
+    };
+
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
+
+    var editLessonId = null;
+    var allStudentsData = {}; // لتخزين بيانات الطلاب للوصول السريع
+
+    // حماية الصفحة: يسمح فقط للمعلم بالدخول
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        firestore.collection('users').doc(user.uid).get().then(function(doc) {
+          if (!doc.exists || doc.data().role !== "teacher") {
+            window.location.href = "login.html";
+          } else {
+            loadStudents();
+            loadLessons();
+          }
+        }).catch(function(error) {
+          console.error("خطأ في جلب دور المستخدم:", error);
+          window.location.href = "login.html"; // إعادة التوجيه في حالة وجود خطأ
+        });
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    // إضافة طالب جديد
+    function addStudent(e) {
+      e.preventDefault();
+      var email = document.getElementById('studentEmail').value.trim().toLowerCase();
+      var name = document.getElementById('studentName').value.trim();
+      var courseNumber = document.getElementById('courseNumber').value.trim();
+      var msg = document.getElementById('addStudentMsg');
+      msg.innerText = '';
+      msg.style.color = "#b83b3b";
+      if (!validateEmail(email) || !name || !courseNumber) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+      firestore.collection('lectures').where('email', '==', email).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "هذا الطالب موجود بالفعل.";
+        } else {
+          let levelsObj = {};
+          for (let i=1; i<=7; i++) levelsObj["level"+i] = false;
+          firestore.collection('lectures').add({
+            email: email,
+            name: name,
+            course_number: courseNumber,
+            role: "student",
+            diagnosis_exam: false,
+            exam1: false,
+            oral_exam: false,
+            ...levelsObj
+          }).then(function(){
+            msg.style.color = "#1dad87";
+            msg.innerText = "تمت إضافة الطالب بنجاح!";
+            document.getElementById('addStudentForm').reset();
+            loadStudents(); // إعادة تحميل قائمة الطلاب بعد الإضافة
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
+      }).catch(function(error) {
+        console.error("خطأ في التحقق من وجود الطالب:", error);
+        msg.innerText = "حدث خطأ في التحقق من وجود الطالب.";
+      });
+    }
+
+    function validateEmail(email) {
+      var re = /\S+@\S+\.\S+/;
+      return re.test(email);
+    }
+
+    // إضافة درس جديد
+    function addLesson(e) {
+      e.preventDefault();
+      var id = Number(document.getElementById('lessonId').value.trim());
+      var title = document.getElementById('lessonTitle').value.trim();
+      var url = document.getElementById('lessonUrl').value.trim();
+      var voice = document.getElementById('lessonVoice').value.trim();
+      var level = document.getElementById('lessonLevel').value.trim();
+      var msg = document.getElementById('addLessonMsg');
+      msg.innerText = '';
+      msg.style.color = "#b83b3b";
+      if (!id || !title || !url || !level) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+      firestore.collection('lessons').where('id', '==', id).get().then(function(querySnapshot){
+        if (!querySnapshot.empty) {
+          msg.innerText = "يوجد درس بنفس الرقم بالفعل.";
+        } else {
+          let lessonObj = {
+            id: id,
+            title: title,
+            url: url,
+            level: level
+          };
+          if (voice) lessonObj.voice = voice;
+          firestore.collection('lessons').add(lessonObj).then(function(){
+            msg.style.color = "#1dad87";
+            msg.innerText = "تمت إضافة الدرس بنجاح!";
+            document.getElementById('addLessonForm').reset();
+            loadLessons(); // إعادة تحميل قائمة الدروس بعد الإضافة
+          }).catch(function(err){
+            msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
+          });
+        }
+      }).catch(function(error) {
+        console.error("خطأ في التحقق من وجود الدرس:", error);
+        msg.innerText = "حدث خطأ في التحقق من وجود الدرس.";
+      });
+    }
+
+    // جلب الطلاب من lectures وتعبئة القائمة المنسدلة
+    function loadStudents() {
+      firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
+        let studentSelect = document.getElementById('studentSelect');
+        studentSelect.innerHTML = '<option value="">-- اختر طالباً لعرض بياناته --</option>'; // إعادة تعيين القائمة
+
+        allStudentsData = {}; // مسح البيانات القديمة
+
+        querySnapshot.forEach(function(doc){
+          let data = doc.data();
+          allStudentsData[doc.id] = data; // تخزين البيانات باستخدام الـ doc.id كمفتاح
+          let option = document.createElement('option');
+          option.value = doc.id;
+          option.textContent = data.name || 'غير معروف';
+          studentSelect.appendChild(option);
+        });
+
+        // إذا كان هناك طالب محدد مسبقاً، أعد عرضه
+        const currentSelectedStudentId = studentSelect.value;
+        if (currentSelectedStudentId && allStudentsData[currentSelectedStudentId]) {
+            showSelectedStudentDetails(currentSelectedStudentId);
+        } else {
+            // إخفاء التفاصيل إذا لم يكن هناك طالب محدد أو لم يعد موجوداً
+            document.getElementById('selectedStudentDetails').style.display = 'none';
+        }
+
+        // إذا كانت هذه أول مرة يتم فيها تحميل الطلاب وكان هناك طالب واحد فقط، قم باختياره
+        if (querySnapshot.size === 1 && !currentSelectedStudentId) {
+            studentSelect.value = querySnapshot.docs[0].id;
+            showSelectedStudentDetails(querySnapshot.docs[0].id);
+        }
+
+      }).catch(function(error) {
+        console.error("خطأ في جلب بيانات الطلاب:", error);
+        document.getElementById('msg').innerText = "خطأ في تحميل بيانات الطلاب.";
+      });
+    }
+
+    // عرض تفاصيل الطالب المحدد في القائمة المنسدلة
+    window.showSelectedStudentDetails = function(studentId) {
+      const studentDetailsDiv = document.getElementById('selectedStudentDetails');
+      if (!studentId) {
+        studentDetailsDiv.style.display = 'none';
+        return;
+      }
+
+      const student = allStudentsData[studentId];
+      if (student) {
+        document.getElementById('detailName').textContent = student.name || 'غير معروف';
+        document.getElementById('detailEmail').textContent = student.email || 'غير معروف';
+        document.getElementById('detailCourseNumber').textContent = student.course_number || 'غير معروف';
+
+        const detailLevelsDiv = document.getElementById('detailLevels');
+        detailLevelsDiv.innerHTML = ''; // مسح المستويات القديمة
+
+        for (let i = 1; i <= 7; i++) {
+          const level = 'level' + i;
+          const isChecked = student[level] ? 'checked' : '';
+          const levelItem = document.createElement('div');
+          levelItem.className = `level-item level-color-${i}`; // لإضافة ألوان الخلفية
+          levelItem.innerHTML = `
+            <input type="checkbox" class="level-checkbox" id="level-${studentId}-${i}" data-id="${studentId}" data-level="${level}" ${isChecked} onchange="updateLevel(this)">
+            <label for="level-${studentId}-${i}">المستوى ${i}</label>
+          `;
+          detailLevelsDiv.appendChild(levelItem);
+        }
+        studentDetailsDiv.style.display = 'block'; // إظهار قسم التفاصيل
+      } else {
+        studentDetailsDiv.style.display = 'none';
+        document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
+        setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
+      }
+    };
+
+
+    // تحويل اسم المستوى إلى رقم
+    function getLevelNumFromText(levelText) {
+      if (!levelText) return 0;
+      const map = {
+        "الأول": 1, "اول": 1, "1": 1,
+        "الثاني": 2, "ثاني": 2, "2": 2,
+        "الثالث": 3, "ثالث": 3, "3": 3,
+        "الرابع": 4, "رابع": 4, "4": 4,
+        "الخامس": 5, "خامس": 5, "5": 5,
+        "السادس": 6, "سادس": 6, "6": 6,
+        "السابع": 7, "سابع": 7, "7": 7,
+      };
+      let txt = levelText.trim().replace('المستوى', '').replace(/\s/g, '');
+      return map[txt] || 0;
+    }
+
+    // جلب الدروس مع ألوان المستويات
+    function loadLessons() {
+      firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
+        let html = '';
+        querySnapshot.forEach(function(doc){
+          let data = doc.data();
+          let levelNum = getLevelNumFromText(data.level);
+          let rowClass = levelNum ? `level-color-${levelNum}` : '';
+          if (editLessonId === doc.id) {
+            html += `
+              <tr class="${rowClass}">
+                <td><input type="number" id="editId" value="${data.id}" style="width:70px;" required></td>
+                <td><input type="text" id="editTitle" value="${data.title}" style="width:180px;" required></td>
+                <td><input type="text" id="editUrl" value="${data.url}" style="width:180px;" required></td>
+                <td>
+                  <input type="text" id="editVoice" value="${data.voice ? data.voice : ''}" placeholder="رابط الصوت (اختياري)" style="width:180px;">
+                </td>
+                <td><input type="text" id="editLevel" value="${data.level}" style="width:90px;" required></td>
+                <td>
+                  <button class="save-btn" onclick="saveLesson('${doc.id}')">حفظ</button>
+                  <button class="cancel-btn" onclick="cancelEditLesson()">إلغاء</button>
+                </td>
+              </tr>
+            `;
+          } else {
+            html += `<tr class="${rowClass}">
+                <td>${data.id || ''}</td>
+                <td>${data.title || ''}</td>
+                <td>
+                  <a href="${data.url || ''}" target="_blank">تحميل</a>
+                </td>
+                <td>
+                  ${data.voice ? `<audio controls style="width:120px;">
+                    <source src="${data.voice}" type="audio/mpeg">
+                    </audio>` : ''}
+                </td>
+                <td>${data.level || ''}</td>
+                <td>
+                  <button class="edit-btn" onclick="editLesson('${doc.id}')">تعديل</button>
+                </td>
+              </tr>`;
+          }
+        });
+        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="6">لا يوجد دروس بعد.</td></tr>';
+      }).catch(function(error) {
+        console.error("خطأ في جلب بيانات الدروس:", error);
+        document.getElementById('editLessonMsg').innerText = "خطأ في تحميل بيانات الدروس.";
+      });
+    }
+
+    window.editLesson = function(docId){
+      editLessonId = docId;
+      document.getElementById('editLessonMsg').innerText = '';
+      loadLessons();
+    }
+
+    window.cancelEditLesson = function(){
+      editLessonId = null;
+      document.getElementById('editLessonMsg').innerText = '';
+      loadLessons();
+    }
+
+    window.saveLesson = function(docId){
+      var id = Number(document.getElementById('editId').value.trim());
+      var title = document.getElementById('editTitle').value.trim();
+      var url = document.getElementById('editUrl').value.trim();
+      var voice = document.getElementById('editVoice').value.trim();
+      var level = document.getElementById('editLevel').value.trim();
+      var msg = document.getElementById('editLessonMsg');
+      msg.innerText = '';
+      msg.style.color = "#b83b3b";
+      if (!id || !title || !url || !level) {
+        msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+        return;
+      }
+      let lessonObj = {
+        id: id,
+        title: title,
+        url: url,
+        level: level
+      };
+      if (voice) lessonObj.voice = voice;
+      else lessonObj.voice = firebase.firestore.FieldValue.delete();
+      firestore.collection('lessons').doc(docId).update(lessonObj).then(function(){
+        msg.style.color = "#1dad87";
+        msg.innerText = "تم تحديث الدرس بنجاح!";
+        editLessonId = null;
+        loadLessons();
+        setTimeout(()=>{msg.innerText='';}, 1500);
+      }).catch(function(err){
+        msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
+      });
+    }
+
+    // تحديث مستوى الطالب في Firestore وإعادة عرض التفاصيل
+    window.updateLevel = function(checkbox) {
+      const docId = checkbox.getAttribute('data-id');
+      const level = checkbox.getAttribute('data-level');
+      const value = checkbox.checked;
+      firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
+        document.getElementById('msg').style.color = '#1dad87';
+        document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
+        // تحديث البيانات المخزنة محلياً ثم إعادة عرض التفاصيل
+        if (allStudentsData[docId]) {
+            allStudentsData[docId][level] = value;
+            showSelectedStudentDetails(docId); // إعادة عرض التفاصيل لتحديث حالة مربع الاختيار
+        }
+        setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
+      }).catch(function(err){
+        document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
+      });
+    }
+
+    function logout() {
+      auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
+        console.error("خطأ في تسجيل الخروج:", error);
+      });
     }
   </script>
 </body>
