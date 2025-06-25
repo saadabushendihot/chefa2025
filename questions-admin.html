@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>إدارة أسئلة الامتحانات - لوحة المعلم</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {font-family:'Tajawal',Arial,sans-serif;background:#f8fafc;margin:0;}
+    .container {max-width:900px;margin:30px auto 0 auto;background:#fff;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
+    h2,h3 {color:#2260af;}
+    .actions-bar {margin-bottom:18px;}
+    .btn {background:#2260af;color:#fff;border:none;padding:7px 18px; border-radius:5px; font-size:1rem;cursor:pointer;}
+    .btn[disabled] {background:#bdbdbd;}
+    .btn.delete {background:#e63946;}
+    .btn.edit {background:#e6a100;}
+    .btn.small {padding:2px 9px; font-size:0.9rem;}
+    .filter-bar {margin-bottom:18px;}
+    .table-questions {width:100%;border-collapse:collapse;margin-top:10px;}
+    .table-questions th,.table-questions td {border-bottom:1px solid #e4e7ef;padding:8px;text-align:center;font-size:1rem;}
+    .table-questions th {background:#eef2fa;}
+    .question-text {text-align:right;}
+    .correct-ch {color:#219e4b;font-weight:bold;}
+    .choices-list {display:flex;flex-wrap:wrap;gap:6px;}
+    .choice-item {background:#f5f7fb;border-radius:7px;padding:2px 10px;margin-bottom:2px;}
+    .choice-item.correct {background:#e3f6ed;color:#219e4b;font-weight:bold;}
+    /* Form */
+    .question-form-block {background:#f8fafc;border-radius:10px;padding:18px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
+    .form-row {margin-bottom:13px;}
+    label {font-weight:bold;}
+    input[type="text"], textarea, select {font-family:'Tajawal',Arial,sans-serif;font-size:1rem; padding:6px 7px; border-radius:5px; border:1px solid #b7c0d6; width:95%;}
+    textarea {height:54px;}
+    .choices-area {margin-top:6px;}
+    .choice-row {display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+    .choice-row input[type="text"] {width:65%;}
+    .choice-row .btn.small {padding:1px 7px;}
+    .add-choice-btn {margin-top:5px;}
+    .msg {color:#e63946;margin-bottom:8px;}
+    @media (max-width:900px){.container{padding:7px;}.table-questions th,.table-questions td{padding:4px;}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <h2>إدارة أسئلة الامتحانات</h2>
+  <div class="question-form-block">
+    <h3 id="formTitle">إضافة سؤال جديد</h3>
+    <form id="questionForm">
+      <div class="form-row">
+        <label for="qText">نص السؤال:</label><br>
+        <textarea id="qText" required></textarea>
+      </div>
+      <div class="form-row">
+        <label for="qLevel">المستوى:</label>
+        <select id="qLevel">
+          <option value="1">المستوى 1</option>
+          <option value="2">المستوى 2</option>
+          <option value="3">المستوى 3</option>
+          <option value="4">المستوى 4</option>
+          <option value="5">المستوى 5</option>
+          <option value="6">المستوى 6</option>
+          <option value="7">المستوى 7</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>الخيارات:</label>
+        <div class="choices-area" id="choicesArea"></div>
+        <button type="button" class="btn small add-choice-btn" onclick="addChoice()">+ خيار جديد</button>
+      </div>
+      <div class="form-row">
+        <button type="submit" class="btn">حفظ السؤال</button>
+        <button type="button" class="btn" onclick="resetForm()">إلغاء</button>
+      </div>
+      <div class="msg" id="formMsg"></div>
+      <input type="hidden" id="editId">
+    </form>
+  </div>
+  <div class="actions-bar">
+    <b>تصفية حسب المستوى:</b>
+    <select id="filterLevel" onchange="renderQuestionsTable()">
+      <option value="">الكل</option>
+      <option value="1">المستوى 1</option>
+      <option value="2">المستوى 2</option>
+      <option value="3">المستوى 3</option>
+      <option value="4">المستوى 4</option>
+      <option value="5">المستوى 5</option>
+      <option value="6">المستوى 6</option>
+      <option value="7">المستوى 7</option>
+    </select>
+  </div>
+  <table class="table-questions" id="questionsTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>السؤال</th>
+        <th>المستوى</th>
+        <th>الخيارات</th>
+        <th>عدد الصحيحة</th>
+        <th>تعديل</th>
+        <th>حذف</th>
+      </tr>
+    </thead>
+    <tbody id="questionsTbody"></tbody>
+  </table>
+</div>
+
+<script>
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+var firestore = firebase.firestore();
+
+let questions = [];
+
+function addChoice(text = '', checked = false) {
+  let idx = document.querySelectorAll('.choice-row').length;
+  let div = document.createElement('div');
+  div.className = 'choice-row';
+  div.innerHTML = `
+    <input type="checkbox" class="correctChoice" name="correct${idx}" ${checked ? 'checked' : ''} title="صحيح">
+    <input type="text" class="choiceText" value="${text}" required placeholder="الخيار ${idx+1}">
+    <button type="button" class="btn small" onclick="this.parentNode.remove()">حذف</button>
+  `;
+  document.getElementById('choicesArea').appendChild(div);
+}
+
+function resetForm() {
+  document.getElementById('questionForm').reset();
+  document.getElementById('choicesArea').innerHTML = '';
+  addChoice();
+  addChoice();
+  document.getElementById('editId').value = '';
+  document.getElementById('formTitle').innerText = 'إضافة سؤال جديد';
+  document.getElementById('formMsg').innerText = '';
+}
+
+function loadQuestions() {
+  firestore.collection('questions').orderBy('level').get().then(snap => {
+    questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+    renderQuestionsTable();
+  });
+}
+
+function renderQuestionsTable() {
+  let level = document.getElementById('filterLevel').value;
+  let rows = '';
+  let filtered = level ? questions.filter(q => q.level == level) : questions;
+  filtered.forEach((q, i) => {
+    let chs = q.choices.map((c, idx) =>
+      `<span class="choice-item${q.correct && q.correct.includes(idx) ? ' correct' : ''}">${c}</span>`
+    ).join('');
+    rows += `<tr>
+      <td>${i+1}</td>
+      <td class="question-text">${q.question}</td>
+      <td>${q.level}</td>
+      <td><div class="choices-list">${chs}</div></td>
+      <td>${q.correct ? q.correct.length : 0}</td>
+      <td><button class="btn edit" onclick="editQuestion('${q.id}')">تعديل</button></td>
+      <td><button class="btn delete" onclick="deleteQuestion('${q.id}')">حذف</button></td>
+    </tr>`;
+  });
+  document.getElementById('questionsTbody').innerHTML = rows || `<tr><td colspan="7" style="color:#888">لا توجد أسئلة</td></tr>`;
+}
+
+function editQuestion(id) {
+  let q = questions.find(x => x.id === id);
+  if (!q) return;
+  document.getElementById('qText').value = q.question;
+  document.getElementById('qLevel').value = q.level;
+  document.getElementById('choicesArea').innerHTML = '';
+  q.choices.forEach((choice, i) => {
+    addChoice(choice, q.correct && q.correct.includes(i));
+  });
+  document.getElementById('editId').value = id;
+  document.getElementById('formTitle').innerText = 'تعديل سؤال';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteQuestion(id) {
+  if (!confirm('هل أنت متأكد من حذف السؤال؟')) return;
+  firestore.collection('questions').doc(id).delete().then(loadQuestions);
+}
+
+document.getElementById('questionForm').onsubmit = function(e){
+  e.preventDefault();
+  let question = document.getElementById('qText').value.trim();
+  let level = parseInt(document.getElementById('qLevel').value);
+  let choiceNodes = document.querySelectorAll('.choice-row');
+  let choices = [];
+  let correct = [];
+  choiceNodes.forEach((row, i) => {
+    let text = row.querySelector('.choiceText').value.trim();
+    if (text) {
+      choices.push(text);
+      if (row.querySelector('.correctChoice').checked) correct.push(i);
+    }
+  });
+  if (choices.length < 2) { showFormMsg('يجب إدخال خيارين على الأقل!'); return; }
+  if (correct.length === 0) { showFormMsg('حدد إجابة صحيحة واحدة على الأقل!'); return; }
+  let qObj = { question, choices, correct, level, active: true };
+  let editId = document.getElementById('editId').value;
+  if (editId) {
+    firestore.collection('questions').doc(editId).set(qObj).then(()=>{
+      resetForm(); loadQuestions();
+      showFormMsg('تم تحديث السؤال بنجاح', true);
+    });
+  } else {
+    firestore.collection('questions').add(qObj).then(()=>{
+      resetForm(); loadQuestions();
+      showFormMsg('تمت إضافة السؤال بنجاح', true);
+    });
+  }
+};
+
+function showFormMsg(msg, success=false) {
+  let el = document.getElementById('formMsg');
+  el.innerText = msg;
+  el.style.color = success ? '#219e4b' : '#e63946';
+  setTimeout(()=>{el.innerText='';}, 2500);
+}
+
+// تشغيل أولي
+resetForm();
+loadQuestions();
+</script>
+</body>
+</html>
