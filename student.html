@@ -141,7 +141,6 @@
     </table>
     <!-- جدول الامتحانات الاحترافي -->
     <div id="examsTableArea"></div>
-
     <!-- الامتحانات العامة القديمة -->
     <div class="exams-box" id="examsBox" style="display:none;">
       <div class="exams-title">الامتحانات العامة</div>
@@ -158,6 +157,8 @@
     var firestore = firebase.firestore();
     var currentStudentEmail = "";
     var currentStudentName = "";
+    var lastActiveLevel = null;
+    var lastActiveLevelIndex = null;
 
     function getLevelNumber(levelName) {
       switch (levelName.replace('المستوى ', '').replace('ال', '')) {
@@ -173,7 +174,6 @@
       }
     }
 
-    // ارجع أرقام المستويات المفعلة فقط
     function getAllowedLevels(data) {
       let allowed = [];
       for(let i=1; i<=7; i++){
@@ -252,17 +252,46 @@
             document.getElementById('examsBox').style.display = "none";
           }
 
-          // جدول المستويات فقط
+          // جدول المستويات مع زر الانتقال للاختبار تحت آخر مستوى مفعّل
           let levelsHtml = '';
+          lastActiveLevel = null;
+          lastActiveLevelIndex = null;
           for (var i = 1; i <= 7; i++) {
             var level = data['level'+i];
+            if(level) {
+              lastActiveLevel = 'المستوى ' + i;
+              lastActiveLevelIndex = i;
+            }
             levelsHtml += `<tr>
                 <td>المستوى ${i}</td>
                 <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
               </tr>`;
           }
+          // أضف الزر تحت آخر مستوى مفعّل فقط إذا كان الطالب مقبولًا
+          if(lastActiveLevelIndex && isAccepted){
+            levelsHtml += `<tr>
+              <td colspan="2" style="padding-top:18px;">
+                <button class="btn" id="goToExamBtn">الانتقال إلى اختبار ${lastActiveLevel}</button>
+              </td>
+            </tr>`;
+          }
           document.getElementById('levelsBody').innerHTML = levelsHtml;
           document.getElementById('levelsTable').style.display = "";
+
+          // زر الانتقال للاختبار
+          if(lastActiveLevelIndex && isAccepted){
+            setTimeout(function() {
+              var btn = document.getElementById('goToExamBtn');
+              if(btn){
+                btn.onclick = function(){
+                  localStorage.setItem("quiz_student_name", currentStudentName);
+                  localStorage.setItem("quiz_student_email", currentStudentEmail);
+                  localStorage.setItem("quiz_student_level", lastActiveLevelIndex);
+                  window.location.href = "student-quiz.html";
+                };
+              }
+            }, 100);
+          }
 
           // جدول الامتحانات الاحترافي المنفصل
           renderExamsTable(data);
@@ -319,7 +348,14 @@
       document.getElementById('examsTableArea').innerHTML = html;
     }
 
-    // الدروس تظهر فقط للمستويات المفعلة (allowedLevels)
+    function getAllowedLevels(data) {
+      let allowed = [];
+      for(let i=1; i<=7; i++){
+        if(data['level'+i]) allowed.push(i);
+      }
+      return allowed;
+    }
+
     function loadActiveLessonsAndSummaries(activeLevels) {
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
