@@ -89,7 +89,6 @@
       margin-bottom: 26px;
       margin-top: 18px;
     }
-    /* --- صندوق الاختبار --- */
     #examBox {background:#f8fafc;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
     .student-info {background:#eaf7e4;padding:12px 18px;border-radius:9px;margin-bottom:20px;display:inline-block;font-size:1.1em;}
     .level-info {background:#e6f2ff;padding:10px 16px;border-radius:8px;font-size:1.08em;margin-bottom:20px;display:inline-block;}
@@ -105,7 +104,6 @@
     #examForm .btn {margin-left:6px;}
     #examForm .btn.signout {background:#b83b3b;}
     @media (max-width:900px){#examBox{padding:7px;}}
-    /* --- نهاية صندوق الاختبار --- */
     @media (max-width: 900px){
       .container{padding:8px;}
       header {padding:10px;}
@@ -322,14 +320,14 @@
           document.getElementById('levelsBody').innerHTML = levelsHtml;
           document.getElementById('levelsTable').style.display = "";
 
-          // زر الانتقال للاختبار مع التمرير التلقائي
+          // زر الانتقال للاختبار مع التمرير التلقائي وأسلوب منع الإعادة
           if(lastActiveLevelIndex && isAccepted){
             setTimeout(function() {
               var btn = document.getElementById('goToExamBtn');
               if(btn){
                 btn.onclick = function(){
                   currentExamLevel = lastActiveLevelIndex;
-                  showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
+                  checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
                   setTimeout(function(){
                     document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
                   }, 300);
@@ -359,6 +357,37 @@
       }).catch(function(err) {
         document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
       });
+    }
+
+    // منع إعادة الاختبار: تحقق هل الطالب قدم الامتحان مسبقاً لهذا المستوى
+    function checkIfExamAlreadySubmitted(email, level) {
+      firestore.collection('exam_results')
+        .where('student_email', '==', email)
+        .where('level', '==', level)
+        .get()
+        .then(function(querySnapshot){
+          if (!querySnapshot.empty) {
+            // تم تقديم الامتحان من قبل، اعرض النتيجة فقط
+            let data = querySnapshot.docs[0].data();
+            showExamResultOnly(data);
+          } else {
+            // لم يقدم الامتحان بعد، اعرض فورم الأسئلة
+            showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
+          }
+        });
+    }
+
+    // عرض نتيجة الامتحان فقط بدون أسئلة الاختبار
+    function showExamResultOnly(result) {
+      document.getElementById('examBox').style.display = '';
+      document.getElementById('questionsArea').innerHTML = '';
+      document.getElementById('formMsg').innerText = '';
+      document.getElementById('examStudentInfo').innerHTML =
+        `<b>اسم الطالب:</b> ${currentStudentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${currentStudentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${result.level}`;
+      document.getElementById('examLevelInfo').innerText = '';
+      document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#219e4b;font-weight:bold;">
+        لقد سبق لك تقديم اختبار هذا المستوى.<br>درجتك: ${result.score} من ${result.total}
+        </div>`;
     }
 
     // صندوق الاختبار
@@ -442,6 +471,7 @@
       document.getElementById('questionsArea').innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
     }
 
+    // منع إعادة الاختبار عند الإرسال
     document.getElementById('examForm').onsubmit = function(e){
       e.preventDefault();
       let totalMark = 0, gainedMark = 0, empty = 0;
@@ -456,14 +486,12 @@
 
         if (selected.length===0) { empty++; return; }
 
-        // حفظ تفاصيل كل سؤال
         details.push({
           question_id: q.id,
           selected: selected,
           correct: q.correct
         });
 
-        // التصحيح
         if(q.correct.length > 1) {
           let perMark = mark / q.correct.length;
           let countCorrect = 0;
@@ -486,27 +514,44 @@
       }
       gainedMark = Math.round(gainedMark * 100) / 100;
 
-      // --- حفظ النتيجة في exam_results ---
-      const resultDoc = {
-        student_email: currentStudentEmail,
-        student_name: currentStudentName,
-        level: currentExamLevel,
-        score: gainedMark,
-        total: totalMark,
-        details: details,
-        submitted_at: firebase.firestore.Timestamp.now()
-      };
+      // تحقق أخير من عدم وجود نتيجة سابقة قبل الحفظ
+      firestore.collection('exam_results')
+        .where('student_email', '==', currentStudentEmail)
+        .where('level', '==', currentExamLevel)
+        .get()
+        .then(function(querySnapshot){
+          if (!querySnapshot.empty) {
+            // إذا وُجدت نتيجة لا تحفظ ولا تعيد التصحيح
+            showExamResultOnly(querySnapshot.docs[0].data());
+            updateLevelExamTable(currentExamLevel, querySnapshot.docs[0].data());
+            return;
+          }
 
-      firestore.collection('exam_results').add(resultDoc)
-        .then(() => {
-          showResult(`تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}`);
-        })
-        .catch((error) => {
-          showResult(`درجتك: ${gainedMark} من ${totalMark}`);
-          showFormMsg('حدث خطأ أثناء حفظ النتيجة: ' + error.message);
+          // --- حفظ النتيجة في exam_results ---
+          const resultDoc = {
+            student_email: currentStudentEmail,
+            student_name: currentStudentName,
+            level: currentExamLevel,
+            score: gainedMark,
+            total: totalMark,
+            details: details,
+            submitted_at: firebase.firestore.Timestamp.now(),
+            teacher_reviewed: false,
+            approved: null
+          };
+
+          firestore.collection('exam_results').add(resultDoc)
+            .then((docRef) => {
+              showResult(`تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}`);
+              updateLevelExamTable(currentExamLevel, resultDoc);
+            })
+            .catch((error) => {
+              showResult(`درجتك: ${gainedMark} من ${totalMark}`);
+              showFormMsg('حدث خطأ أثناء حفظ النتيجة: ' + error.message);
+            });
+
+          showFormMsg('');
         });
-
-      showFormMsg('');
     };
 
     function showFormMsg(msg) {
@@ -522,6 +567,19 @@
       document.getElementById('formMsg').innerText = "";
       document.getElementById('resultArea').innerText = "";
     };
+
+    // تحديث جدول نتائج الامتحانات فوراً (حسب المستوى والنتيجة)
+    function updateLevelExamTable(level, result) {
+      let passed = (result.score >= result.total * 0.5);
+      let label = passed
+        ? `<span class="exam-label">✅ اجتاز الامتحان (${result.score} من ${result.total})</span>`
+        : `<span class="exam-label fail">❌ لم يجتز (${result.score} من ${result.total})</span>`;
+      let table = document.querySelectorAll(".exams-table tbody tr");
+      if(table && table.length >= level) {
+        let cell = table[level-1].querySelector("td:last-child");
+        if(cell) cell.innerHTML = label;
+      }
+    }
 
     // باقي الدوال: جدول الامتحانات، الدروس، التلخيصات، تسجيل الخروج (بدون تغيير)
     function renderExamsTable(data) {
