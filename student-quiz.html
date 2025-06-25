@@ -17,6 +17,7 @@
     .question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
     .question-title {font-weight:bold;margin-bottom:9px;}
     .multi-note {color:#b96d0d;font-size:0.98em;margin-right:6px;}
+    .question-mark {color:#2260af;margin-right:12px;}
     .choices-list {margin-bottom:10px;}
     .choice-row {margin-bottom:6px;}
     .btn {background:#2260af;color:#fff;border:none;padding:8px 22px;border-radius:5px;font-size:1rem;cursor:pointer;}
@@ -49,6 +50,18 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
+    // دالة خلط عشوائي لمصفوفة
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    let questions = [];
+    let randomizedQuestions = [];
+
     // حماية الصفحة - فقط للطلاب
     auth.onAuthStateChanged(function(user){
       if (user) {
@@ -70,18 +83,6 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
-    // دالة خلط عشوائي لمصفوفة
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    let questions = [];
-    let randomizedQuestions = [];
-
     function loadQuestions() {
       firestore.collection('questions').get().then(snap=>{
         questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
@@ -92,10 +93,9 @@
 
     // تجهيز نسخة عشوائية من الأسئلة وترتيب الخيارات
     function prepareRandomized() {
-      // عشوائية للأسئلة
       randomizedQuestions = shuffleArray(questions.map(q => {
         // خلط الخيارات
-        let choiceObjs = q.choices.map((choice, idx) => ({
+        let choiceObjs = (q.choices||[]).map((choice, idx) => ({
           text: choice,
           origIndex: idx
         }));
@@ -117,10 +117,11 @@
       let html = '';
       randomizedQuestions.forEach((q, i) => {
         let multiNote = (q.correct.length > 1) ? '<span class="multi-note">(يحتمل أكثر من إجابة صحيحة)</span>' : '';
+        let markText = `<span class="question-mark">[العلامة: ${q.mark || 1}]</span>`;
         html += `<div class="question-block">
-          <div class="question-title">${i+1}. ${q.question} ${multiNote}</div>
+          <div class="question-title">${i+1}. ${q.question} ${multiNote} ${markText}</div>
           <div class="choices-list">` +
-          q.choices.map((choice, idx) =>
+          (q.choices||[]).map((choice, idx) =>
             `<div class="choice-row">
               <label>
                 <input type="${q.correct.length>1?'checkbox':'radio'}" name="q${i}" value="${idx}">
@@ -136,24 +137,41 @@
 
     document.getElementById('examForm').onsubmit = function(e){
       e.preventDefault();
-      let total = randomizedQuestions.length, score = 0, empty = 0;
-      let userAnswers = [];
+      let totalMark = 0, gainedMark = 0, empty = 0;
       randomizedQuestions.forEach((q, i) => {
         let nodes = document.getElementsByName('q'+i);
         let selected = [];
         nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
-        userAnswers.push(selected);
-        if (selected.length===0) empty++;
-        // التحقق من الإجابة الصحيحة (ترتيب أي إجابة لا يهم)
-        if (selected.length === q.correct.length && selected.every(v=>q.correct.includes(v)) && q.correct.every(v=>selected.includes(v))) {
-          score++;
+
+        let mark = parseFloat(q.mark) || 1;
+        totalMark += mark;
+
+        if (selected.length===0) { empty++; return; }
+
+        // إذا كان السؤال له أكثر من إجابة صحيحة
+        if(q.correct.length > 1) {
+          let perCorrect = mark / q.correct.length;
+          // الطالب يحصل على علامة فقط إذا اختار إجابة صحيحة ولم يختر الخاطئة
+          // كل اختيار صحيح يمنح جزء العلامة
+          let countCorrect = 0;
+          selected.forEach(val => {
+            if(q.correct.includes(val)) countCorrect++;
+          });
+          gainedMark += perCorrect * countCorrect;
+          // لا خصم على الاختيارات الخاطئة
+        }
+        else {
+          // سؤال بإجابة واحدة فقط: يحصل على العلامة كاملة إذا اختار الإجابة الصحيحة فقط
+          if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
         }
       });
       if (empty>0) {
         showFormMsg('يرجى الإجابة على جميع الأسئلة!');
         return;
       }
-      showResult(`درجتك: ${score} من ${total}`);
+      // تقريب العلامة النهائية إلى منزلتين
+      gainedMark = Math.round(gainedMark * 100) / 100;
+      showResult(`درجتك: ${gainedMark} من ${totalMark}`);
       showFormMsg('');
     };
 
