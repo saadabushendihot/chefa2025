@@ -89,6 +89,23 @@
       margin-bottom: 26px;
       margin-top: 18px;
     }
+    /* --- صندوق الاختبار --- */
+    #examBox {background:#f8fafc;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
+    .student-info {background:#eaf7e4;padding:12px 18px;border-radius:9px;margin-bottom:20px;display:inline-block;font-size:1.1em;}
+    .level-info {background:#e6f2ff;padding:10px 16px;border-radius:8px;font-size:1.08em;margin-bottom:20px;display:inline-block;}
+    .question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
+    .question-title {font-weight:bold;margin-bottom:9px;}
+    .multi-note {color:#b96d0d;font-size:0.98em;margin-right:6px;}
+    .question-mark {color:#2260af;margin-right:12px;}
+    .choices-list {margin-bottom:10px;}
+    .choice-row {margin-bottom:6px;}
+    .msg {color:#e63946;margin-bottom:16px;}
+    .result {font-size:1.3rem;color:#219e4b;font-weight:bold;text-align:center;}
+    .scoring-note {color:#007b8f;font-size:0.95em;margin-top:5px;}
+    #examForm .btn {margin-left:6px;}
+    #examForm .btn.signout {background:#b83b3b;}
+    @media (max-width:900px){#examBox{padding:7px;}}
+    /* --- نهاية صندوق الاختبار --- */
     @media (max-width: 900px){
       .container{padding:8px;}
       header {padding:10px;}
@@ -150,6 +167,19 @@
       <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
     <div id="lessonsSummariesArea"></div>
+    <!-- صندوق الاختبار المدمج -->
+    <div id="examBox" style="display:none; margin-top:30px;">
+      <div class="student-info" id="examStudentInfo"></div>
+      <div class="level-info" id="examLevelInfo"></div>
+      <h2>أسئلة الاختبار</h2>
+      <form id="examForm">
+        <div id="questionsArea"></div>
+        <div class="msg" id="formMsg"></div>
+        <button type="submit" class="btn">إرسال الإجابات</button>
+        <button type="button" class="btn signout" id="exitExamBtn" style="margin-right:8px;">خروج من الاختبار</button>
+      </form>
+      <div class="result" id="resultArea"></div>
+    </div>
   </div>
   <script>
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
@@ -159,6 +189,20 @@
     var currentStudentName = "";
     var lastActiveLevel = null;
     var lastActiveLevelIndex = null;
+
+    // متغيرات صندوق الاختبار
+    let examQuestions = [];
+    let randomizedExamQuestions = [];
+    let examQuestionsLimit = null;
+    let currentExamLevel = null;
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     function getLevelNumber(levelName) {
       switch (levelName.replace('المستوى ', '').replace('ال', '')) {
@@ -284,10 +328,8 @@
               var btn = document.getElementById('goToExamBtn');
               if(btn){
                 btn.onclick = function(){
-                  localStorage.setItem("quiz_student_name", currentStudentName);
-                  localStorage.setItem("quiz_student_email", currentStudentEmail);
-                  localStorage.setItem("quiz_student_level", lastActiveLevelIndex);
-                  window.location.href = "student-quiz.html";
+                  currentExamLevel = lastActiveLevelIndex;
+                  showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
                 };
               }
             }, 100);
@@ -316,7 +358,142 @@
       });
     }
 
-    // جدول الامتحانات المنفصل الاحترافي
+    // صندوق الاختبار
+    function showExamBox(studentName, studentEmail, level) {
+      document.getElementById('examBox').style.display = '';
+      document.getElementById('examStudentInfo').innerHTML =
+        `<b>اسم الطالب:</b> ${studentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${studentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${level}`;
+
+      firestore.collection('exam_settings').doc('level_' + level).get().then(function(settingDoc){
+        if(settingDoc.exists && settingDoc.data().question_num){
+          examQuestionsLimit = settingDoc.data().question_num;
+          document.getElementById('examLevelInfo').innerText =
+            `عدد الأسئلة المخصصة لهذا المستوى: ${examQuestionsLimit}`;
+        } else {
+          examQuestionsLimit = null;
+          document.getElementById('examLevelInfo').innerText =
+            'لم يتم تحديد عدد الأسئلة لهذا المستوى (سيتم عرض جميع الأسئلة).';
+        }
+        loadExamQuestions(level);
+      });
+
+      document.getElementById('formMsg').innerText = '';
+      document.getElementById('resultArea').innerText = '';
+    }
+
+    function loadExamQuestions(level) {
+      firestore.collection('questions').where('level', '==', level).get().then(snap=>{
+        examQuestions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+        prepareRandomizedExam();
+        renderExamQuestions();
+      });
+    }
+
+    function prepareRandomizedExam() {
+      let shuffled = shuffleArray(examQuestions.map(q => {
+        let choiceObjs = (q.choices||[]).map((choice, idx) => ({
+          text: choice,
+          origIndex: idx
+        }));
+        let shuffledChoices = shuffleArray(choiceObjs);
+        let newCorrect = [];
+        shuffledChoices.forEach((ch, ix) => {
+          if(q.correct && q.correct.includes(ch.origIndex)) newCorrect.push(ix);
+        });
+        return {
+          ...q,
+          choices: shuffledChoices.map(c => c.text),
+          correct: newCorrect
+        };
+      }));
+      randomizedExamQuestions = examQuestionsLimit ? shuffled.slice(0, examQuestionsLimit) : shuffled;
+    }
+
+    function renderExamQuestions() {
+      let html = '';
+      randomizedExamQuestions.forEach((q, i) => {
+        let multiNote = '';
+        let scoringNote = '';
+        if (q.correct.length > 1) {
+          multiNote = '<span class="multi-note">(يحتمل أكثر من إجابة صحيحة)</span>';
+          scoringNote = `<div class="scoring-note">
+          ملاحظة: لكل إجابة صحيحة تختارها تحصل على جزء من العلامة، ولكل إجابة خاطئة تختارها يُخصم نفس الجزء من العلامة. لا يمكن أن تقل علامة السؤال عن الصفر.
+          </div>`;
+        }
+        let markText = `<span class="question-mark">[العلامة: ${q.mark || 1}]</span>`;
+        html += `<div class="question-block">
+          <div class="question-title">${i+1}. ${q.question} ${multiNote} ${markText}</div>
+          <div class="choices-list">` +
+          (q.choices||[]).map((choice, idx) =>
+            `<div class="choice-row">
+              <label>
+                <input type="${q.correct.length>1?'checkbox':'radio'}" name="q${i}" value="${idx}">
+                ${choice}
+              </label>
+            </div>`
+          ).join('') +
+          `</div>
+          ${scoringNote}
+        </div>`;
+      });
+      document.getElementById('questionsArea').innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
+    }
+
+    document.getElementById('examForm').onsubmit = function(e){
+      e.preventDefault();
+      let totalMark = 0, gainedMark = 0, empty = 0;
+      randomizedExamQuestions.forEach((q, i) => {
+        let nodes = document.getElementsByName('q'+i);
+        let selected = [];
+        nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
+
+        let mark = parseFloat(q.mark) || 1;
+        totalMark += mark;
+
+        if (selected.length===0) { empty++; return; }
+
+        if(q.correct.length > 1) {
+          let perMark = mark / q.correct.length;
+          let countCorrect = 0;
+          let countWrong = 0;
+          selected.forEach(val => {
+            if(q.correct.includes(val)) countCorrect++;
+            else countWrong++;
+          });
+          let gained = (countCorrect - countWrong) * perMark;
+          if(gained < 0) gained = 0;
+          gainedMark += gained;
+        }
+        else {
+          if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
+        }
+      });
+      if (empty>0) {
+        showFormMsg('يرجى الإجابة على جميع الأسئلة!');
+        return;
+      }
+      gainedMark = Math.round(gainedMark * 100) / 100;
+      showResult(`درجتك: ${gainedMark} من ${totalMark}`);
+      showFormMsg('');
+    };
+
+    function showFormMsg(msg) {
+      document.getElementById('formMsg').innerText = msg;
+    }
+    function showResult(msg) {
+      document.getElementById('resultArea').innerText = msg;
+    }
+
+    document.getElementById('exitExamBtn').onclick = function(){
+      document.getElementById('examBox').style.display = 'none';
+      document.getElementById('questionsArea').innerHTML = "";
+      document.getElementById('formMsg').innerText = "";
+      document.getElementById('resultArea').innerText = "";
+    };
+
+    // باقي الدوال: جدول الامتحانات، الدروس، التلخيصات، تسجيل الخروج (بدون تغيير)
+    // ... كل الأكواد السابقة في ملفك الأصلي دون تغيير
+
     function renderExamsTable(data) {
       let html = `
         <div class="exams-title-bar">نتائج امتحانات المستويات</div>
@@ -346,14 +523,6 @@
       }
       html += "</tbody></table>";
       document.getElementById('examsTableArea').innerHTML = html;
-    }
-
-    function getAllowedLevels(data) {
-      let allowed = [];
-      for(let i=1; i<=7; i++){
-        if(data['level'+i]) allowed.push(i);
-      }
-      return allowed;
     }
 
     function loadActiveLessonsAndSummaries(activeLevels) {
