@@ -62,8 +62,6 @@
 
     let questions = [];
     let randomizedQuestions = [];
-    let studentLevel = null;      // المستوى الأخير المفعل
-    let questionsLimit = null;    // عدد الأسئلة المطلوب
 
     // حماية الصفحة - فقط للطلاب
     auth.onAuthStateChanged(function(user){
@@ -72,7 +70,7 @@
           if (!doc.exists || doc.data().role !== "student") {
             window.location.href = "login.html";
           } else {
-            getActiveLevel(user.uid);
+            loadQuestions();
           }
         }).catch(function(){
           window.location.href = "login.html";
@@ -86,39 +84,8 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
-    // جلب آخر مستوى مفعل من جدول lectures
-    function getActiveLevel(studentId) {
-      firestore.collection('lectures').doc(studentId).get().then(function(doc){
-        if(!doc.exists) {
-          showFormMsg('بيانات المستوى غير متوفرة لهذا الطالب!');
-          return;
-        }
-        let data = doc.data();
-        let maxLevel = 0;
-        // ابحث عن آخر levelN قيمته true
-        for(let i=1; i<=17; i++){
-          if(data['level'+i] === true) maxLevel = i;
-        }
-        if(maxLevel === 0) {
-          showFormMsg('لم يتم تفعيل أي مستوى لهذا الطالب!');
-          return;
-        }
-        studentLevel = maxLevel;
-        getQuestionsLimit();
-      });
-    }
-
-    // جلب عدد الأسئلة من exam_settings
-    function getQuestionsLimit() {
-      firestore.collection('exam_settings').doc('level_' + studentLevel).get().then(function(settingDoc){
-        questionsLimit = (settingDoc.exists && settingDoc.data().question_num) ? settingDoc.data().question_num : 10;
-        loadQuestions();
-      });
-    }
-
-    // جلب أسئلة المستوى المطلوب
     function loadQuestions() {
-      firestore.collection('questions').where('level', '==', studentLevel).get().then(snap=>{
+      firestore.collection('questions').get().then(snap=>{
         questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
         prepareRandomized();
         renderQuestions();
@@ -127,7 +94,7 @@
 
     // تجهيز نسخة عشوائية من الأسئلة وترتيب الخيارات
     function prepareRandomized() {
-      let shuffled = shuffleArray(questions.map(q => {
+      randomizedQuestions = shuffleArray(questions.map(q => {
         // خلط الخيارات
         let choiceObjs = (q.choices||[]).map((choice, idx) => ({
           text: choice,
@@ -145,7 +112,6 @@
           correct: newCorrect
         };
       }));
-      randomizedQuestions = shuffled.slice(0, questionsLimit);
     }
 
     function renderQuestions() {
