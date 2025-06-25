@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>اختبار الطالب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {font-family:'Tajawal',Arial,sans-serif;background:#f8fafc;margin:0;}
+    .container {max-width:900px;margin:30px auto 0 auto;background:#fff;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
+    h2 {color:#2260af;}
+    .question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
+    .question-title {font-weight:bold;margin-bottom:9px;}
+    .choices-list {margin-bottom:10px;}
+    .choice-row {margin-bottom:6px;}
+    .btn {background:#2260af;color:#fff;border:none;padding:8px 22px;border-radius:5px;font-size:1rem;cursor:pointer;}
+    .btn[disabled] {background:#bdbdbd;}
+    .msg {color:#e63946;margin-bottom:16px;}
+    .result {font-size:1.3rem;color:#219e4b;font-weight:bold;text-align:center;}
+    .logout-btn {background:#b83b3b;margin-right:10px;}
+    .logout-btn:hover {background:#7a2626;}
+    header {background:#2260af;color:#fff;padding:16px 24px;font-size:1.3rem;display:flex;justify-content:space-between;align-items:center;}
+    @media (max-width:900px){.container{padding:7px;}}
+  </style>
+</head>
+<body>
+  <header>
+    <span>اختبار الطالب</span>
+    <button class="btn logout-btn" onclick="logout()">تسجيل الخروج</button>
+  </header>
+  <div class="container">
+    <h2>الأسئلة</h2>
+    <form id="examForm">
+      <div id="questionsArea"></div>
+      <div class="msg" id="formMsg"></div>
+      <button type="submit" class="btn">إرسال الإجابات</button>
+    </form>
+    <div class="result" id="resultArea"></div>
+  </div>
+
+  <script>
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
+
+    // حماية الصفحة - فقط للطلاب
+    auth.onAuthStateChanged(function(user){
+      if (user) {
+        firestore.collection('users').doc(user.uid).get().then(function(doc){
+          if (!doc.exists || doc.data().role !== "student") {
+            window.location.href = "login.html";
+          } else {
+            loadQuestions();
+          }
+        }).catch(function(){
+          window.location.href = "login.html";
+        });
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function logout() {
+      auth.signOut().then(()=>{window.location.href='login.html';});
+    }
+
+    let questions = [];
+    function loadQuestions() {
+      firestore.collection('questions').orderBy('level').get().then(snap=>{
+        questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+        renderQuestions();
+      });
+    }
+
+    function renderQuestions() {
+      let html = '';
+      questions.forEach((q, i) => {
+        html += `<div class="question-block">
+          <div class="question-title">${i+1}. ${q.question}</div>
+          <div class="choices-list">` +
+          q.choices.map((choice, idx) =>
+            `<div class="choice-row">
+              <label>
+                <input type="${q.correct.length>1?'checkbox':'radio'}" name="q${i}" value="${idx}">
+                ${choice}
+              </label>
+            </div>`
+          ).join('') +
+          `</div>
+        </div>`;
+      });
+      document.getElementById('questionsArea').innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
+    }
+
+    document.getElementById('examForm').onsubmit = function(e){
+      e.preventDefault();
+      let total = questions.length, score = 0, empty = 0;
+      let userAnswers = [];
+      questions.forEach((q, i) => {
+        let nodes = document.getElementsByName('q'+i);
+        let selected = [];
+        nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
+        userAnswers.push(selected);
+        if (selected.length===0) empty++;
+        // التحقق من الإجابة الصحيحة (ترتيب أي إجابة لا يهم)
+        if (selected.length === q.correct.length && selected.every(v=>q.correct.includes(v)) && q.correct.every(v=>selected.includes(v))) {
+          score++;
+        }
+      });
+      if (empty>0) {
+        showFormMsg('يرجى الإجابة على جميع الأسئلة!');
+        return;
+      }
+      showResult(`درجتك: ${score} من ${total}`);
+      showFormMsg('');
+    };
+
+    function showFormMsg(msg) {
+      document.getElementById('formMsg').innerText = msg;
+    }
+    function showResult(msg) {
+      document.getElementById('resultArea').innerText = msg;
+    }
+  </script>
+</body>
+</html>
