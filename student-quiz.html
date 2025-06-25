@@ -14,6 +14,7 @@
     body {font-family:'Tajawal',Arial,sans-serif;background:#f8fafc;margin:0;}
     .container {max-width:900px;margin:30px auto 0 auto;background:#fff;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
     h2 {color:#2260af;}
+    .level-info {background:#e6f2ff;padding:10px 16px;border-radius:8px;font-size:1.08em;margin-bottom:20px;display:inline-block;}
     .question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
     .question-title {font-weight:bold;margin-bottom:9px;}
     .multi-note {color:#b96d0d;font-size:0.98em;margin-right:6px;}
@@ -38,6 +39,7 @@
   </header>
   <div class="container">
     <h2>الأسئلة</h2>
+    <div id="levelInfo" class="level-info"></div>
     <form id="examForm">
       <div id="questionsArea"></div>
       <div class="msg" id="formMsg"></div>
@@ -51,6 +53,10 @@
     var auth = firebase.auth();
     var firestore = firebase.firestore();
 
+    let questions = [];
+    let randomizedQuestions = [];
+    let questionsLimit = null; // عدد الأسئلة المخصص للمستوى
+
     // دالة خلط عشوائي لمصفوفة
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -60,9 +66,6 @@
       return array;
     }
 
-    let questions = [];
-    let randomizedQuestions = [];
-
     // حماية الصفحة - فقط للطلاب
     auth.onAuthStateChanged(function(user){
       if (user) {
@@ -70,7 +73,9 @@
           if (!doc.exists || doc.data().role !== "student") {
             window.location.href = "login.html";
           } else {
-            loadQuestions();
+            // احصل على المستوى من بيانات المستخدم (مثال: doc.data().level)
+            let studentLevel = doc.data().level || 1; // عدل حسب تخزينك للمستوى
+            getQuestionsLimit(studentLevel);
           }
         }).catch(function(){
           window.location.href = "login.html";
@@ -84,8 +89,24 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
-    function loadQuestions() {
-      firestore.collection('questions').get().then(snap=>{
+    // جلب عدد الأسئلة للمستوى من exam_settings
+    function getQuestionsLimit(level) {
+      firestore.collection('exam_settings').doc('level_' + level).get().then(function(settingDoc){
+        if(settingDoc.exists && settingDoc.data().question_num){
+          questionsLimit = settingDoc.data().question_num;
+          document.getElementById('levelInfo').innerText =
+            `عدد الأسئلة المخصصة لهذا المستوى: ${questionsLimit}`;
+        } else {
+          questionsLimit = null;
+          document.getElementById('levelInfo').innerText =
+            'لم يتم تحديد عدد الأسئلة لهذا المستوى (سيتم عرض جميع الأسئلة).';
+        }
+        loadQuestions(level);
+      });
+    }
+
+    function loadQuestions(level) {
+      firestore.collection('questions').where('level', '==', level).get().then(snap=>{
         questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
         prepareRandomized();
         renderQuestions();
@@ -94,7 +115,7 @@
 
     // تجهيز نسخة عشوائية من الأسئلة وترتيب الخيارات
     function prepareRandomized() {
-      randomizedQuestions = shuffleArray(questions.map(q => {
+      let shuffled = shuffleArray(questions.map(q => {
         // خلط الخيارات
         let choiceObjs = (q.choices||[]).map((choice, idx) => ({
           text: choice,
@@ -112,6 +133,8 @@
           correct: newCorrect
         };
       }));
+      // إذا كان هناك حد للأسئلة، اقتطع فقط العدد المطلوب
+      randomizedQuestions = questionsLimit ? shuffled.slice(0, questionsLimit) : shuffled;
     }
 
     function renderQuestions() {
