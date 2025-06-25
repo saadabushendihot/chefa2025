@@ -319,7 +319,8 @@
 
           // تحقق من شرط التلاخيص قبل إظهار زر الانتقال للاختبار
           if(lastActiveLevelIndex && isAccepted){
-            firestore.collection('lessons').where('level', '==', lastActiveLevelIndex).get().then(function(lessonQuery){
+            let levelText = getLevelText(lastActiveLevelIndex);
+firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
               let lessons = [];
               lessonQuery.forEach(doc => lessons.push(doc.data()));
               let lessonIds = lessons.map(l=>l.id);
@@ -796,7 +797,10 @@
           }
         });
     }
-
+    function getLevelText(index) {
+      const names = ["", "الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع"];
+      return names[index] || "";
+    }
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
