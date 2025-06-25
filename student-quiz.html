@@ -62,8 +62,8 @@
 
     let questions = [];
     let randomizedQuestions = [];
-    let studentLevel = null;      // ⭐ مستوى الطالب
-    let questionsLimit = null;    // ⭐ عدد الأسئلة المحدد
+    let studentLevel = null;      // المستوى الأخير المفعل
+    let questionsLimit = null;    // عدد الأسئلة المطلوب
 
     // حماية الصفحة - فقط للطلاب
     auth.onAuthStateChanged(function(user){
@@ -72,17 +72,7 @@
           if (!doc.exists || doc.data().role !== "student") {
             window.location.href = "login.html";
           } else {
-            // ⭐ احصل على مستوى الطالب
-            studentLevel = doc.data().level; // يجب أن يكون لديك حقل level في بيانات المستخدم
-            if (!studentLevel) {
-              showFormMsg('لم يتم تحديد المستوى لهذا الطالب!');
-              return;
-            }
-            // ⭐ جلب عدد الأسئلة من exam_settings
-            firestore.collection('exam_settings').doc('level_' + studentLevel).get().then(function(settingDoc){
-              questionsLimit = (settingDoc.exists && settingDoc.data().question_num) ? settingDoc.data().question_num : 10;
-              loadQuestions();
-            });
+            getActiveLevel(user.uid);
           }
         }).catch(function(){
           window.location.href = "login.html";
@@ -96,8 +86,38 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
+    // جلب آخر مستوى مفعل من جدول lectures
+    function getActiveLevel(studentId) {
+      firestore.collection('lectures').doc(studentId).get().then(function(doc){
+        if(!doc.exists) {
+          showFormMsg('بيانات المستوى غير متوفرة لهذا الطالب!');
+          return;
+        }
+        let data = doc.data();
+        let maxLevel = 0;
+        // ابحث عن آخر levelN قيمته true
+        for(let i=1; i<=17; i++){
+          if(data['level'+i] === true) maxLevel = i;
+        }
+        if(maxLevel === 0) {
+          showFormMsg('لم يتم تفعيل أي مستوى لهذا الطالب!');
+          return;
+        }
+        studentLevel = maxLevel;
+        getQuestionsLimit();
+      });
+    }
+
+    // جلب عدد الأسئلة من exam_settings
+    function getQuestionsLimit() {
+      firestore.collection('exam_settings').doc('level_' + studentLevel).get().then(function(settingDoc){
+        questionsLimit = (settingDoc.exists && settingDoc.data().question_num) ? settingDoc.data().question_num : 10;
+        loadQuestions();
+      });
+    }
+
+    // جلب أسئلة المستوى المطلوب
     function loadQuestions() {
-      // ⭐ جلب فقط أسئلة مستوى الطالب
       firestore.collection('questions').where('level', '==', studentLevel).get().then(snap=>{
         questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
         prepareRandomized();
@@ -107,7 +127,6 @@
 
     // تجهيز نسخة عشوائية من الأسئلة وترتيب الخيارات
     function prepareRandomized() {
-      // ⭐ خلط الأسئلة واختيار العدد المطلوب فقط
       let shuffled = shuffleArray(questions.map(q => {
         // خلط الخيارات
         let choiceObjs = (q.choices||[]).map((choice, idx) => ({
@@ -126,7 +145,6 @@
           correct: newCorrect
         };
       }));
-      // ⭐ اختيار العدد المطلوب فقط
       randomizedQuestions = shuffled.slice(0, questionsLimit);
     }
 
