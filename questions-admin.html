@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <!-- ملف إعدادات firebase الخاص بك -->
   <script src="firebase-config.js"></script>
@@ -41,12 +42,18 @@
     .choice-row .btn.small {padding:1px 7px;}
     .add-choice-btn {margin-top:5px;}
     .msg {color:#e63946;margin-bottom:8px;}
+    .logout-btn {background:#b83b3b;margin-right:10px;}
+    .logout-btn:hover {background:#7a2626;}
+    header {background:#2260af;color:#fff;padding:16px 24px;font-size:1.3rem;display:flex;justify-content:space-between;align-items:center;}
     @media (max-width:900px){.container{padding:7px;}.table-questions th,.table-questions td{padding:4px;}}
   </style>
 </head>
 <body>
+  <header>
+    <span>إدارة الأسئلة - لوحة المعلم</span>
+    <button class="btn logout-btn" onclick="logout()">تسجيل الخروج</button>
+  </header>
 <div class="container">
-  <h2>***إدارة الأسئلة</h2>
   <div class="question-form-block">
     <h3 id="formTitle">إضافة سؤال جديد</h3>
     <form id="questionForm">
@@ -110,9 +117,37 @@
 
 <script>
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+var auth = firebase.auth();
 var firestore = firebase.firestore();
 
 let questions = [];
+
+// حماية الصفحة - فقط للمعلمين
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    firestore.collection('users').doc(user.uid).get().then(function(doc) {
+      if (!doc.exists || doc.data().role !== "teacher") {
+        window.location.href = "login.html";
+      } else {
+        // يسمح فقط للمعلم
+        startQuestionsAdmin();
+      }
+    }).catch(function(error) {
+      window.location.href = "login.html";
+    });
+  } else {
+    window.location.href = "login.html";
+  }
+});
+
+function logout() {
+  auth.signOut().then(()=>{window.location.href='login.html';});
+}
+
+function startQuestionsAdmin() {
+  resetForm();
+  loadQuestions();
+}
 
 function addChoice(text = '', checked = false) {
   let idx = document.querySelectorAll('.choice-row').length;
@@ -227,10 +262,6 @@ function showFormMsg(msg, success=false) {
   el.style.color = success ? '#219e4b' : '#e63946';
   setTimeout(()=>{el.innerText='';}, 2500);
 }
-
-// تشغيل أولي
-resetForm();
-loadQuestions();
 </script>
 </body>
 </html>
