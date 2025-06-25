@@ -89,6 +89,7 @@
       margin-bottom: 26px;
       margin-top: 18px;
     }
+    #examWarnMsg {color:#e63946;font-weight:bold;margin:10px 0 15px 0;text-align:center;}
     #examBox {background:#f8fafc;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
     .student-info {background:#eaf7e4;padding:12px 18px;border-radius:9px;margin-bottom:20px;display:inline-block;font-size:1.1em;}
     .level-info {background:#e6f2ff;padding:10px 16px;border-radius:8px;font-size:1.08em;margin-bottom:20px;display:inline-block;}
@@ -144,7 +145,6 @@
     </div>
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
-    <!-- جدول المستويات -->
     <table class="levels-table" id="levelsTable" style="display:none;">
       <thead>
         <tr>
@@ -154,9 +154,8 @@
       </thead>
       <tbody id="levelsBody"></tbody>
     </table>
-    <!-- جدول الامتحانات الاحترافي -->
+    <div id="examWarnMsg"></div>
     <div id="examsTableArea"></div>
-    <!-- الامتحانات العامة القديمة -->
     <div class="exams-box" id="examsBox" style="display:none;">
       <div class="exams-title">الامتحانات العامة</div>
       <div class="exam-row"><b>امتحان تشخيصي:</b> <span id="diagnosisExamMark"></span></div>
@@ -165,7 +164,6 @@
       <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
     <div id="lessonsSummariesArea"></div>
-    <!-- صندوق الاختبار المدمج -->
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -309,37 +307,64 @@
                 <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
               </tr>`;
           }
-          // أضف الزر تحت آخر مستوى مفعّل فقط إذا كان الطالب مقبولًا
           if(lastActiveLevelIndex && isAccepted){
             levelsHtml += `<tr>
               <td colspan="2" style="padding-top:18px;">
-                <button class="btn" id="goToExamBtn">الانتقال إلى اختبار ${lastActiveLevel}</button>
+                <button class="btn" id="goToExamBtn" style="display:none">الانتقال إلى اختبار ${lastActiveLevel}</button>
               </td>
             </tr>`;
           }
           document.getElementById('levelsBody').innerHTML = levelsHtml;
           document.getElementById('levelsTable').style.display = "";
 
-          // زر الانتقال للاختبار مع التمرير التلقائي وأسلوب منع الإعادة
+          // تحقق من شرط التلاخيص قبل إظهار زر الانتقال للاختبار
           if(lastActiveLevelIndex && isAccepted){
-            setTimeout(function() {
-              var btn = document.getElementById('goToExamBtn');
-              if(btn){
-                btn.onclick = function(){
-                  currentExamLevel = lastActiveLevelIndex;
-                  checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
-                  setTimeout(function(){
-                    document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
-                  }, 300);
-                };
+            firestore.collection('lessons').where('level', '==', lastActiveLevelIndex).get().then(function(lessonQuery){
+              let lessons = [];
+              lessonQuery.forEach(doc => lessons.push(doc.data()));
+              let lessonIds = lessons.map(l=>l.id);
+              if(!lessonIds.length) {
+                document.getElementById('goToExamBtn').style.display = "none";
+                document.getElementById('examWarnMsg').innerText = 'لا توجد دروس في هذا المستوى.';
+                return;
               }
-            }, 100);
+              firestore.collection('summaries')
+                .where('student_email', '==', currentStudentEmail)
+                .where('lesson_id', 'in', lessonIds)
+                .get()
+                .then(function(summariesSnap){
+                  let allSummarized = true, allGraded = true, foundIds = [];
+                  summariesSnap.forEach(doc=>{
+                    foundIds.push(doc.data().lesson_id);
+                    if(!doc.data().hasOwnProperty('mark') || doc.data().mark === null || doc.data().mark === undefined) allGraded = false;
+                  });
+                  lessons.forEach(l=>{
+                    if(foundIds.indexOf(l.id) === -1) allSummarized = false;
+                  });
+                  let btn = document.getElementById('goToExamBtn');
+                  let warn = document.getElementById('examWarnMsg');
+                  if(!allSummarized){
+                    btn.style.display="none";
+                    warn.innerText = 'لن يتم فتح الاختبار حتى تسلم جميع تلخيصات الدروس.';
+                  } else if(!allGraded){
+                    btn.style.display="none";
+                    warn.innerText = 'لن يتم فتح الاختبار حتى يقوم المعلم بتصحيح جميع تلخيصاتك.';
+                  } else {
+                    btn.style.display="";
+                    warn.innerText = '';
+                    btn.onclick = function(){
+                      currentExamLevel = lastActiveLevelIndex;
+                      checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+                      setTimeout(function(){
+                        document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+                      }, 300);
+                    };
+                  }
+                });
+            });
           }
 
-          // جدول الامتحانات الاحترافي المنفصل
           renderExamsTable(data);
-
-          // الامتحانات العامة
           let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
           let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
           let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
@@ -350,7 +375,6 @@
           document.getElementById('oralExamMark').innerText = oralMark;
           document.getElementById('fExam').innerText = fMark;
 
-          // عرض الدروس فقط للمستويات المفعلة
           let allowedLevels = getAllowedLevels(data);
           loadActiveLessonsAndSummaries(allowedLevels);
         }
@@ -359,7 +383,6 @@
       });
     }
 
-    // منع إعادة الاختبار: تحقق هل الطالب قدم الامتحان مسبقاً لهذا المستوى
     function checkIfExamAlreadySubmitted(email, level) {
       firestore.collection('exam_results')
         .where('student_email', '==', email)
@@ -367,17 +390,14 @@
         .get()
         .then(function(querySnapshot){
           if (!querySnapshot.empty) {
-            // تم تقديم الامتحان من قبل، اعرض النتيجة فقط
             let data = querySnapshot.docs[0].data();
             showExamResultOnly(data);
           } else {
-            // لم يقدم الامتحان بعد، اعرض فورم الأسئلة
             showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
           }
         });
     }
 
-    // عرض نتيجة الامتحان فقط بدون أسئلة الاختبار
     function showExamResultOnly(result) {
       document.getElementById('examBox').style.display = '';
       document.getElementById('questionsArea').innerHTML = '';
@@ -385,12 +405,15 @@
       document.getElementById('examStudentInfo').innerHTML =
         `<b>اسم الطالب:</b> ${currentStudentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${currentStudentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${result.level}`;
       document.getElementById('examLevelInfo').innerText = '';
-      document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#219e4b;font-weight:bold;">
+      document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#e63946;font-weight:bold;">
         لقد سبق لك تقديم اختبار هذا المستوى.<br>درجتك: ${result.score} من ${result.total}
         </div>`;
+      var btn = document.getElementById('goToExamBtn');
+      if(btn) btn.style.display = "none";
+      document.querySelector("button[type=submit]").style.display = "none";
+      document.getElementById('exitExamBtn').style.display = "none";
     }
 
-    // صندوق الاختبار
     function showExamBox(studentName, studentEmail, level) {
       document.getElementById('examBox').style.display = '';
       document.getElementById('examStudentInfo').innerHTML =
@@ -411,6 +434,8 @@
 
       document.getElementById('formMsg').innerText = '';
       document.getElementById('resultArea').innerText = '';
+      document.querySelector("button[type=submit]").style.display = "";
+      document.getElementById('exitExamBtn').style.display = "";
     }
 
     function loadExamQuestions(level) {
@@ -471,7 +496,6 @@
       document.getElementById('questionsArea').innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
     }
 
-    // منع إعادة الاختبار عند الإرسال
     document.getElementById('examForm').onsubmit = function(e){
       e.preventDefault();
       let totalMark = 0, gainedMark = 0, empty = 0;
@@ -514,20 +538,17 @@
       }
       gainedMark = Math.round(gainedMark * 100) / 100;
 
-      // تحقق أخير من عدم وجود نتيجة سابقة قبل الحفظ
       firestore.collection('exam_results')
         .where('student_email', '==', currentStudentEmail)
         .where('level', '==', currentExamLevel)
         .get()
         .then(function(querySnapshot){
           if (!querySnapshot.empty) {
-            // إذا وُجدت نتيجة لا تحفظ ولا تعيد التصحيح
             showExamResultOnly(querySnapshot.docs[0].data());
             updateLevelExamTable(currentExamLevel, querySnapshot.docs[0].data());
             return;
           }
 
-          // --- حفظ النتيجة في exam_results ---
           const resultDoc = {
             student_email: currentStudentEmail,
             student_name: currentStudentName,
@@ -542,15 +563,15 @@
 
           firestore.collection('exam_results').add(resultDoc)
             .then((docRef) => {
-              // التعديلات هنا
               document.getElementById('questionsArea').innerHTML = '';
               document.getElementById('formMsg').innerText = '';
               document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#219e4b;font-weight:bold;">
                 تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}
                 </div>`;
-              // إخفاء الأزرار
               document.querySelector("button[type=submit]").style.display = "none";
               document.getElementById('exitExamBtn').style.display = "none";
+              var btn = document.getElementById('goToExamBtn');
+              if(btn) btn.style.display = "none";
               updateLevelExamTable(currentExamLevel, resultDoc);
             })
             .catch((error) => {
@@ -561,7 +582,6 @@
           showFormMsg('');
         });
     };
-
 
     function showFormMsg(msg) {
       document.getElementById('formMsg').innerText = msg;
@@ -577,7 +597,6 @@
       document.getElementById('resultArea').innerText = "";
     };
 
-    // تحديث جدول نتائج الامتحانات فوراً (حسب المستوى والنتيجة)
     function updateLevelExamTable(level, result) {
       let passed = (result.score >= result.total * 0.5);
       let label = passed
@@ -590,7 +609,6 @@
       }
     }
 
-    // باقي الدوال: جدول الامتحانات، الدروس، التلخيصات، تسجيل الخروج (بدون تغيير)
     function renderExamsTable(data) {
       let html = `
         <div class="exams-title-bar">نتائج امتحانات المستويات</div>
