@@ -89,7 +89,6 @@
       margin-bottom: 26px;
       margin-top: 18px;
     }
-    /* responsive */
     @media (max-width: 900px){
       .container{padding:8px;}
       header {padding:10px;}
@@ -99,7 +98,6 @@
       textarea.summary-text {width:96%;}
       .lesson-summary-block audio {width:100%!important;}
     }
-    /* تلخيصات الدروس */
     .lesson-summary-block {background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px; box-shadow: 0 2px 6px #e0e7ef33;}
     .lesson-summary-block h4 {margin:0 0 8px 0; color:#1b3e72;}
     .lesson-link {color:#4361ee; text-decoration:none;}
@@ -175,14 +173,11 @@
       }
     }
 
-    // يعرض فقط الدروس للمستوى المجتاز امتحانه
+    // ارجع أرقام المستويات المفعلة فقط
     function getAllowedLevels(data) {
       let allowed = [];
-      for(let i=1;i<=7;i++){
-        let level = data['level'+i];
-        let exam = data['exam'+i];
-        let prevExam = i === 1 ? true : data['exam'+(i-1)];
-        if(level && exam && prevExam) allowed.push(i);
+      for(let i=1; i<=7; i++){
+        if(data['level'+i]) allowed.push(i);
       }
       return allowed;
     }
@@ -283,7 +278,7 @@
           document.getElementById('oralExamMark').innerText = oralMark;
           document.getElementById('fExam').innerText = fMark;
 
-          // عرض الدروس فقط للمستويات التي فعّلت وامتحانها ناجح
+          // عرض الدروس فقط للمستويات المفعلة
           let allowedLevels = getAllowedLevels(data);
           loadActiveLessonsAndSummaries(allowedLevels);
         }
@@ -324,6 +319,7 @@
       document.getElementById('examsTableArea').innerHTML = html;
     }
 
+    // الدروس تظهر فقط للمستويات المفعلة (allowedLevels)
     function loadActiveLessonsAndSummaries(activeLevels) {
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
