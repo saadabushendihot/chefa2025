@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>إدارة الأسئلة - لوحة المعلم</title>
+  <title>إعدادات الامتحان - لوحة المعلم</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -13,316 +13,123 @@
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {font-family:'Tajawal',Arial,sans-serif;background:#f8fafc;margin:0;}
-    .container {max-width:900px;margin:30px auto 0 auto;background:#fff;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
+    .container {max-width:650px;margin:30px auto 0 auto;background:#fff;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
     h2,h3 {color:#2260af;}
-    .actions-bar {margin-bottom:18px;}
-    .btn {background:#2260af;color:#fff;border:none;padding:7px 18px; border-radius:5px; font-size:1rem;cursor:pointer;}
+    table {width:100%;border-collapse:collapse;margin-top:18px;}
+    th,td {border-bottom:1px solid #e4e7ef;padding:9px;text-align:center;font-size:1.07rem;}
+    th {background:#eef2fa;}
+    input[type="number"] {font-family:'Tajawal',Arial,sans-serif;font-size:1rem;padding:4px 7px;border-radius:5px;border:1px solid #b7c0d6;max-width:90px;text-align:center;}
+    .btn {background:#2260af;color:#fff;border:none;padding:6px 18px; border-radius:5px; font-size:1rem;cursor:pointer;}
     .btn[disabled] {background:#bdbdbd;}
-    .btn.delete {background:#e63946;}
-    .btn.edit {background:#e6a100;}
-    .btn.small {padding:2px 9px; font-size:0.9rem;}
-    .filter-bar {margin-bottom:18px;}
-    .table-questions {width:100%;border-collapse:collapse;margin-top:10px;}
-    .table-questions th,.table-questions td {border-bottom:1px solid #e4e7ef;padding:8px;text-align:center;font-size:1rem;}
-    .table-questions th {background:#eef2fa;}
-    .question-text {text-align:right;}
-    .correct-ch {color:#219e4b;font-weight:bold;}
-    .choices-list {display:flex;flex-wrap:wrap;gap:6px;}
-    .choice-item {background:#f5f7fb;border-radius:7px;padding:2px 10px;margin-bottom:2px;}
-    .choice-item.correct {background:#e3f6ed;color:#219e4b;font-weight:bold;}
-    /* Form */
-    .question-form-block {background:#f8fafc;border-radius:10px;padding:18px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
-    .form-row {margin-bottom:13px;}
-    label {font-weight:bold;}
-    input[type="text"], input[type="number"], textarea, select {font-family:'Tajawal',Arial,sans-serif;font-size:1rem; padding:6px 7px; border-radius:5px; border:1px solid #b7c0d6; width:95%;}
-    input[type="number"] {max-width:120px;}
-    textarea {height:54px;}
-    .choices-area {margin-top:6px;}
-    .choice-row {display:flex;align-items:center;gap:7px;margin-bottom:7px;}
-    .choice-row input[type="text"] {width:65%;}
-    .choice-row .btn.small {padding:1px 7px;}
-    .add-choice-btn {margin-top:5px;}
-    .msg {color:#e63946;margin-bottom:8px;}
+    .msg {margin:10px 0 0 0;font-weight:bold;}
     .logout-btn {background:#b83b3b;margin-right:10px;}
     .logout-btn:hover {background:#7a2626;}
-    .settings-block {background:#f8fafc;border-radius:10px;padding:16px 13px;margin-bottom:30px;box-shadow:0 2px 8px #e4e7ef44;}
-    .settings-block h3 {margin-top:0;}
-    .level-setting-row {margin-bottom:8px;}
-    @media (max-width:900px){.container{padding:7px;}.table-questions th,.table-questions td{padding:4px;}}
+    header {background:#2260af;color:#fff;padding:16px 24px;font-size:1.3rem;display:flex;justify-content:space-between;align-items:center;}
+    @media (max-width:700px){.container{padding:7px;}.th,td{padding:5px;}}
   </style>
 </head>
 <body>
   <header>
-    <span>إدارة الأسئلة - لوحة المعلم</span>
+    <span>إعدادات الامتحان - لوحة المعلم</span>
     <button class="btn logout-btn" onclick="logout()">تسجيل الخروج</button>
   </header>
-<div class="container">
-  <!-- إعدادات عدد الأسئلة لكل مستوى -->
-  <div class="settings-block">
-    <h3>إعدادات عدد الأسئلة المعروضة لكل مستوى</h3>
-    <div id="examSettingsArea"></div>
-    <div id="settingsMsg" class="msg"></div>
-  </div>
-  <div class="question-form-block">
-    <h3 id="formTitle">إضافة سؤال جديد</h3>
-    <form id="questionForm">
-      <div class="form-row">
-        <label for="qText">نص السؤال:</label><br>
-        <textarea id="qText" required></textarea>
-      </div>
-      <div class="form-row">
-        <label for="qLevel">المستوى:</label>
-        <select id="qLevel">
-          <option value="1">المستوى 1</option>
-          <option value="2">المستوى 2</option>
-          <option value="3">المستوى 3</option>
-          <option value="4">المستوى 4</option>
-          <option value="5">المستوى 5</option>
-          <option value="6">المستوى 6</option>
-          <option value="7">المستوى 7</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label for="qMark">علامة السؤال:</label>
-        <input type="number" id="qMark" min="1" value="1" required>
-      </div>
-      <div class="form-row">
-        <label>الخيارات:</label>
-        <div class="choices-area" id="choicesArea"></div>
-        <button type="button" class="btn small add-choice-btn" onclick="addChoice()">+ خيار جديد</button>
-      </div>
-      <div class="form-row">
-        <button type="submit" class="btn">حفظ السؤال</button>
-        <button type="button" class="btn" onclick="resetForm()">إلغاء</button>
-      </div>
-      <div class="msg" id="formMsg"></div>
-      <input type="hidden" id="editId">
+  <div class="container">
+    <h2>ضبط عدد الأسئلة لكل مستوى</h2>
+    <form id="settingsForm">
+      <table>
+        <thead>
+          <tr>
+            <th>المستوى</th>
+            <th>عدد الأسئلة (question_num)</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="levelsTbody">
+          <tr><td colspan="3" style="color:#888">جاري التحميل...</td></tr>
+        </tbody>
+      </table>
+      <div class="msg" id="settingsMsg"></div>
     </form>
   </div>
-  <div class="actions-bar">
-    <b>تصفية حسب المستوى:</b>
-    <select id="filterLevel" onchange="renderQuestionsTable()">
-      <option value="">الكل</option>
-      <option value="1">المستوى 1</option>
-      <option value="2">المستوى 2</option>
-      <option value="3">المستوى 3</option>
-      <option value="4">المستوى 4</option>
-      <option value="5">المستوى 5</option>
-      <option value="6">المستوى 6</option>
-      <option value="7">المستوى 7</option>
-    </select>
-  </div>
-  <table class="table-questions" id="questionsTable">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>السؤال</th>
-        <th>المستوى</th>
-        <th>العلامة</th>
-        <th>الخيارات</th>
-        <th>عدد الصحيحة</th>
-        <th>تعديل</th>
-        <th>حذف</th>
-      </tr>
-    </thead>
-    <tbody id="questionsTbody"></tbody>
-  </table>
-</div>
+  <script>
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    var auth = firebase.auth();
+    var firestore = firebase.firestore();
 
-<script>
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-var auth = firebase.auth();
-var firestore = firebase.firestore();
+    const LEVELS = [1,2,3,4,5,6,7];
 
-let questions = [];
-const levels = [1,2,3,4,5,6,7];
-
-// حماية الصفحة - فقط للمعلمين
-auth.onAuthStateChanged(function(user) {
-  if (user) {
-    firestore.collection('users').doc(user.uid).get().then(function(doc) {
-      if (!doc.exists || doc.data().role !== "teacher") {
-        window.location.href = "login.html";
+    // حماية الصفحة - فقط للمعلمين
+    auth.onAuthStateChanged(function(user) {
+      if (user) {
+        firestore.collection('users').doc(user.uid).get().then(function(doc) {
+          if (!doc.exists || doc.data().role !== "teacher") {
+            window.location.href = "login.html";
+          } else {
+            loadSettingsTable();
+          }
+        }).catch(function(error) {
+          window.location.href = "login.html";
+        });
       } else {
-        startQuestionsAdmin();
-      }
-    }).catch(function(error) {
-      window.location.href = "login.html";
-    });
-  } else {
-    window.location.href = "login.html";
-  }
-});
-
-function logout() {
-  auth.signOut().then(()=>{window.location.href='login.html';});
-}
-
-function startQuestionsAdmin() {
-  resetForm();
-  loadQuestions();
-  loadExamSettings();
-}
-
-// إعدادات عدد الأسئلة لكل مستوى
-function loadExamSettings() {
-  let html = '';
-  let loadedCount = 0;
-  document.getElementById('examSettingsArea').innerHTML = '<span style="color:#888">تحميل...</span>';
-  levels.forEach(lvl => {
-    firestore.collection('exam_settings').doc('level_' + lvl).get().then(doc => {
-      let val = (doc.exists ? doc.data().question_num : 10);
-      html += `
-        <div class="level-setting-row">
-          <label>المستوى ${lvl}:</label>
-          <input type="number" id="qnum_${lvl}" value="${val}" min="1" max="100" style="width:60px;">
-          <button type="button" class="btn small" onclick="saveQNum(${lvl})">حفظ</button>
-        </div>
-      `;
-      loadedCount++;
-      if (loadedCount === levels.length) {
-        document.getElementById('examSettingsArea').innerHTML = html;
+        window.location.href = "login.html";
       }
     });
-  });
-}
 
-function saveQNum(lvl) {
-  let val = parseInt(document.getElementById('qnum_'+lvl).value) || 1;
-  firestore.collection('exam_settings').doc('level_' + lvl)
-    .set({question_num: val}).then(()=>{
-      showSettingsMsg(`تم حفظ عدد الأسئلة للمستوى ${lvl}: ${val}`, true);
-    }).catch(()=>{
-      showSettingsMsg('حدث خطأ أثناء الحفظ!', false);
-    });
-}
-
-function showSettingsMsg(msg, success) {
-  let el = document.getElementById('settingsMsg');
-  el.innerText = msg;
-  el.style.color = success ? '#219e4b' : '#e63946';
-  setTimeout(()=>{el.innerText='';}, 2500);
-}
-
-function addChoice(text = '', checked = false) {
-  let idx = document.querySelectorAll('.choice-row').length;
-  let div = document.createElement('div');
-  div.className = 'choice-row';
-  div.innerHTML = `
-    <input type="checkbox" class="correctChoice" name="correct${idx}" ${checked ? 'checked' : ''} title="صحيح">
-    <input type="text" class="choiceText" value="${text}" required placeholder="الخيار ${idx+1}">
-    <button type="button" class="btn small" onclick="this.parentNode.remove()">حذف</button>
-  `;
-  document.getElementById('choicesArea').appendChild(div);
-}
-
-function resetForm() {
-  document.getElementById('questionForm').reset();
-  document.getElementById('choicesArea').innerHTML = '';
-  addChoice();
-  addChoice();
-  document.getElementById('editId').value = '';
-  document.getElementById('formTitle').innerText = 'إضافة سؤال جديد';
-  document.getElementById('formMsg').innerText = '';
-  document.getElementById('qMark').value = 1;
-}
-
-function loadQuestions() {
-  firestore.collection('questions').orderBy('level').get().then(snap => {
-    questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
-    renderQuestionsTable();
-  });
-}
-
-function renderQuestionsTable() {
-  let level = document.getElementById('filterLevel').value;
-  let rows = '';
-  let filtered = level ? questions.filter(q => q.level == level) : questions;
-  filtered.forEach((q, i) => {
-    let chs = q.choices.map((c, idx) =>
-      `<span class="choice-item${q.correct && q.correct.includes(idx) ? ' correct' : ''}">${c}</span>`
-    ).join('');
-    rows += `<tr>
-      <td>${i+1}</td>
-      <td class="question-text">${q.question}</td>
-      <td>${q.level}</td>
-      <td>${q.mark || 1}</td>
-      <td><div class="choices-list">${chs}</div></td>
-      <td>${q.correct ? q.correct.length : 0}</td>
-      <td><button class="btn edit" onclick="editQuestion('${q.id}')">تعديل</button></td>
-      <td><button class="btn delete" onclick="deleteQuestion('${q.id}')">حذف</button></td>
-    </tr>`;
-  });
-  document.getElementById('questionsTbody').innerHTML = rows || `<tr><td colspan="8" style="color:#888">لا توجد أسئلة</td></tr>`;
-}
-
-function editQuestion(id) {
-  let q = questions.find(x => x.id === id);
-  if (!q) return;
-  document.getElementById('qText').value = q.question;
-  document.getElementById('qLevel').value = q.level;
-  document.getElementById('qMark').value = q.mark || 1;
-  document.getElementById('choicesArea').innerHTML = '';
-  q.choices.forEach((choice, i) => {
-    addChoice(choice, q.correct && q.correct.includes(i));
-  });
-  document.getElementById('editId').value = id;
-  document.getElementById('formTitle').innerText = 'تعديل سؤال';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function deleteQuestion(id) {
-  if (!confirm('هل أنت متأكد من حذف السؤال؟')) return;
-  firestore.collection('questions').doc(id).delete().then(loadQuestions);
-}
-
-document.getElementById('questionForm').onsubmit = function(e){
-  e.preventDefault();
-  let question = document.getElementById('qText').value.trim();
-  let level = parseInt(document.getElementById('qLevel').value);
-  let mark = parseFloat(document.getElementById('qMark').value) || 1;
-  let choiceNodes = document.querySelectorAll('.choice-row');
-  let choices = [];
-  let correct = [];
-  choiceNodes.forEach((row, i) => {
-    let text = row.querySelector('.choiceText').value.trim();
-    if (text) {
-      choices.push(text);
-      if (row.querySelector('.correctChoice').checked) correct.push(i);
+    function logout() {
+      auth.signOut().then(()=>{window.location.href='login.html';});
     }
-  });
-  if (choices.length < 2) { showFormMsg('يجب إدخال خيارين على الأقل!'); return; }
-  if (correct.length === 0) { showFormMsg('حدد إجابة صحيحة واحدة على الأقل!'); return; }
-  if (mark <= 0) { showFormMsg('يجب أن تكون العلامة أكبر من صفر!'); return; }
-  let qObj = {
-    question,
-    choices,
-    correct,
-    level,
-    mark
-  };
-  let editId = document.getElementById('editId').value;
-  if (editId) {
-    firestore.collection('questions').doc(editId).set(qObj).then(()=>{
-      resetForm();
-      loadQuestions();
-      showFormMsg('تم تحديث السؤال بنجاح', true);
-    });
-  } else {
-    firestore.collection('questions').add(qObj).then(()=>{
-      resetForm();
-      loadQuestions();
-      showFormMsg('تمت إضافة السؤال بنجاح', true);
-    });
-  }
-};
 
-function showFormMsg(msg, success=false) {
-  let el = document.getElementById('formMsg');
-  el.innerText = msg;
-  el.style.color = success ? '#219e4b' : '#e63946';
-  setTimeout(()=>{el.innerText='';}, 2500);
-}
-</script>
+    // تحميل الإعدادات لكل المستويات
+    function loadSettingsTable() {
+      const tbody = document.getElementById('levelsTbody');
+      tbody.innerHTML = '<tr><td colspan="3" style="color:#888">جاري التحميل...</td></tr>';
+      firestore.collection('exam_settings').get().then(snapshot => {
+        let data = {};
+        snapshot.forEach(doc => {
+          data[doc.id] = doc.data().question_num;
+        });
+        let rows = '';
+        LEVELS.forEach(lvl => {
+          let val = data[`level_${lvl}`] !== undefined ? data[`level_${lvl}`] : '';
+          rows += `
+            <tr>
+              <td>المستوى ${lvl}</td>
+              <td>
+                <input type="number" min="1" id="input_level_${lvl}" value="${val}" placeholder="أدخل عدد الأسئلة" required>
+              </td>
+              <td>
+                <button type="button" class="btn" onclick="saveLevel(${lvl})">حفظ</button>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = rows;
+      });
+    }
+
+    // حفظ قيمة السؤال لمستوى معين
+    function saveLevel(lvl) {
+      const msgEl = document.getElementById('settingsMsg');
+      msgEl.innerText = '';
+      let input = document.getElementById(`input_level_${lvl}`);
+      let val = parseInt(input.value);
+      if (!val || val<1) {
+        msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر للمستوى ${lvl}`;
+        msgEl.style.color = '#e63946';
+        input.focus();
+        return;
+      }
+      firestore.collection('exam_settings').doc(`level_${lvl}`).set({
+        question_num: val
+      }).then(()=>{
+        msgEl.innerText = `تم حفظ عدد الأسئلة للمستوى ${lvl} بنجاح`;
+        msgEl.style.color = '#219e4b';
+        setTimeout(()=>{msgEl.innerText='';}, 2000);
+      }).catch(()=>{
+        msgEl.innerText = "حدث خطأ أثناء الحفظ!";
+        msgEl.style.color = '#e63946';
+      });
+    }
+  </script>
 </body>
 </html>
