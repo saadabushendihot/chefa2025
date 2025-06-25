@@ -111,6 +111,25 @@
       border-color: #3b5cb8;
       outline: none;
     }
+    /* إضافة التعديلات على الجداول */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px #00000008;
+    }
+    th, td {
+      padding: 9px 6px;
+      border-bottom: 1px solid #e5e7ea;
+      text-align: center;
+      font-size: 1rem;
+      color: #23272f;
+    }
+    th { background: #f2f5fc; color: #294169; font-weight: bold;}
+    tr:last-child td { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -119,6 +138,8 @@
     <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
   </header>
   <div class="container">
+
+    <!-- أيقونة إظهار/إخفاء إضافة طالب -->
     <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
       <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
       <span style="font-weight:bold;">إضافة طالب جديد</span>
@@ -137,6 +158,7 @@
       <div id="addStudentMsg"></div>
     </div>
 
+    <!-- أيقونة إظهار/إخفاء إضافة درس -->
     <div class="add-section-toggle" onclick="toggleSection('addLessonSection')">
       <span class="toggle-icon" id="addLessonToggleIcon">➕</span>
       <span style="font-weight:bold;">إضافة درس جديد</span>
@@ -157,6 +179,46 @@
         <button class="btn" type="submit">إضافة الدرس</button>
       </form>
       <div id="addLessonMsg"></div>
+    </div>
+
+    <!-- المحتوى الإضافي الحالي يظل كما هو -->
+    <div class="students-area">
+      <h2> ******** إدارة مستويات الطلاب **********</h2>
+      <div id="msg"></div>
+      <div class="student-selection-area">
+        <label for="studentSelect" style="font-weight:bold; margin-bottom: 10px; display: block; text-align: right;">اختر الطالب:</label>
+        <select id="studentSelect" onchange="showSelectedStudentDetails(this.value)" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #c5c9d2; font-size: 1rem; background: #f7f8fa; color: #23272f;">
+          <option value="">-- اختر طالباً لعرض بياناته --</option>
+        </select>
+      </div>
+      <div id="selectedStudentDetails" style="background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; margin-top: 20px; display: none;">
+        <h3>تفاصيل الطالب المحدد:</h3>
+        <p><strong>الاسم:</strong> <span id="detailName"></span></p>
+        <p><strong>البريد الإلكتروني:</strong> <span id="detailEmail"></span></p>
+        <p><strong>رقم الدورة:</strong> <span id="detailCourseNumber"></span></p>
+        <h4>المستويات:</h4>
+        <div id="detailLevels" class="levels-grid">
+          <!-- Levels will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <div class="lessons-area">
+      <h2 style="margin-top:0;">قائمة الدروس</h2>
+      <div id="editLessonMsg"></div>
+      <table class="lessons-table" id="lessonsTable">
+        <thead>
+          <tr>
+            <th>رقم الدرس</th>
+            <th>العنوان</th>
+            <th>رابط الدرس</th>
+            <th>الصوت</th>
+            <th>المستوى</th>
+            <th>تعديل</th>
+          </tr>
+        </thead>
+        <tbody id="lessonsList"></tbody>
+      </table>
     </div>
 
   </div>
