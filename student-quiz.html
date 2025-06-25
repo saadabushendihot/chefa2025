@@ -16,6 +16,7 @@
     h2 {color:#2260af;}
     .question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
     .question-title {font-weight:bold;margin-bottom:9px;}
+    .multi-note {color:#b96d0d;font-size:0.98em;margin-right:6px;}
     .choices-list {margin-bottom:10px;}
     .choice-row {margin-bottom:6px;}
     .btn {background:#2260af;color:#fff;border:none;padding:8px 22px;border-radius:5px;font-size:1rem;cursor:pointer;}
@@ -69,19 +70,55 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
+    // دالة خلط عشوائي لمصفوفة
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
     let questions = [];
+    let randomizedQuestions = [];
+
     function loadQuestions() {
-      firestore.collection('questions').orderBy('level').get().then(snap=>{
+      firestore.collection('questions').get().then(snap=>{
         questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+        prepareRandomized();
         renderQuestions();
       });
     }
 
+    // تجهيز نسخة عشوائية من الأسئلة وترتيب الخيارات
+    function prepareRandomized() {
+      // عشوائية للأسئلة
+      randomizedQuestions = shuffleArray(questions.map(q => {
+        // خلط الخيارات
+        let choiceObjs = q.choices.map((choice, idx) => ({
+          text: choice,
+          origIndex: idx
+        }));
+        let shuffledChoices = shuffleArray(choiceObjs);
+        // تعيين correct الجديدة بحسب ترتيب الخيارات الجديد
+        let newCorrect = [];
+        shuffledChoices.forEach((ch, ix) => {
+          if(q.correct && q.correct.includes(ch.origIndex)) newCorrect.push(ix);
+        });
+        return {
+          ...q,
+          choices: shuffledChoices.map(c => c.text),
+          correct: newCorrect
+        };
+      }));
+    }
+
     function renderQuestions() {
       let html = '';
-      questions.forEach((q, i) => {
+      randomizedQuestions.forEach((q, i) => {
+        let multiNote = (q.correct.length > 1) ? '<span class="multi-note">(يحتمل أكثر من إجابة صحيحة)</span>' : '';
         html += `<div class="question-block">
-          <div class="question-title">${i+1}. ${q.question}</div>
+          <div class="question-title">${i+1}. ${q.question} ${multiNote}</div>
           <div class="choices-list">` +
           q.choices.map((choice, idx) =>
             `<div class="choice-row">
@@ -99,9 +136,9 @@
 
     document.getElementById('examForm').onsubmit = function(e){
       e.preventDefault();
-      let total = questions.length, score = 0, empty = 0;
+      let total = randomizedQuestions.length, score = 0, empty = 0;
       let userAnswers = [];
-      questions.forEach((q, i) => {
+      randomizedQuestions.forEach((q, i) => {
         let nodes = document.getElementsByName('q'+i);
         let selected = [];
         nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
