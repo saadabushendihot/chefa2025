@@ -323,9 +323,11 @@
               let lessons = [];
               lessonQuery.forEach(doc => lessons.push(doc.data()));
               let lessonIds = lessons.map(l=>l.id);
+              let btn = document.getElementById('goToExamBtn');
+              let warn = document.getElementById('examWarnMsg');
               if(!lessonIds.length) {
-                document.getElementById('goToExamBtn').style.display = "none";
-                document.getElementById('examWarnMsg').innerText = 'لا توجد دروس في هذا المستوى.';
+                btn.style.display = "none";
+                warn.innerText = 'لا توجد دروس في هذا المستوى.';
                 return;
               }
               firestore.collection('summaries')
@@ -333,34 +335,14 @@
                 .where('lesson_id', 'in', lessonIds)
                 .get()
                 .then(function(summariesSnap){
-                 let validSummaries = 0;
+                  let validSummaries = 0;
                   summariesSnap.forEach(doc=>{
                     let data = doc.data();
-                    // يجب أن يكون status = "submitted" ويوجد mark
                     if(data.status === "submitted" && data.hasOwnProperty('mark') && data.mark !== null && data.mark !== undefined){
                       validSummaries++;
                     }
                   });
                   if(validSummaries === lessons.length){
-                    btn.style.display="";
-                    warn.innerText = '';
-                    // ...
-                  } else {
-                    btn.style.display="none";
-                    warn.innerText = 'لا يمكن تقديم الاختبار';
-                   });
-                  lessons.forEach(l=>{
-                    if(foundIds.indexOf(l.id) === -1) allSummarized = false;
-                  });
-                  let btn = document.getElementById('goToExamBtn');
-                  let warn = document.getElementById('examWarnMsg');
-                  if(!allSummarized){
-                    btn.style.display="none";
-                    warn.innerText = 'لن يتم فتح الاختبار حتى تسلم جميع تلخيصات الدروس.';
-                  } else if(!allGraded){
-                    btn.style.display="none";
-                    warn.innerText = 'لن يتم فتح الاختبار حتى يقوم المعلم بتصحيح جميع تلخيصاتك.';
-                  } else {
                     btn.style.display="";
                     warn.innerText = '';
                     btn.onclick = function(){
@@ -370,6 +352,9 @@
                         document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
                       }, 300);
                     };
+                  } else {
+                    btn.style.display="none";
+                    warn.innerText = 'لا يمكن تقديم الاختبار';
                   }
                 });
             });
