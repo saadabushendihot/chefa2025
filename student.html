@@ -129,6 +129,16 @@
       transition: border 0.15s; direction: rtl;
     }
     textarea.summary-text:focus {border-color: #4361ee;}
+    /* جدول تلخيصات الطالب */
+    #summariesStatusArea table {
+      width:100%;border-collapse:collapse;background:#fbfdff;border-radius:8px;box-shadow:0 1px 4px #0001;
+      margin-top:18px;
+    }
+    #summariesStatusArea th,#summariesStatusArea td {
+      padding:8px 4px;text-align:center;font-size:1rem;border-bottom:1px solid #eee;
+    }
+    #summariesStatusArea th {background:#eef2fa;color:#1b3e72;}
+    #summariesStatusArea tr:last-child td {border-bottom:none;}
   </style>
 </head>
 <body>
@@ -164,6 +174,7 @@
       <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
     </div>
     <div id="lessonsSummariesArea"></div>
+    <div id="summariesStatusArea"></div>
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -191,6 +202,12 @@
     let randomizedExamQuestions = [];
     let examQuestionsLimit = null;
     let currentExamLevel = null;
+
+    // تحويل رقم المستوى إلى نصه العربي
+    function getLevelText(index) {
+      const names = ["", "الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع"];
+      return names[index] || "";
+    }
 
     function shuffleArray(array) {
       for (let i = array.length - 1; i > 0; i--) {
@@ -261,6 +278,7 @@
           document.getElementById('admissionStatusBox').style.display = "none";
           document.getElementById('lessonsSummariesArea').innerHTML = "";
           document.getElementById('examsTableArea').innerHTML = "";
+          document.getElementById('summariesStatusArea').innerHTML = "";
 
           var admissionBox = document.getElementById('admissionStatusBox');
           var status = data.accepted;
@@ -310,7 +328,7 @@
           if(lastActiveLevelIndex && isAccepted){
             levelsHtml += `<tr>
               <td colspan="2" style="padding-top:18px;">
-                <button class="btn" id="goToExamBtn" style="display:none">الانتقال إلى اختبار ${lastActiveLevel}</button>
+                <button class="btn" id="goToExamBtn" style="display:none">الانتقال إلى اختبار ${getLevelText(lastActiveLevelIndex)}</button>
               </td>
             </tr>`;
           }
@@ -320,7 +338,7 @@
           // تحقق من شرط التلاخيص قبل إظهار زر الانتقال للاختبار
           if(lastActiveLevelIndex && isAccepted){
             let levelText = getLevelText(lastActiveLevelIndex);
-firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
+            firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
               let lessons = [];
               lessonQuery.forEach(doc => lessons.push(doc.data()));
               let lessonIds = lessons.map(l=>l.id);
@@ -357,6 +375,8 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
                     btn.style.display="none";
                     warn.innerText = 'لا يمكن تقديم الاختبار';
                   }
+                  // جدول حالة التلاخيص للمستوى الحالي فقط
+                  renderSummariesStatusTable(lessons, makeSummariesMap(summariesSnap));
                 });
             });
           }
@@ -378,6 +398,44 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
       }).catch(function(err) {
         document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
       });
+    }
+
+    function makeSummariesMap(summariesSnap) {
+      let summariesMap = {};
+      summariesSnap.forEach(function(doc){
+        let s = doc.data();
+        summariesMap[s.lesson_id] = { ...s, docId: doc.id };
+      });
+      return summariesMap;
+    }
+
+    // جدول حالة التلاخيص والعلامات
+    function renderSummariesStatusTable(lessons, summariesMap) {
+      let html = `<h3 style="color:#4361ee; margin-bottom:10px;">جدول حالة التلاخيص</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>رقم الدرس</th>
+              <th>عنوان الدرس</th>
+              <th>الحالة</th>
+              <th>العلامة</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      lessons.forEach(lesson => {
+        let s = summariesMap[lesson.id] || {};
+        let status = s.status || 'لم يُسلم';
+        let mark = (typeof s.mark !== 'undefined' && s.mark !== null) ? s.mark : '—';
+        html += `<tr>
+          <td>${lesson.id}</td>
+          <td>${lesson.title}</td>
+          <td>${status === 'submitted' ? '<span style="color:#219e4b;font-weight:bold">تم التسليم</span>' : '<span style="color:#e63946;">'+status+'</span>'}</td>
+          <td>${mark}</td>
+        </tr>`;
+      });
+      html += "</tbody></table>";
+      document.getElementById('summariesStatusArea').innerHTML = html;
     }
 
     function checkIfExamAlreadySubmitted(email, level) {
@@ -414,7 +472,7 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
     function showExamBox(studentName, studentEmail, level) {
       document.getElementById('examBox').style.display = '';
       document.getElementById('examStudentInfo').innerHTML =
-        `<b>اسم الطالب:</b> ${studentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${studentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${level}`;
+        `<b>اسم الطالب:</b> ${studentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${studentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${getLevelText(level)}`;
 
       firestore.collection('exam_settings').doc('level_' + level).get().then(function(settingDoc){
         if(settingDoc.exists && settingDoc.data().question_num){
@@ -640,6 +698,7 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
     function loadActiveLessonsAndSummaries(activeLevels) {
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
+        document.getElementById('summariesStatusArea').innerHTML = "";
         return;
       }
       firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot) {
@@ -653,6 +712,7 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
         });
         if (lessons.length === 0) {
           document.getElementById('lessonsSummariesArea').innerHTML = "";
+          document.getElementById('summariesStatusArea').innerHTML = "";
           return;
         }
         let lessonIds = lessons.map(l=>l.id);
@@ -667,6 +727,7 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
               summariesMap[s.lesson_id] = { ...s, docId: doc.id };
             });
             renderSummariesLessonsUI(lessons, summariesMap);
+            renderSummariesStatusTable(lessons, summariesMap); // جدول لكل الدروس المفعلة
           });
       });
     }
@@ -797,10 +858,7 @@ firestore.collection('lessons').where('level', '==', levelText).get().then(funct
           }
         });
     }
-    function getLevelText(index) {
-      const names = ["", "الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع"];
-      return names[index] || "";
-    }
+
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
