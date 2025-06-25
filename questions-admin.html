@@ -45,7 +45,9 @@
     .msg {color:#e63946;margin-bottom:8px;}
     .logout-btn {background:#b83b3b;margin-right:10px;}
     .logout-btn:hover {background:#7a2626;}
-    header {background:#2260af;color:#fff;padding:16px 24px;font-size:1.3rem;display:flex;justify-content:space-between;align-items:center;}
+    .settings-block {background:#f8fafc;border-radius:10px;padding:16px 13px;margin-bottom:30px;box-shadow:0 2px 8px #e4e7ef44;}
+    .settings-block h3 {margin-top:0;}
+    .level-setting-row {margin-bottom:8px;}
     @media (max-width:900px){.container{padding:7px;}.table-questions th,.table-questions td{padding:4px;}}
   </style>
 </head>
@@ -55,6 +57,12 @@
     <button class="btn logout-btn" onclick="logout()">تسجيل الخروج</button>
   </header>
 <div class="container">
+  <!-- إعدادات عدد الأسئلة لكل مستوى -->
+  <div class="settings-block">
+    <h3>إعدادات عدد الأسئلة المعروضة لكل مستوى</h3>
+    <div id="examSettingsArea"></div>
+    <div id="settingsMsg" class="msg"></div>
+  </div>
   <div class="question-form-block">
     <h3 id="formTitle">إضافة سؤال جديد</h3>
     <form id="questionForm">
@@ -127,6 +135,7 @@ var auth = firebase.auth();
 var firestore = firebase.firestore();
 
 let questions = [];
+const levels = [1,2,3,4,5,6,7];
 
 // حماية الصفحة - فقط للمعلمين
 auth.onAuthStateChanged(function(user) {
@@ -152,6 +161,47 @@ function logout() {
 function startQuestionsAdmin() {
   resetForm();
   loadQuestions();
+  loadExamSettings();
+}
+
+// إعدادات عدد الأسئلة لكل مستوى
+function loadExamSettings() {
+  let html = '';
+  let loadedCount = 0;
+  document.getElementById('examSettingsArea').innerHTML = '<span style="color:#888">تحميل...</span>';
+  levels.forEach(lvl => {
+    firestore.collection('exam_settings').doc('level_' + lvl).get().then(doc => {
+      let val = (doc.exists ? doc.data().question_num : 10);
+      html += `
+        <div class="level-setting-row">
+          <label>المستوى ${lvl}:</label>
+          <input type="number" id="qnum_${lvl}" value="${val}" min="1" max="100" style="width:60px;">
+          <button type="button" class="btn small" onclick="saveQNum(${lvl})">حفظ</button>
+        </div>
+      `;
+      loadedCount++;
+      if (loadedCount === levels.length) {
+        document.getElementById('examSettingsArea').innerHTML = html;
+      }
+    });
+  });
+}
+
+function saveQNum(lvl) {
+  let val = parseInt(document.getElementById('qnum_'+lvl).value) || 1;
+  firestore.collection('exam_settings').doc('level_' + lvl)
+    .set({question_num: val}).then(()=>{
+      showSettingsMsg(`تم حفظ عدد الأسئلة للمستوى ${lvl}: ${val}`, true);
+    }).catch(()=>{
+      showSettingsMsg('حدث خطأ أثناء الحفظ!', false);
+    });
+}
+
+function showSettingsMsg(msg, success) {
+  let el = document.getElementById('settingsMsg');
+  el.innerText = msg;
+  el.style.color = success ? '#219e4b' : '#e63946';
+  setTimeout(()=>{el.innerText='';}, 2500);
 }
 
 function addChoice(text = '', checked = false) {
