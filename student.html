@@ -20,7 +20,7 @@
     .signout {background:#e63946;}
     .info { background: #f5f7fb; border-radius: 7px; padding: 10px 18px; margin: 16px 0;}
     #msg { color: #e63946; margin-top: 20px; }
-    .levels-table, .exams-table {
+    .levels-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 26px;
@@ -30,23 +30,20 @@
       overflow: hidden;
       box-shadow: 0 1px 4px #0001;
     }
-    .levels-table th, .levels-table td,
-    .exams-table th, .exams-table td {
+    .levels-table th, .levels-table td  {
       padding: 10px 6px;
       border-bottom:1px solid #e4e7ef;
       text-align:center;
       font-size: 1rem;
+      background:#fff;
     }
-    .levels-table th, .exams-table th {
+    .levels-table th  {
       background:#eef2fa;
       color:#1b3e72;
       font-weight: bold;
     }
     .level-on {color: #219e4b; font-weight: bold;}
     .level-off {color: #e63946; font-weight: bold;}
-    .exam-status {font-weight:bold;}
-    .exam-success {color:#219e4b;}
-    .exam-fail {color:#e63946;}
     .exam-label {
       display: inline-block;
       padding: 3px 14px;
@@ -70,75 +67,28 @@
       color: #555;
       border: 1px solid #d2d8e6;
     }
-    .exams-table tr:last-child td,
     .levels-table tr:last-child td { border-bottom: none; }
     .exam-title { font-weight: bold; color: #294169;}
-    .exams-title-bar {
-      font-size: 1.16rem;
-      background: #f7faff;
-      padding: 8px 0 8px 0;
-      border-radius: 10px 10px 0 0;
-      color: #2260af;
-      margin-bottom:0;
-      border-bottom: 2px solid #e4e7ef;
-      font-weight:bold;
-      text-align:center;
-      letter-spacing: 1px;
-    }
-    .exams-table {
-      margin-bottom: 26px;
-      margin-top: 18px;
-    }
     #examWarnMsg {color:#e63946;font-weight:bold;margin:10px 0 15px 0;text-align:center;}
-    #examBox {background:#f8fafc;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
-    .student-info {background:#eaf7e4;padding:12px 18px;border-radius:9px;margin-bottom:20px;display:inline-block;font-size:1.1em;}
-    .level-info {background:#e6f2ff;padding:10px 16px;border-radius:8px;font-size:1.08em;margin-bottom:20px;display:inline-block;}
-    .question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
-    .question-title {font-weight:bold;margin-bottom:9px;}
-    .multi-note {color:#b96d0d;font-size:0.98em;margin-right:6px;}
-    .question-mark {color:#2260af;margin-right:12px;}
-    .choices-list {margin-bottom:10px;}
-    .choice-row {margin-bottom:6px;}
-    .msg {color:#e63946;margin-bottom:16px;}
-    .result {font-size:1.3rem;color:#219e4b;font-weight:bold;text-align:center;}
-    .scoring-note {color:#007b8f;font-size:0.95em;margin-top:5px;}
-    #examForm .btn {margin-left:6px;}
-    #examForm .btn.signout {background:#b83b3b;}
-    @media (max-width:900px){#examBox{padding:7px;}}
+    /* جدول الدروس */
+    #lessonsSummariesArea table {
+      width:100%;border-collapse:collapse;background:#fbfdff;border-radius:8px;box-shadow:0 1px 4px #0001;
+      margin-top:18px;
+    }
+    #lessonsSummariesArea th,#lessonsSummariesArea td {
+      padding:8px 4px;text-align:center;font-size:1rem;border-bottom:1px solid #eee;
+    }
+    #lessonsSummariesArea th {background:#eef2fa;color:#1b3e72;}
+    #lessonsSummariesArea tr:last-child td {border-bottom:none;}
+    .summary-status {font-weight:bold; font-size:0.95rem;}
+    .summary-status.draft { color: #e6a100;}
+    .summary-status.submitted { color: #219e4b;}
     @media (max-width: 900px){
       .container{padding:8px;}
       header {padding:10px;}
       .levels-table th, .levels-table td,
-      .exams-table th, .exams-table td {padding: 7px 2px;}
-      .lesson-summary-block{padding:10px 4px;}
-      textarea.summary-text {width:96%;}
-      .lesson-summary-block audio {width:100%!important;}
+      #lessonsSummariesArea th, #lessonsSummariesArea td {padding: 7px 2px;}
     }
-    .lesson-summary-block {background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px; box-shadow: 0 2px 6px #e0e7ef33;}
-    .lesson-summary-block h4 {margin:0 0 8px 0; color:#1b3e72;}
-    .lesson-link {color:#4361ee; text-decoration:none;}
-    .summary-actions {margin-top: 8px;}
-    .summary-status {font-weight:bold; font-size:0.95rem; margin-right:8px;}
-    .summary-status.draft { color: #e6a100;}
-    .summary-status.submitted { color: #219e4b;}
-    .lesson-student-name {font-size:1rem; color:#888; margin-bottom:7px;}
-    textarea.summary-text {
-      width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
-      resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
-      font-family: 'Cairo','Tajawal',Arial,sans-serif; color: #1b2a39; line-height: 1.7;
-      transition: border 0.15s; direction: rtl;
-    }
-    textarea.summary-text:focus {border-color: #4361ee;}
-    /* جدول تلخيصات الطالب */
-    #summariesStatusArea table {
-      width:100%;border-collapse:collapse;background:#fbfdff;border-radius:8px;box-shadow:0 1px 4px #0001;
-      margin-top:18px;
-    }
-    #summariesStatusArea th,#summariesStatusArea td {
-      padding:8px 4px;text-align:center;font-size:1rem;border-bottom:1px solid #eee;
-    }
-    #summariesStatusArea th {background:#eef2fa;color:#1b3e72;}
-    #summariesStatusArea tr:last-child td {border-bottom:none;}
   </style>
 </head>
 <body>
@@ -159,22 +109,15 @@
       <thead>
         <tr>
           <th>المستوى</th>
-          <th>الحالة</th>
+          <th>حالة التفعيل</th>
+          <th>حالة الامتحان</th>
+          <th>الانتقال للاختبار</th>
         </tr>
       </thead>
       <tbody id="levelsBody"></tbody>
     </table>
     <div id="examWarnMsg"></div>
-    <div id="examsTableArea"></div>
-    <div class="exams-box" id="examsBox" style="display:none;">
-      <div class="exams-title">الامتحانات العامة</div>
-      <div class="exam-row"><b>امتحان تشخيصي:</b> <span id="diagnosisExamMark"></span></div>
-      <div class="exam-row"><b>امتحان 1:</b> <span id="exam1Mark"></span></div>
-      <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
-      <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
-    </div>
     <div id="lessonsSummariesArea"></div>
-    <div id="summariesStatusArea"></div>
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -196,27 +139,20 @@
     var currentStudentName = "";
     var lastActiveLevel = null;
     var lastActiveLevelIndex = null;
-
-    // متغيرات صندوق الاختبار
-    let examQuestions = [];
-    let randomizedExamQuestions = [];
-    let examQuestionsLimit = null;
     let currentExamLevel = null;
 
-    // تحويل رقم المستوى إلى نصه العربي
+    // --- أدوات جلب المستويات والدروس والتلاخيص ---
     function getLevelText(index) {
       const names = ["", "الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع"];
       return names[index] || "";
     }
-
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    function getAllowedLevels(data) {
+      let allowed = [];
+      for(let i=1; i<=7; i++){
+        if(data['level'+i]) allowed.push(i);
       }
-      return array;
+      return allowed;
     }
-
     function getLevelNumber(levelName) {
       switch (levelName.replace('المستوى ', '').replace('ال', '')) {
         case "أول": case "الأول": return 1;
@@ -230,15 +166,6 @@
         default: return 0;
       }
     }
-
-    function getAllowedLevels(data) {
-      let allowed = [];
-      for(let i=1; i<=7; i++){
-        if(data['level'+i]) allowed.push(i);
-      }
-      return allowed;
-    }
-
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
@@ -274,11 +201,8 @@
           document.getElementById('msg').innerText = "";
           document.getElementById('levelsBody').innerHTML = "";
           document.getElementById('levelsTable').style.display = "none";
-          document.getElementById('examsBox').style.display = "none";
           document.getElementById('admissionStatusBox').style.display = "none";
           document.getElementById('lessonsSummariesArea').innerHTML = "";
-          document.getElementById('examsTableArea').innerHTML = "";
-          document.getElementById('summariesStatusArea').innerHTML = "";
 
           var admissionBox = document.getElementById('admissionStatusBox');
           var status = data.accepted;
@@ -291,133 +215,130 @@
               admissionBox.className = "admission-status-box admission-accepted";
               admissionBox.innerText = "تم قبولك في الدورة ✅";
               document.getElementById('levelsTable').style.display = "";
-              document.getElementById('examsBox').style.display = "block";
             } else if (isRejected) {
               admissionBox.className = "admission-status-box admission-rejected";
               admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
               document.getElementById('levelsTable').style.display = "none";
-              document.getElementById('examsBox').style.display = "none";
             } else {
               admissionBox.className = "admission-status-box admission-pending";
               admissionBox.innerText = "طلبك قيد المراجعة...";
               document.getElementById('levelsTable').style.display = "none";
-              document.getElementById('examsBox').style.display = "none";
             }
           } else {
             admissionBox.className = "admission-status-box admission-pending";
             admissionBox.innerText = "طلبك قيد المراجعة...";
             document.getElementById('levelsTable').style.display = "none";
-            document.getElementById('examsBox').style.display = "none";
           }
 
-          // جدول المستويات مع زر الانتقال للاختبار تحت آخر مستوى مفعّل
-          let levelsHtml = '';
-          lastActiveLevel = null;
-          lastActiveLevelIndex = null;
-          for (var i = 1; i <= 7; i++) {
-            var level = data['level'+i];
-            if(level) {
-              lastActiveLevel = 'المستوى ' + i;
-              lastActiveLevelIndex = i;
-            }
-            levelsHtml += `<tr>
-                <td>المستوى ${i}</td>
-                <td class="${level ? 'level-on' : 'level-off'}">${level ? 'مُفعل ✅' : 'غير مفعل ❌'}</td>
-              </tr>`;
-          }
-          if(lastActiveLevelIndex && isAccepted){
-            levelsHtml += `<tr>
-              <td colspan="2" style="padding-top:18px;">
-                <button class="btn" id="goToExamBtn" style="display:none">الانتقال إلى اختبار ${getLevelText(lastActiveLevelIndex)}</button>
-              </td>
-            </tr>`;
-          }
-          document.getElementById('levelsBody').innerHTML = levelsHtml;
-          document.getElementById('levelsTable').style.display = "";
-
-          // تحقق من شرط التلاخيص قبل إظهار زر الانتقال للاختبار
-          if(lastActiveLevelIndex && isAccepted){
-            let levelText = getLevelText(lastActiveLevelIndex);
-            firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
-              let lessons = [];
-              lessonQuery.forEach(doc => lessons.push(doc.data()));
-              let lessonIds = lessons.map(l=>l.id);
-              let btn = document.getElementById('goToExamBtn');
-              let warn = document.getElementById('examWarnMsg');
-              if(!lessonIds.length) {
-                btn.style.display = "none";
-                warn.innerText = 'لا توجد دروس في هذا المستوى.';
-                return;
-              }
-              firestore.collection('summaries')
-                .where('student_email', '==', currentStudentEmail)
-                .where('lesson_id', 'in', lessonIds)
-                .get()
-                .then(function(summariesSnap){
-                  let validSummaries = 0;
-                  summariesSnap.forEach(doc=>{
-                    let data = doc.data();
-                    if(data.status === "submitted" && data.hasOwnProperty('mark') && data.mark !== null && data.mark !== undefined){
-                      validSummaries++;
-                    }
-                  });
-                  if(validSummaries === lessons.length){
-                    btn.style.display="";
-                    warn.innerText = '';
-                    btn.onclick = function(){
-                      currentExamLevel = lastActiveLevelIndex;
-                      checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
-                      setTimeout(function(){
-                        document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
-                      }, 300);
-                    };
-                  } else {
-                    btn.style.display="none";
-                    warn.innerText = 'لا يمكن تقديم الاختبار';
-                  }
-                  // جدول حالة التلاخيص للمستوى الحالي فقط
-                  renderSummariesStatusTable(lessons, makeSummariesMap(summariesSnap));
-                });
-            });
-          }
-
-          renderExamsTable(data);
-          let diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
-          let exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
-          let oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
-          let fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
-
-          document.getElementById('diagnosisExamMark').innerText = diagnosisMark;
-          document.getElementById('exam1Mark').innerText = exam1Mark;
-          document.getElementById('oralExamMark').innerText = oralMark;
-          document.getElementById('fExam').innerText = fMark;
-
-          let allowedLevels = getAllowedLevels(data);
-          loadActiveLessonsAndSummaries(allowedLevels);
+          loadLevelsAndLessons(data);
         }
       }).catch(function(err) {
         document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
       });
     }
 
-    function makeSummariesMap(summariesSnap) {
-      let summariesMap = {};
-      summariesSnap.forEach(function(doc){
-        let s = doc.data();
-        summariesMap[s.lesson_id] = { ...s, docId: doc.id };
+    function loadLevelsAndLessons(data) {
+      // تحميل معلومات الامتحانات لكل مستوى
+      let levelsData = [];
+      for (let i = 1; i <= 7; i++) {
+        levelsData.push({
+          index: i,
+          name: getLevelText(i),
+          activated: !!data['level'+i],
+          exam: data['exam'+i] // true/false/undefined
+        });
+      }
+
+      // جلب دروس وتلاخيص كل مستوى
+      firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot) {
+        let allLessons = [];
+        querySnapshot.forEach(function(doc) {
+          allLessons.push(doc.data());
+        });
+        firestore.collection('summaries')
+          .where('student_email', '==', currentStudentEmail)
+          .get()
+          .then(function(summarySnapshot){
+            let summariesMap = {};
+            summarySnapshot.forEach(function(doc){
+              let s = doc.data();
+              summariesMap[s.lesson_id] = { ...s, docId: doc.id };
+            });
+
+            renderUnifiedLevelsTable(levelsData, allLessons, summariesMap, data);
+          });
       });
-      return summariesMap;
     }
 
-    // جدول حالة التلاخيص والعلامات
-    function renderSummariesStatusTable(lessons, summariesMap) {
-      let html = `<h3 style="color:#4361ee; margin-bottom:10px;">جدول حالة التلاخيص</h3>
+    function renderUnifiedLevelsTable(levelsData, allLessons, summariesMap, userData) {
+      let html = "";
+      let lastActiveIdx = 0;
+      levelsData.forEach(lvl => { if(lvl.activated) lastActiveIdx = lvl.index; });
+      levelsData.forEach(lvl => {
+        // حالة التفعيل
+        let activateHtml = lvl.activated ? '<span class="level-on">مُفعل ✅</span>' : '<span class="level-off">غير مفعل ❌</span>';
+        // حالة الامتحان
+        let examHtml = '';
+        if (lvl.exam === true) examHtml = `<span class="exam-label">✅ اجتاز الامتحان</span>`;
+        else if (lvl.exam === false) examHtml = `<span class="exam-label fail">❌ لم يجتز الامتحان</span>`;
+        else examHtml = `<span class="exam-label wait">—</span>`;
+        // زر اختبار المستوى الأخير المفعّل فقط
+        let btn = '';
+        if(lvl.index === lastActiveIdx && lvl.activated) btn = `<button class="btn" id="goToExamBtn" style="padding:3px 16px;">الانتقال للاختبار</button>`;
+        html += `<tr>
+          <td>المستوى ${lvl.index}</td>
+          <td>${activateHtml}</td>
+          <td>${examHtml}</td>
+          <td>${btn}</td>
+        </tr>`;
+      });
+      document.getElementById('levelsBody').innerHTML = html;
+
+      // زر اختبار المستوى: تحقق من إظهار أو إخفاء بناءً على شرط التلاخيص
+      document.getElementById('examWarnMsg').innerText = '';
+      if(lastActiveIdx) {
+        let levelText = getLevelText(lastActiveIdx);
+        let lessons = allLessons.filter(l => l.level === levelText);
+        let lessonIds = lessons.map(l=>l.id);
+        let validSummaries = 0;
+        lessons.forEach(lesson => {
+          let sum = summariesMap[lesson.id] || {};
+          let mark = (typeof sum.mark !== 'undefined' && sum.mark !== null) ? sum.mark : ((typeof sum.Mark !== 'undefined' && sum.Mark !== null) ? sum.Mark : undefined);
+          if(sum.status === 'submitted' && typeof mark !== 'undefined') validSummaries++;
+        });
+        let btn = document.getElementById('goToExamBtn');
+        if(!lessonIds.length) {
+          if(btn) btn.style.display = "none";
+          document.getElementById('examWarnMsg').innerText = 'لا توجد دروس في هذا المستوى.';
+        } else if(validSummaries !== lessons.length) {
+          if(btn) btn.style.display = "none";
+          document.getElementById('examWarnMsg').innerText = 'لا يمكن تقديم الاختبار';
+        } else {
+          if(btn) {
+            btn.style.display = "";
+            btn.onclick = function(){
+              currentExamLevel = lastActiveIdx;
+              checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+              setTimeout(function(){
+                document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+              }, 300);
+            };
+          }
+        }
+        renderLessonsTable(lessons, summariesMap);
+      } else {
+        renderLessonsTable([], {});
+      }
+    }
+
+    function renderLessonsTable(lessons, summariesMap) {
+      let html = `<h3 style="color:#4361ee; margin-bottom:10px;">دروس المستوى الحالي</h3>
         <table>
           <thead>
             <tr>
               <th>رقم الدرس</th>
               <th>عنوان الدرس</th>
-              <th>الحالة</th>
+              <th>حالة التلخيص</th>
               <th>العلامة</th>
             </tr>
           </thead>
@@ -426,17 +347,24 @@
       lessons.forEach(lesson => {
         let s = summariesMap[lesson.id] || {};
         let status = s.status || 'لم يُسلم';
-        let mark = (typeof s.mark !== 'undefined' && s.mark !== null) ? s.mark : '—';
+        let mark = (typeof s.mark !== 'undefined' && s.mark !== null)
+          ? s.mark
+          : ((typeof s.Mark !== 'undefined' && s.Mark !== null) ? s.Mark : '—');
         html += `<tr>
           <td>${lesson.id}</td>
           <td>${lesson.title}</td>
-          <td>${status === 'submitted' ? '<span style="color:#219e4b;font-weight:bold">تم التسليم</span>' : '<span style="color:#e63946;">'+status+'</span>'}</td>
+          <td class="summary-status ${status}">${status === 'submitted' ? 'تم التسليم' : 'لم يُسلم'}</td>
           <td>${mark}</td>
         </tr>`;
       });
       html += "</tbody></table>";
-      document.getElementById('summariesStatusArea').innerHTML = html;
+      document.getElementById('lessonsSummariesArea').innerHTML = html;
     }
+
+    // --- كود الامتحان والأسئلة والحساب والتسليم ---
+    let examQuestions = [];
+    let randomizedExamQuestions = [];
+    let examQuestionsLimit = null;
 
     function checkIfExamAlreadySubmitted(email, level) {
       firestore.collection('exam_results')
@@ -491,6 +419,14 @@
       document.getElementById('resultArea').innerText = '';
       document.querySelector("button[type=submit]").style.display = "";
       document.getElementById('exitExamBtn').style.display = "";
+    }
+
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
 
     function loadExamQuestions(level) {
@@ -600,7 +536,6 @@
         .then(function(querySnapshot){
           if (!querySnapshot.empty) {
             showExamResultOnly(querySnapshot.docs[0].data());
-            updateLevelExamTable(currentExamLevel, querySnapshot.docs[0].data());
             return;
           }
 
@@ -627,7 +562,6 @@
               document.getElementById('exitExamBtn').style.display = "none";
               var btn = document.getElementById('goToExamBtn');
               if(btn) btn.style.display = "none";
-              updateLevelExamTable(currentExamLevel, resultDoc);
             })
             .catch((error) => {
               showResult(`درجتك: ${gainedMark} من ${totalMark}`);
@@ -651,213 +585,6 @@
       document.getElementById('formMsg').innerText = "";
       document.getElementById('resultArea').innerText = "";
     };
-
-    function updateLevelExamTable(level, result) {
-      let passed = (result.score >= result.total * 0.5);
-      let label = passed
-        ? `<span class="exam-label">✅ اجتاز الامتحان (${result.score} من ${result.total})</span>`
-        : `<span class="exam-label fail">❌ لم يجتز (${result.score} من ${result.total})</span>`;
-      let table = document.querySelectorAll(".exams-table tbody tr");
-      if(table && table.length >= level) {
-        let cell = table[level-1].querySelector("td:last-child");
-        if(cell) cell.innerHTML = label;
-      }
-    }
-
-    function renderExamsTable(data) {
-      let html = `
-        <div class="exams-title-bar">نتائج امتحانات المستويات</div>
-        <table class="exams-table">
-          <thead>
-            <tr>
-              <th>المستوى</th>
-              <th>حالة الامتحان</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-      for(let i=1; i<=7; i++){
-        let exam = data['exam'+i];
-        let label = '';
-        if (exam === true) {
-          label = `<span class="exam-label">✅ اجتاز الامتحان</span>`;
-        } else if (exam === false) {
-          label = `<span class="exam-label fail">❌ لم يجتز الامتحان</span>`;
-        } else {
-          label = `<span class="exam-label wait">—</span>`;
-        }
-        html += `<tr>
-          <td class="exam-title">المستوى ${i}</td>
-          <td>${label}</td>
-        </tr>`;
-      }
-      html += "</tbody></table>";
-      document.getElementById('examsTableArea').innerHTML = html;
-    }
-
-    function loadActiveLessonsAndSummaries(activeLevels) {
-      if (!activeLevels.length) {
-        document.getElementById('lessonsSummariesArea').innerHTML = "";
-        document.getElementById('summariesStatusArea').innerHTML = "";
-        return;
-      }
-      firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot) {
-        let lessons = [];
-        querySnapshot.forEach(function(doc) {
-          let lesson = doc.data();
-          let levelNum = getLevelNumber(lesson.level);
-          if (activeLevels.includes(levelNum)) {
-            lessons.push(lesson);
-          }
-        });
-        if (lessons.length === 0) {
-          document.getElementById('lessonsSummariesArea').innerHTML = "";
-          document.getElementById('summariesStatusArea').innerHTML = "";
-          return;
-        }
-        let lessonIds = lessons.map(l=>l.id);
-        firestore.collection('summaries')
-          .where('student_email', '==', currentStudentEmail)
-          .where('lesson_id', 'in', lessonIds)
-          .get()
-          .then(function(summarySnapshot){
-            let summariesMap = {};
-            summarySnapshot.forEach(function(doc){
-              let s = doc.data();
-              summariesMap[s.lesson_id] = { ...s, docId: doc.id };
-            });
-            renderSummariesLessonsUI(lessons, summariesMap);
-            renderSummariesStatusTable(lessons, summariesMap); // جدول لكل الدروس المفعلة
-          });
-      });
-    }
-
-    function renderSummariesLessonsUI(lessons, summariesMap) {
-      let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
-      lessons.forEach(function(lesson){
-        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft" };
-        let submitted = sum.status === 'submitted';
-        html += `
-        <div class="lesson-summary-block">
-          <div class="lesson-student-name">اسم الطالب: ${currentStudentName || ""}</div>
-          <h4>(${lesson.id}) ${lesson.title}</h4>
-          <div style="margin-bottom:10px;">
-            <a href="${lesson.url || "#"}" class="lesson-link" download target="_blank" style="margin-left:10px;">تحميل المحاضرة 📥</a>
-            ${lesson.voice ? `
-            <audio controls style="width:70%;vertical-align:middle;">
-              <source src="${lesson.voice}" type="audio/mpeg">
-              متصفحك لا يدعم تشغيل الصوت.
-            </audio>
-            ` : ''}
-          </div>
-          <div style="margin:12px 0 5px 0;">
-            <textarea class="summary-text" id="sumtext_${lesson.id}" ${submitted ? 'readonly' : ''} placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
-          </div>
-          <div class="summary-actions">
-            <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
-            <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
-            <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
-          </div>
-          <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
-        </div>
-        `;
-      });
-      document.getElementById('lessonsSummariesArea').innerHTML = html;
-    }
-
-    function saveSummary(lessonId) {
-      let textarea = document.getElementById('sumtext_' + lessonId);
-      let msg = document.getElementById('sum_msg_' + lessonId);
-      let text = textarea.value.trim();
-      msg.innerText = "";
-      if (!text) { msg.innerText = "يرجى كتابة التلخيص أولاً."; return; }
-      firestore.collection('summaries')
-        .where('student_email', '==', currentStudentEmail)
-        .where('lesson_id', '==', lessonId)
-        .get()
-        .then(function(querySnapshot){
-          if (!querySnapshot.empty) {
-            let docId = querySnapshot.docs[0].id;
-            let data = querySnapshot.docs[0].data();
-            if (data.status === "submitted") {
-              msg.innerText = "تم تسليم التلخيص النهائي ولا يمكن التعديل.";
-              return;
-            }
-            firestore.collection('summaries').doc(docId).update({
-              summary_text: text,
-              student_name: currentStudentName || "",
-              status: "draft",
-              timestamp: new Date().toISOString()
-            }).then(function(){
-              msg.style.color = "#1dad87";
-              msg.innerText = "تم حفظ المسودة.";
-              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
-            });
-          } else {
-            firestore.collection('summaries').add({
-              student_email: currentStudentEmail,
-              student_name: currentStudentName || "",
-              lesson_id: lessonId,
-              summary_text: text,
-              status: "draft",
-              timestamp: new Date().toISOString()
-            }).then(function(){
-              msg.style.color = "#1dad87";
-              msg.innerText = "تم حفظ المسودة.";
-              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
-            });
-          }
-        });
-    }
-
-    function submitSummary(lessonId) {
-      let textarea = document.getElementById('sumtext_' + lessonId);
-      let msg = document.getElementById('sum_msg_' + lessonId);
-      let text = textarea.value.trim();
-      msg.innerText = "";
-      if (!text) { msg.innerText = "يرجى كتابة التلخيص أولاً."; return; }
-      firestore.collection('summaries')
-        .where('student_email', '==', currentStudentEmail)
-        .where('lesson_id', '==', lessonId)
-        .get()
-        .then(function(querySnapshot){
-          if (!querySnapshot.empty) {
-            let docId = querySnapshot.docs[0].id;
-            let data = querySnapshot.docs[0].data();
-            if (data.status === "submitted") {
-              msg.innerText = "تم تسليم التلخيص بالفعل.";
-              return;
-            }
-            firestore.collection('summaries').doc(docId).update({
-              summary_text: text,
-              student_name: currentStudentName || "",
-              status: "submitted",
-              timestamp: new Date().toISOString()
-            }).then(function(){
-              msg.style.color = "#1dad87";
-              msg.innerText = "تم تسليم التلخيص بنجاح.";
-              textarea.readOnly = true;
-              loadStudentData(currentStudentEmail, currentStudentName);
-              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
-            });
-          } else {
-            firestore.collection('summaries').add({
-              student_email: currentStudentEmail,
-              student_name: currentStudentName || "",
-              lesson_id: lessonId,
-              summary_text: text,
-              status: "submitted",
-              timestamp: new Date().toISOString()
-            }).then(function(){
-              msg.style.color = "#1dad87";
-              msg.innerText = "تم تسليم التلخيص بنجاح.";
-              textarea.readOnly = true;
-              loadStudentData(currentStudentEmail, currentStudentName);
-              setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
-            });
-          }
-        });
-    }
 
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';});
