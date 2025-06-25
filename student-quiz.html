@@ -28,6 +28,7 @@
     .logout-btn:hover {background:#7a2626;}
     header {background:#2260af;color:#fff;padding:16px 24px;font-size:1.3rem;display:flex;justify-content:space-between;align-items:center;}
     @media (max-width:900px){.container{padding:7px;}}
+    .scoring-note {color:#007b8f;font-size:0.95em;margin-top:5px;}
   </style>
 </head>
 <body>
@@ -116,7 +117,14 @@
     function renderQuestions() {
       let html = '';
       randomizedQuestions.forEach((q, i) => {
-        let multiNote = (q.correct.length > 1) ? '<span class="multi-note">(يحتمل أكثر من إجابة صحيحة)</span>' : '';
+        let multiNote = '';
+        let scoringNote = '';
+        if (q.correct.length > 1) {
+          multiNote = '<span class="multi-note">(يحتمل أكثر من إجابة صحيحة)</span>';
+          scoringNote = `<div class="scoring-note">
+          ملاحظة: لكل إجابة صحيحة تختارها تحصل على جزء من العلامة، ولكل إجابة خاطئة تختارها يُخصم نفس الجزء من العلامة. لا يمكن أن تقل علامة السؤال عن الصفر.
+          </div>`;
+        }
         let markText = `<span class="question-mark">[العلامة: ${q.mark || 1}]</span>`;
         html += `<div class="question-block">
           <div class="question-title">${i+1}. ${q.question} ${multiNote} ${markText}</div>
@@ -130,6 +138,7 @@
             </div>`
           ).join('') +
           `</div>
+          ${scoringNote}
         </div>`;
       });
       document.getElementById('questionsArea').innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
@@ -148,20 +157,21 @@
 
         if (selected.length===0) { empty++; return; }
 
-        // إذا كان السؤال له أكثر من إجابة صحيحة
+        // التصحيح التفاضلي
         if(q.correct.length > 1) {
-          let perCorrect = mark / q.correct.length;
-          // الطالب يحصل على علامة فقط إذا اختار إجابة صحيحة ولم يختر الخاطئة
-          // كل اختيار صحيح يمنح جزء العلامة
+          let perMark = mark / q.correct.length;
           let countCorrect = 0;
+          let countWrong = 0;
           selected.forEach(val => {
             if(q.correct.includes(val)) countCorrect++;
+            else countWrong++;
           });
-          gainedMark += perCorrect * countCorrect;
-          // لا خصم على الاختيارات الخاطئة
+          let gained = (countCorrect - countWrong) * perMark;
+          if(gained < 0) gained = 0;
+          gainedMark += gained;
         }
         else {
-          // سؤال بإجابة واحدة فقط: يحصل على العلامة كاملة إذا اختار الإجابة الصحيحة فقط
+          // سؤال بإجابة واحدة فقط: العلامة كاملة إذا كانت الإجابة صحيحة فقط
           if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
         }
       });
