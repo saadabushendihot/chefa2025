@@ -542,12 +542,15 @@
 
           firestore.collection('exam_results').add(resultDoc)
             .then((docRef) => {
-              // *** التعديل هنا فقط ***
+              // التعديلات هنا
               document.getElementById('questionsArea').innerHTML = '';
               document.getElementById('formMsg').innerText = '';
               document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#219e4b;font-weight:bold;">
                 تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}
                 </div>`;
+              // إخفاء الأزرار
+              document.querySelector("button[type=submit]").style.display = "none";
+              document.getElementById('exitExamBtn').style.display = "none";
               updateLevelExamTable(currentExamLevel, resultDoc);
             })
             .catch((error) => {
@@ -558,6 +561,7 @@
           showFormMsg('');
         });
     };
+
 
     function showFormMsg(msg) {
       document.getElementById('formMsg').innerText = msg;
