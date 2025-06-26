@@ -222,7 +222,7 @@
     </div>
 
     <div class="students-area">
-      <h2> V5  إدارة مستويات الطلاب </h2>
+      <h2> V6  إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
       <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
@@ -757,13 +757,27 @@
   const lessonTitle = row.cells[0].textContent || '';
   const statusText = row.cells[2].textContent || '';
 
-  // جلب بيانات المعلم من حساب المستخدم الحالي
+  // جلب بيانات المعلم من الحساب الحالي
   const user = firebase.auth().currentUser;
-  // جلب بيانات الدور من قاعدة البيانات
+  if (!user) {
+    alert("لم يتم التعرف على المستخدم الحالي! يرجى إعادة تسجيل الدخول.");
+    return;
+  }
+
+  // أولاً: جلب بيانات الدور من users
   firestore.collection('users').doc(user.uid).get().then(userDoc => {
-    const teacherName = user.displayName || ''; // إذا كان الاسم مسجل في الحساب
+    const teacherName = user.displayName || '';
     const teacherEmail = user.email || '';
     const teacherRole = userDoc.exists ? (userDoc.data().role || '') : '';
+
+    // رسالة تشخيصية عن المعلم
+    alert(
+      "بيانات حساب المعلم:\n" +
+      "اسم المعلم: " + teacherName + "\n" +
+      "البريد الإلكتروني للمعلم: " + teacherEmail + "\n" +
+      "الدور (من قاعدة البيانات): " + teacherRole + "\n" +
+      (teacherRole !== "teacher" ? "\n⚠️ تحذير: الدور ليس teacher! لن تملك الصلاحية للحفظ!\n" : "")
+    );
 
     // البيانات المراد إضافتها
     const dataToAdd = {
@@ -773,21 +787,14 @@
       course_number: courseNumber,
       lesson_title: lessonTitle,
       status: statusText,
-      mark: Number(val),
-      //updated_at: firebase.firestore.Timestamp.now()
+      mark: Number(val)
     };
 
-    // رسالة توضيحية تظهر دائمًا قبل أي حفظ
-    let msg =
-      "سيتم محاولة إضافة/تحديث البيانات التالية:\n" +
-      "اسم الجدول: student_marks\n" +
-      "---- بيانات المعلم ----\n" +
-      "اسم المعلم: " + teacherName + "\n" +
-      "البريد الإلكتروني للمعلم: " + teacherEmail + "\n" +
-      "الدور: " + teacherRole + "\n" +
-      "---- بيانات الحقول ----\n" +
-      Object.entries(dataToAdd).map(([key, value]) => `${key}: ${value}`).join('\n');
-    alert(msg);
+    // رسالة توضيحية قبل الحفظ
+    alert(
+      "سيتم محاولة إضافة البيانات التالية إلى جدول student_marks:\n\n" +
+      Object.entries(dataToAdd).map(([k, v]) => `${k}: ${v}`).join('\n')
+    );
 
     // تحديث العلامة في جدول summaries
     firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(() => {
@@ -795,20 +802,21 @@
       showToast('تم تحديث العلامة بنجاح', "#1dad87");
 
       // إضافة البيانات إلى جدول student_marks
-      firestore.collection('student_marks').add(dataToAdd).catch((err) => {
-        showToast('حدث خطأ في حفظ العلامة في جدول العلامات: ' + err.message, "#e63946");
+      firestore.collection('student_marks').add(dataToAdd).then(() => {
+        showToast('تمت إضافة العلامة في جدول العلامات!', "#1dad87");
+      }).catch((err) => {
+        alert('خطأ أثناء إضافة العلامة في جدول student_marks:\n' + err.message);
         console.error(err);
       });
 
     }).catch((error) => {
-      showToast('خطأ أثناء تحديث العلامة: ' + error.message, "#e63946");
+      alert('خطأ أثناء تحديث العلامة في summaries:\n' + error.message);
       console.error(error);
-      // يمكنك هنا أيضاً طباعة البيانات في الكونسول للتدقيق
-      console.log('بيانات الحفظ التي كانت ستستخدم:', dataToAdd);
     });
 
   }).catch(err => {
-    alert("تعذر جلب بيانات المعلم من قاعدة البيانات: " + err.message);
+    alert("تعذر جلب بيانات المعلم من جدول users:\n" + err.message);
+    console.error(err);
   });
 }
     function logout() {
