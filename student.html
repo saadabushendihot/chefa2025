@@ -839,6 +839,7 @@
               lesson_id: lessonId,
               summary_text: text,
               status: "draft",
+              mark: 1,
               timestamp: new Date().toISOString()
             }).then(function(){
               msg.style.color = "#1dad87";
@@ -890,6 +891,7 @@
               lesson_id: lessonId,
               summary_text: text,
               status: "submitted",
+              mark: 1,
               timestamp: new Date().toISOString()
             }).then(function(){
               msg.style.color = "#1dad87";
