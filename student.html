@@ -164,6 +164,8 @@
     </div>
   </div>
   <div id="toast" class="toast"></div>
+  <audio id="timeWarningSound" src="https://drive.google.com/file/d/1R4cwCUV5pmeWqnbP9oFgmjJ-y5aiTttk/view?usp=sharing" preload="auto"></audio>
+
   <script>
     // Firebase Config: Moved from firebase-config.js to here for direct access
     var firebaseConfig = {
@@ -235,6 +237,14 @@
         const min = Math.floor(examTimeLeft/60);
         const sec = examTimeLeft%60;
         el.innerText = `(${min}:${sec<10?'0':''}${sec})`;
+
+        // تشغيل صوت التحذير قبل 30 ثانية
+        if (examTimeLeft === 30) {
+          const sound = document.getElementById('timeWarningSound');
+          if (sound) {
+            sound.play().catch(e => console.error("Error playing sound:", e));
+          }
+        }
       } else {
         el.innerText = "";
       }
@@ -469,7 +479,7 @@
                                   s.mark_from_student_marks = markSnap.docs[0].data().mark; // حفظ العلامة للتحقق
                                   return true; // الملخص مسلم وبه علامة أكبر من صفر
                               }
-                              s.mark_from_student_marks = null; // العلامة غير صالحة
+                              s.mark_from_student_marks = null; // العلامة غير صالحة (صفر أو أقل)
                               return false; // الملخص مسلم لكن لا يوجد علامة صالحة
                           }).catch(error => {
                               console.error("Error fetching mark for summary in exam check:", s.docId, error);
@@ -587,7 +597,7 @@
         }
         loadExamQuestions(level);
         // بدء العداد (مثال: 20 دقيقة)
-        startExamTimer(1);
+        startExamTimer(20);
       });
       document.getElementById('formMsg').innerText = '';
       document.getElementById('resultArea').innerText = '';
