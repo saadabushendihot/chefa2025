@@ -222,7 +222,7 @@
     </div>
 
     <div class="students-area">
-      <h2> V3  إدارة مستويات الطلاب </h2>
+      <h2> V4  إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
       <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
@@ -774,7 +774,7 @@
       lesson_title: lessonTitle,
       status: statusText,
       mark: Number(val),
-      updated_at: new Date()
+      updated_at: firebase.firestore.Timestamp.now()updated_at: new Date()
     };
 
     // رسالة توضيحية تظهر دائمًا قبل أي حفظ
