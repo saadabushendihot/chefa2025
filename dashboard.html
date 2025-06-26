@@ -829,24 +829,29 @@
 
     // حفظ علامة التلخيص من الجدول مباشرة
   function saveSummaryMark(docId) {
-  let val = Number(document.getElementById('markinp_' + docId).value);
-  let saveData = { mark: val };
-  let docPath = `summaries/${docId}`;
-  console.log('[تلخيص-جدول] محاولة حفظ العلامة:', saveData, 'في:', docPath);
+    // اجلب قيمة العلامة من الحقل
+    let val = Number(document.getElementById('markinp_' + docId).value);
+    let saveData = { mark: val };
+    let docPath = `summaries/${docId}`;
+    
+    // اعرض معلومات الحفظ في الصفحة
+    showDebug('محاولة حفظ العلامة:', { docId, docPath, value: val, saveData });
 
-  if(isNaN(val)) {
-    showToast('أدخل رقمًا صحيحًا', "#e63946");
-    console.warn('[تلخيص-جدول] القيمة المدخلة غير رقمية');
-    return;
-  }
-  firestore.collection('summaries').doc(docId).update(saveData).then(()=>{
-    document.getElementById('markval_' + docId).innerText = val;
-    showToast('تم تحديث العلامة بنجاح', "#1dad87");
-    console.log('[تلخيص-جدول] تم الحفظ بنجاح!', saveData, 'في:', docPath);
-  }).catch((e)=>{
-    showToast('خطأ أثناء تحديث العلامة: ' + e.message, "#e63946");
-    console.error('[تلخيص-جدول] خطأ أثناء الحفظ:', e, 'البيانات:', saveData, 'المسار:', docPath);
-  });
+    // تحقق من أن القيمة رقمية
+    if (isNaN(val)) {
+        showDebug('خطأ: القيمة المدخلة ليست رقمًا!', { value: document.getElementById('markinp_' + docId).value });
+        return;
+    }
+
+    // حفظ العلامة في فايرستـور
+    firestore.collection('summaries').doc(docId).update(saveData).then(() => {
+        showDebug('تم الحفظ بنجاح!', { docId, value: val, saveData });
+        document.getElementById('markval_' + docId).innerText = val;
+        document.getElementById('markinp_' + docId).value = val;
+        // أي كود إضافي للواجهة...
+    }).catch((e) => {
+        showDebug('خطأ أثناء الحفظ:', { error: e.message, docId, value: val, saveData });
+    });
 }
 
     function logout() {
