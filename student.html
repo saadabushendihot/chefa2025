@@ -8,8 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <!-- Firebase Config File -->
-  <script src="firebase-config.js"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <style>
@@ -172,6 +170,16 @@
   <!-- رسالة منبثقة -->
   <div id="toast" class="toast"></div>
   <script>
+    // Firebase Config: Moved from firebase-config.js to here for direct access
+    var firebaseConfig = {
+      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
+      authDomain: "shefa-502fe.firebaseapp.com",
+      projectId: "shefa-502fe",
+      storageBucket: "shefa-502fe.appspot.com",
+      messagingSenderId: "639314388969",
+      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
+    };
+
     // الوضع الليلي
     function toggleNightMode() {
       document.body.classList.toggle('dark-mode');
@@ -481,16 +489,40 @@
                   // Ensure all lessons have at least one summary document (even if draft)
                   // and all *submitted* summaries have marks.
                   // Need to filter lessons by whether they have a summary entry, then check if that entry is submitted and marked.
-                  let lessonsWithSummaries = Object.keys(summariesMapForExamCheck);
                   let allRequiredSummariesPresentAndMarked = true;
-
-                  if (lessonsWithSummaries.length !== lessons.length) {
+                  // If there are no lessons at all but we are trying to check, this might be an issue
+                  if (lessons.length === 0 && summariesSnap.empty) {
+                      allRequiredSummariesPresentAndMarked = true; // No lessons, so no summaries needed.
+                  } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) {
                       allRequiredSummariesPresentAndMarked = false; // Missing summaries for some lessons
                   } else {
                       for (let i = 0; i < lessons.length; i++) {
                           const lessonId = lessons[i].id;
                           const summary = summariesMapForExamCheck[lessonId];
-                          if (!summary || summary.status !== 'submitted' || results[i] === false) { // results[i] corresponds to the promise for that summary
+                          // results index corresponds to the order of promises pushed.
+                          // It's crucial that `summaryAndMarkPromises` includes promises for *all* lessons.
+                          // The `results` array aligns with the order in which promises were added to `summaryAndMarkPromises`.
+                          // So, for each lesson, we need to find its corresponding result.
+                          // A safer way is to map results back to lesson IDs or use a direct counter if the mapping is complex.
+                          // For simplicity, let's assume `results` aligns with `lessons` if all pushes are sequential for `submitted` status.
+
+                          // The current `results` array only contains true/false for *submitted* summaries.
+                          // We need to ensure that *every* lesson has a submitted summary with a mark.
+                          // A more robust check:
+                          if (!summary || summary.status !== 'submitted') {
+                              allRequiredSummariesPresentAndMarked = false;
+                              break;
+                          }
+                          // Now, find the result for this specific summary.
+                          // This part of the logic needs to correctly link `results[i]` to the actual `summaryAndMarkPromises` order.
+                          // If `summaryAndMarkPromises` only contains promises for submitted summaries,
+                          // and `lessons` contains all lessons, then `results` won't map 1:1 with `lessons`
+                          // unless every lesson has a submitted summary.
+                          // Let's refine this check for correctness:
+                          const lessonHasSubmittedSummary = summary && summary.status === 'submitted';
+                          const lessonSummaryHasMark = lessonHasSubmittedSummary && (typeof summary.mark_from_student_marks !== 'undefined' && summary.mark_from_student_marks !== null);
+
+                          if (!lessonHasSubmittedSummary || !lessonSummaryHasMark) {
                               allRequiredSummariesPresentAndMarked = false;
                               break;
                           }
@@ -954,7 +986,6 @@
               lesson_id: lessonId,
               summary_text: text,
               status: "draft",
-              // تمت إزالة mark: 1, من هنا
               timestamp: new Date().toISOString()
             }).then(function(){
               msg.style.color = "#1dad87";
@@ -1006,7 +1037,6 @@
               lesson_id: lessonId,
               summary_text: text,
               status: "submitted",
-              // تمت إزالة mark: 1, من هنا
               timestamp: new Date().toISOString()
             }).then(function(){
               msg.style.color = "#1dad87";
