@@ -274,7 +274,7 @@ input[id^="markinp_"] {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V14
+  V15
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -877,75 +877,96 @@ input[id^="markinp_"] {
       });
     }
 // حفظ علامة التلخيص
- function saveSummaryMark(docId) {
+ // حفظ علامة التلخيص
+function saveSummaryMark(docId) {
   let val = document.getElementById('markinp_' + docId).value;
 
-  // استخراج بيانات الطالب من الشاشة
-  const studentName = document.getElementById('detailName').textContent || '';
-  const studentEmail = document.getElementById('detailEmail').textContent || '';
-  const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
-
-  // استخراج بيانات الدرس من صف الجدول
-  const row = document.getElementById('markinp_' + docId).closest('tr');
-  const lessonTitle = row.cells[0].textContent || '';
-  const statusText = row.cells[2].textContent || '';
-
-  // جلب بيانات المعلم من الحساب الحالي
-  const user = firebase.auth().currentUser;
-  if (!user) {
-    alert("لم يتم التعرف على المستخدم الحالي! يرجى إعادة تسجيل الدخول.");
-    return;
-  }
-
-  firestore.collection('users').doc(user.uid).get().then(userDoc => {
-    const teacherName = user.displayName || '';
-    const teacherEmail = user.email || '';
-    const teacherRole = userDoc.exists ? (userDoc.data().role || '') : '';
-
-    // البيانات المراد إضافتها
-    const dataToAdd = {
-      summary_id: docId,
-      student_name: studentName,
-      student_email: studentEmail,
-      course_number: courseNumber,
-      lesson_title: lessonTitle,
-      status: statusText,
-      mark: Number(val)
-    };
-
-    // إضافة البيانات إلى جدول student_marks فقط
-    firestore.collection('student_marks')
-  .where('student_email', '==', studentEmail)
-  .where('summary_id', '==', docId)
-  .limit(1)
-  .get().then(querySnapshot => {
-    if (!querySnapshot.empty) {
-      // يوجد سجل سابق، حدثه
-      const docRef = querySnapshot.docs[0].ref;
-      docRef.update(dataToAdd).then(() => {
-        showToast('تم تحديث العلامة بنجاح!', "#1dad87");
-        loadStudentSummaries(studentEmail); // بعد إتمام التحديث فقط
-      }).catch((err) => {
-        alert('خطأ أثناء تحديث العلامة:\n' + err.message);
-        console.error(err);
-      });
-    } else {
-      // لا يوجد سجل، أضف جديد
-      firestore.collection('student_marks').add(dataToAdd).then(() => {
-        showToast('تم إضافة العلامة!', "#1dad87");
-        loadStudentSummaries(studentEmail); // أعد تحميل الجدول
-      }).catch((err) => {
-        alert('خطأ أثناء إضافة العلامة:\n' + err.message);
-        console.error(err);
-      });
+  // جلب بيانات التلخيص للتحقق من حالته
+  firestore.collection('summaries').doc(docId).get().then(summaryDoc => {
+    if (!summaryDoc.exists) {
+      showToast("خطأ: التلخيص غير موجود.", "#e63946");
+      return;
     }
-  }).catch((err) => {
-    alert('خطأ أثناء البحث عن العلامة:\n' + err.message);
-    console.error(err);
-  });
 
+    const summaryData = summaryDoc.data();
+    if (summaryData.status === "draft") {
+      showToast("لا يمكن وضع علامة لتلخيص في حالة المسودة. يجب تسليمه أولاً.", "#e63946");
+      // يمكنك أيضاً تحديث عرض العلامة في الجدول لتعكس عدم الحفظ
+      document.getElementById('markval_' + docId).innerText = "غير مسموح";
+      document.getElementById('markinp_' + docId).value = ""; // مسح القيمة المدخلة
+      return;
+    }
+
+    // استخراج بيانات الطالب من الشاشة (الكود الأصلي)
+    const studentName = document.getElementById('detailName').textContent || '';
+    const studentEmail = document.getElementById('detailEmail').textContent || '';
+    const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
+
+    // استخراج بيانات الدرس من صف الجدول (الكود الأصلي)
+    const row = document.getElementById('markinp_' + docId).closest('tr');
+    const lessonTitle = row.cells[0].textContent || '';
+    const statusText = row.cells[2].textContent || ''; // هذا سيعطينا "تم التسليم" أو "مسودة" من العرض
+
+    // جلب بيانات المعلم من الحساب الحالي (الكود الأصلي)
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      showToast("لم يتم التعرف على المستخدم الحالي! يرجى إعادة تسجيل الدخول.", "#e63946");
+      return;
+    }
+
+    firestore.collection('users').doc(user.uid).get().then(userDoc => {
+      const teacherName = user.displayName || '';
+      const teacherEmail = user.email || '';
+      const teacherRole = userDoc.exists ? (userDoc.data().role || '') : '';
+
+      // البيانات المراد إضافتها/تحديثها (الكود الأصلي)
+      const dataToAdd = {
+        summary_id: docId,
+        student_name: studentName,
+        student_email: studentEmail,
+        course_number: courseNumber,
+        lesson_title: lessonTitle,
+        status: statusText, // سيبقى هذا كما هو، لكننا تأكدنا من حالة التسليم أعلاه
+        mark: Number(val)
+      };
+
+      // إضافة البيانات إلى جدول student_marks فقط (الكود الأصلي)
+      firestore.collection('student_marks')
+        .where('student_email', '==', studentEmail)
+        .where('summary_id', '==', docId)
+        .limit(1)
+        .get().then(querySnapshot => {
+          if (!querySnapshot.empty) {
+            // يوجد سجل سابق، حدثه
+            const docRef = querySnapshot.docs[0].ref;
+            docRef.update(dataToAdd).then(() => {
+              showToast('تم تحديث العلامة بنجاح!', "#1dad87");
+              loadStudentSummaries(studentEmail); // أعد تحميل الجدول
+            }).catch((err) => {
+              showToast('خطأ أثناء تحديث العلامة:\n' + err.message, "#e63946");
+              console.error(err);
+            });
+          } else {
+            // لا يوجد سجل، أضف جديد
+            firestore.collection('student_marks').add(dataToAdd).then(() => {
+              showToast('تم إضافة العلامة!', "#1dad87");
+              loadStudentSummaries(studentEmail); // أعد تحميل الجدول
+            }).catch((err) => {
+              showToast('خطأ أثناء إضافة العلامة:\n' + err.message, "#e63946");
+              console.error(err);
+            });
+          }
+        }).catch((err) => {
+          showToast('خطأ أثناء البحث عن العلامة:\n' + err.message, "#e63946");
+          console.error(err);
+        });
+
+    }).catch(err => {
+      showToast("تعذر جلب بيانات المعلم من جدول users:\n" + err.message, "#e63946");
+      console.error(err);
+    });
   }).catch(err => {
-    alert("تعذر جلب بيانات المعلم من جدول users:\n" + err.message);
+    showToast("خطأ في جلب بيانات التلخيص:\n" + err.message, "#e63946");
     console.error(err);
   });
 }
