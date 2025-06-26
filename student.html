@@ -196,18 +196,7 @@
     }
 
     // تنزيل تقرير PDF (مكتبة jsPDF مطلوبة)
-   function downloadReport() {
-  // حدد الجزء الذي تريد تصديره (مثل container كله أو جزء منه)
-  var element = document.querySelector('.container');
-  var opt = {
-    margin:       0.2,
-    filename:     'تقرير_الطالب.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(element).save();
-}
+ 
     // فلترة النص لمنع HTML
     function sanitizeText(text) {
       const div = document.createElement("div");
@@ -914,6 +903,19 @@
       auth.signOut().then(()=>{window.location.href='login.html';});
     }
 
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function downloadReport() {
+  var element = document.querySelector('.container');
+  var opt = {
+    margin: 0.2,
+    filename: 'تقرير_الطالب.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+</script>
 </body>
 </html>
