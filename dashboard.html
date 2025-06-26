@@ -171,7 +171,7 @@
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V10
+  V11
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -341,23 +341,24 @@
     var allStudentsData = {};
 
     // جلب العلامة من student_marks حسب summary_id
-function getMarkForSummary(summaryId) {
-  return firestore.collection('student_marks')
-    .where('summary_id', '==', summaryId)
-    .limit(1)
-    .get()
-    .then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data().mark;
-      } else {
-        return ""; // لا يوجد علامة
+      function getMarkForSummary(summaryId, studentEmail) {
+        return firestore.collection('student_marks')
+          .where('summary_id', '==', summaryId)
+          .where('student_email', '==', studentEmail)
+          .limit(1)
+          .get()
+          .then((querySnapshot) => {
+            if (!querySnapshot.empty) {
+              return querySnapshot.docs[0].data().mark;
+            } else {
+              return ""; // لا يوجد علامة
+            }
+          })
+          .catch((error) => {
+            console.error('خطأ في جلب العلامة:', error);
+            return "";
+          });
       }
-    })
-    .catch((error) => {
-      console.error('خطأ في جلب العلامة:', error);
-      return ""; // أو null حسب رغبتك
-    });
-}
     
     auth.onAuthStateChanged(function(user) {
       if (user) {
@@ -747,6 +748,11 @@ function getMarkForSummary(summaryId) {
           let html = `<table style="width:100%;margin-top:8px;">
             <thead><tr><th>الدرس</th><th>النص</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
           summaries.forEach(s=>{
+            getMarkForSummary(s.docId, s.student_email).then(mark=>{
+              document.getElementById('markval_'+s.docId).innerText = mark;
+              document.getElementById('markinp_'+s.docId).value = mark;
+            });
+          });
             html += `<tr>
           <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
           <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
@@ -818,12 +824,33 @@ function getMarkForSummary(summaryId) {
     );
 
     // إضافة البيانات إلى جدول student_marks فقط
-    firestore.collection('student_marks').add(dataToAdd).then(() => {
-      showToast('تمت إضافة العلامة في جدول العلامات!', "#1dad87");
-    }).catch((err) => {
-      alert('خطأ أثناء إضافة العلامة في جدول student_marks:\n' + err.message);
-      console.error(err);
-    });
+    firestore.collection('student_marks')
+  .where('student_email', '==', studentEmail)
+  .where('summary_id', '==', docId)
+  .limit(1)
+  .get().then(querySnapshot => {
+    if (!querySnapshot.empty) {
+      // يوجد سجل سابق، حدثه
+      const docRef = querySnapshot.docs[0].ref;
+      docRef.update(dataToAdd).then(() => {
+        showToast('تم تحديث العلامة بنجاح!', "#1dad87");
+      }).catch((err) => {
+        alert('خطأ أثناء تحديث العلامة:\n' + err.message);
+        console.error(err);
+      });
+    } else {
+      // لا يوجد سجل، أضف جديد
+      firestore.collection('student_marks').add(dataToAdd).then(() => {
+        showToast('تم إضافة العلامة!', "#1dad87");
+      }).catch((err) => {
+        alert('خطأ أثناء إضافة العلامة:\n' + err.message);
+        console.error(err);
+      });
+    }
+  }).catch((err) => {
+    alert('خطأ أثناء البحث عن العلامة:\n' + err.message);
+    console.error(err);
+  });
 
   }).catch(err => {
     alert("تعذر جلب بيانات المعلم من جدول users:\n" + err.message);
