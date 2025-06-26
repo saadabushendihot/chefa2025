@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
-  <!-- مكتبة تصدير PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f5f7fa; color: #23272f; min-height: 100vh;}
@@ -114,13 +113,7 @@
     th { background: #f2f5fc; color: #294169; font-weight: bold;}
     tr:last-child td { border-bottom: none;}
     .student-selection-area { margin-bottom: 20px;}
-    #selectedStudentDetails {
-      background: #f9fbfd;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #e0e4e8;
-      display: none;
-    }
+    #selectedStudentDetails {background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; display: none;}
     #selectedStudentDetails h3 { color: #294169; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold; text-align: right;}
     #selectedStudentDetails p { margin-bottom: 8px; font-size: 1rem; color: #23272f; text-align: right;}
     #selectedStudentDetails p strong { color: #294169;}
@@ -167,6 +160,15 @@
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
     .toast.show { visibility: visible; opacity: 1; }
     .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
+    /* Modal */
+    #summaryModal {display:none;position:fixed;top:0;right:0;width:100vw;height:100vh;background:#0004;z-index:9999;align-items:center;justify-content:center;}
+    #summaryModal .modal-content {
+      background:#fff;max-width:520px;width:98vw;padding:24px;border-radius:10px;position:relative;box-shadow:0 2px 12px #0004;
+    }
+    #summaryModal textarea {width:100%;min-height:100px;font-size:1.08em;border-radius:6px;padding:7px;background:#f7f8fa;color:#23272f;border:1px solid #c5c9d2;}
+    #summaryModal label {font-weight:bold;}
+    #summaryModal .modal-row {margin-bottom:9px;}
+    #summaryModal .close-btn {position:absolute;top:10px;left:10px;background:#b83b3b;color:#fff;border:none;border-radius:4px;padding:3px 12px;cursor:pointer;}
   </style>
 </head>
 <body>
@@ -180,7 +182,7 @@
     <div class="spinner" id="loadingSpinner"></div>
     <!-- Toast -->
     <div id="toast" class="toast"></div>
-    <!-- إضافة طالب ودروس -->
+
     <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
       <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
       <span style="font-weight:bold;">إضافة طالب جديد</span>
@@ -224,7 +226,6 @@
     <div class="students-area">
       <h2> ******** إدارة مستويات الطلاب **********</h2>
       <div id="msg"></div>
-      <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
 
       <div class="student-selection-area">
@@ -233,7 +234,6 @@
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
-      <!-- زر تصدير نتائج الطالب PDF -->
       <div style="text-align:left;margin:10px 0;">
         <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
       </div>
@@ -247,7 +247,6 @@
         <div id="detailLevels" class="levels-grid"></div>
         <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
         <div id="examsTableWrapper"></div>
-        <!-- جدول تلخيصات الطالب -->
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
         <div id="summariesTableWrapper"></div>
       </div>
@@ -271,6 +270,26 @@
       </table>
     </div>
   </div>
+
+  <!-- Modal لعرض التلخيص والتقييم -->
+  <div id="summaryModal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeSummaryModal()">إغلاق</button>
+      <h3 id="modalLessonTitle" style="margin-top:0"></h3>
+      <div class="modal-row"><b>الطالب:</b> <span id="modalStudentName"></span></div>
+      <div class="modal-row"><b>البريد:</b> <span id="modalStudentEmail"></span></div>
+      <div class="modal-row"><b>حالة التسليم:</b> <span id="modalStatus"></span></div>
+      <div class="modal-row"><b>التاريخ:</b> <span id="modalTimestamp"></span></div>
+      <div style="margin:10px 0;">
+        <label><b>التلخيص:</b></label>
+        <textarea id="modalSummaryText" readonly></textarea>
+      </div>
+      <label>العلامة:</label>
+      <input type="number" id="modalMarkInput" min="0" max="100" style="width:80px;text-align:center;">
+      <button class="btn" onclick="saveModalMark()" id="modalSaveBtn">اعتماد العلامة</button>
+      <div id="modalMsg" style="margin-top:8px;font-size:0.98em;color:#e63946;"></div>
+    </div>
+  </div>
   <script>
     // Toast & Loading
     function showToast(msg, color="#3b5cb8") {
@@ -284,7 +303,6 @@
       document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
     }
 
-    // بحث الطلاب
     function filterStudents() {
       let val = document.getElementById('studentSearch').value.trim().toLowerCase();
       let studentSelect = document.getElementById('studentSelect');
@@ -298,7 +316,6 @@
       });
     }
 
-    // تصدير PDF
     function downloadStudentReport() {
       let el = document.getElementById('selectedStudentDetails');
       let studentName = document.getElementById('detailName').innerText || "student";
@@ -312,7 +329,6 @@
       html2pdf().set(opt).from(el).save();
     }
 
-    // --- كودك الأصلي كما هو مع التعديلات في الدوال أدناه فقط ---
     function toggleSection(sectionId){
       var sec = document.getElementById(sectionId);
       var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
@@ -513,7 +529,7 @@
         }
         renderExamsTable(studentId, student);
         document.getElementById('teacherPDFBtn').style.display = "";
-        loadStudentSummaries(student.email);
+        loadStudentSummaries(student.email, student.name, studentId);
         studentDetailsDiv.style.display = 'block';
       } else {
         studentDetailsDiv.style.display = 'none';
@@ -707,8 +723,8 @@
       });
     }
 
-    // تلخيصات الطالب
-    function loadStudentSummaries(email) {
+    // تلخيصات الطالب - عرض التلخيص في Modal
+    function loadStudentSummaries(email, studentName, studentId) {
       showLoading(true);
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
         let summaries = [];
@@ -718,17 +734,27 @@
           showLoading(false);
           return;
         }
-        // جلب عناوين الدروس
         firestore.collection('lessons').get().then(lessonsSnap=>{
           let lessonsMap = {};
           lessonsSnap.forEach(doc=>lessonsMap[doc.data().id]=doc.data().title);
           let html = `<table style="width:100%;margin-top:8px;">
-            <thead><tr><th>الدرس</th><th>النص</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
+            <thead><tr><th>الدرس</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
           summaries.forEach(s=>{
             let valMark = typeof s.mark !== "undefined" && s.mark !== null ? s.mark : "";
+            // اسم الدرس كزر يفتح الـ modal
             html += `<tr>
-              <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
-              <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
+              <td>
+                <button class="btn" style="padding:3px 8px;font-size:0.98em;" onclick="openSummaryModal(
+                  '${s.docId}',
+                  '${lessonsMap[s.lesson_id]||s.lesson_id}',
+                  '${s.student_name||studentName||""}',
+                  '${s.student_email||email||""}',
+                  '${s.status||""}',
+                  '${s.timestamp||""}',
+                  '${typeof s.mark!=="undefined"?s.mark:""}',
+                  \`${(s.summary_text||"").replace(/`/g,"\\`")}\`
+                )">${lessonsMap[s.lesson_id]||s.lesson_id}</button>
+              </td>
               <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
               <td id="markval_${s.docId}">${valMark}</td>
               <td>
@@ -744,13 +770,59 @@
       });
     }
 
-    // حفظ علامة التلخيص
+    // Modal functions
+    let currentSummaryDocId = null;
+    function openSummaryModal(docId, lessonTitle, studentName, studentEmail, status, timestamp, mark, summaryText) {
+      currentSummaryDocId = docId;
+      document.getElementById('modalLessonTitle').innerText = "تلخيص الدرس: " + lessonTitle;
+      document.getElementById('modalStudentName').innerText = studentName;
+      document.getElementById('modalStudentEmail').innerText = studentEmail;
+      document.getElementById('modalStatus').innerText = status==='submitted' ? 'تم التسليم' : 'مسودة';
+      document.getElementById('modalTimestamp').innerText = timestamp ? new Date(timestamp).toLocaleString('ar-EG') : '';
+      document.getElementById('modalSummaryText').value = summaryText;
+      document.getElementById('modalMarkInput').value = (typeof mark !== "undefined" && mark !== null) ? mark : "";
+      document.getElementById('modalMsg').innerText = "";
+      document.getElementById('modalMsg').style.color = "#e63946";
+      document.getElementById('summaryModal').style.display = "flex";
+    }
+    function closeSummaryModal() {
+      document.getElementById('summaryModal').style.display = "none";
+      currentSummaryDocId = null;
+    }
+    function saveModalMark() {
+      let val = Number(document.getElementById('modalMarkInput').value);
+      if(isNaN(val)) {
+        document.getElementById('modalMsg').innerText = 'أدخل رقمًا صحيحًا';
+        document.getElementById('modalMsg').style.color = "#e63946";
+        return;
+      }
+      if (!currentSummaryDocId) return;
+      firestore.collection('summaries').doc(currentSummaryDocId).update({mark: val}).then(()=>{
+        document.getElementById('modalMsg').style.color = "#1dad87";
+        document.getElementById('modalMsg').innerText = 'تم حفظ العلامة.';
+        document.getElementById('markval_' + currentSummaryDocId).innerText = val;
+        document.getElementById('markinp_' + currentSummaryDocId).value = val;
+        setTimeout(closeSummaryModal, 900);
+      }).catch((e)=>{
+        document.getElementById('modalMsg').style.color = "#e63946";
+        document.getElementById('modalMsg').innerText = 'خطأ أثناء حفظ العلامة: ' + e.message;
+      });
+    }
+
+    // حفظ علامة التلخيص من الجدول مباشرة
     function saveSummaryMark(docId) {
-      let val = document.getElementById('markinp_' + docId).value;
-      firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=>{
+      let val = Number(document.getElementById('markinp_' + docId).value);
+      if(isNaN(val)) {
+        showToast('أدخل رقمًا صحيحًا', "#e63946");
+        return;
+      }
+      firestore.collection('summaries').doc(docId).update({mark: val}).then(()=>{
         document.getElementById('markval_' + docId).innerText = val;
         showToast('تم تحديث العلامة بنجاح', "#1dad87");
-      }).catch(()=>showToast('خطأ أثناء تحديث العلامة', "#e63946"));
+      }).catch((e)=>{
+        showToast('خطأ أثناء تحديث العلامة: ' + e.message, "#e63946");
+        console.error("Firestore error:", e);
+      });
     }
 
     function logout() {
