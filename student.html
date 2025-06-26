@@ -153,7 +153,7 @@
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
-      <h2>أسئلة الاختبار <span id="examTimer" style="font-size:2.1rem;color:#e63946;"></span></h2>
+      <h2>أسئلة الاختبار <span id="examTimer" style="font-size:1.1rem;color:#e63946;"></span></h2>
       <form id="examForm">
         <div id="questionsArea"></div>
         <div class="msg" id="formMsg"></div>
@@ -224,8 +224,8 @@
         updateExamTimer();
         if (examTimeLeft <= 0) {
           clearInterval(examTimerInterval);
-          showToast("انتهى وقت الاختبار!", "#e63946");
-          document.getElementById('examForm').dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
+          showToast("انتهى وقت الاختبار! سيتم تسليم إجاباتك تلقائياً.", "#e63946");
+          processExamSubmission(true); // استدعاء الدالة الجديدة للتسليم التلقائي
         }
       }, 1000);
     }
@@ -436,87 +436,89 @@
         const levelText = getLevelText(lastActiveLevelIndex);
         firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
           let lessons = [];
-          lessonQuery.forEach(doc => lessons.push({ ...doc.data(), docId: doc.id })); // Ensure docId is included
-          const lessonIds = lessons.map(l=>l.id); // Use the numerical ID, assuming lesson_id in summaries matches it
-
+          lessonQuery.forEach(doc => lessons.push(doc.data()));
+          const lessonIds = lessons.map(l=>l.id);
           const btn = document.getElementById('goToExamBtn');
           const warn = document.getElementById('examWarnMsg');
-
           if(!lessonIds.length) {
             btn.style.display = "none";
             warn.innerText = 'لا توجد دروس في هذا المستوى.';
             return;
           }
-
+          // استخدام Promise.all لضمان جلب جميع العلامات قبل التحقق النهائي
+          let summaryAndMarkPromises = [];
           firestore.collection('summaries')
             .where('student_email', '==', currentStudentEmail)
             .where('lesson_id', 'in', lessonIds)
             .get()
             .then(function(summariesSnap){
-              let summariesMap = {};
-              let markPromises = [];
-
+              let summariesMapForExamCheck = {};
               summariesSnap.forEach(doc => {
-                let s = { ...doc.data(), docId: doc.id };
-                summariesMap[s.lesson_id] = s;
-
-                if (s.status === 'submitted') {
-                  markPromises.push(
-                    firestore.collection('student_marks')
-                    .where('summary_id', '==', s.docId)
-                    .where('student_email', '==', currentStudentEmail)
-                    .limit(1)
-                    .get()
-                    .then(markSnap => {
-                      if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark !== undefined) {
-                        s.mark_from_student_marks = markSnap.docs[0].data().mark;
-                      } else {
-                        s.mark_from_student_marks = null;
-                      }
-                    }).catch(error => {
-                      console.error("Error fetching mark for summary in exam check:", s.docId, error);
-                      s.mark_from_student_marks = null;
-                    })
-                  );
-                } else {
-                  s.mark_from_student_marks = null; // Draft summaries don't count for exam eligibility
-                }
+                  let s = { ...doc.data(), docId: doc.id };
+                  summariesMapForExamCheck[s.lesson_id] = s;
+                  if (s.status === 'submitted') {
+                      summaryAndMarkPromises.push(
+                          firestore.collection('student_marks')
+                          .where('summary_id', '==', s.docId)
+                          .where('student_email', '==', currentStudentEmail)
+                          .limit(1)
+                          .get()
+                          .then(markSnap => {
+                              // الشرط الجديد: يجب أن تكون العلامة أكبر من صفر
+                              if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark !== undefined && markSnap.docs[0].data().mark > 0) {
+                                  s.mark_from_student_marks = markSnap.docs[0].data().mark; // حفظ العلامة للتحقق
+                                  return true; // الملخص مسلم وبه علامة أكبر من صفر
+                              }
+                              s.mark_from_student_marks = null; // العلامة غير صالحة
+                              return false; // الملخص مسلم لكن لا يوجد علامة صالحة
+                          }).catch(error => {
+                              console.error("Error fetching mark for summary in exam check:", s.docId, error);
+                              s.mark_from_student_marks = null;
+                              return false; // اعتبارها غير صالحة في حالة الخطأ
+                          })
+                      );
+                  } else {
+                      s.mark_from_student_marks = null; // الملخصات المسودة لا تؤهل للامتحان
+                      summaryAndMarkPromises.push(Promise.resolve(false));
+                  }
               });
 
-              Promise.all(markPromises).then(() => {
-                let allSummariesSubmittedAndMarked = true;
+              // التحقق النهائي بعد جلب جميع العلامات
+              Promise.all(summaryAndMarkPromises).then(() => {
+                  let allRequiredSummariesPresentAndMarked = true;
 
-                if (lessons.length === 0) { // No lessons for this level, so no summaries needed
-                  allSummariesSubmittedAndMarked = true;
-                } else if (Object.keys(summariesMap).length !== lessons.length) { // Not all lessons have a summary entry
-                  allSummariesSubmittedAndMarked = false;
-                } else {
-                  for (let i = 0; i < lessons.length; i++) {
-                    const lessonId = lessons[i].id; // Use the numerical ID
-                    const summary = summariesMap[lessonId];
-                    if (!summary || summary.status !== 'submitted' || summary.mark_from_student_marks === null) {
-                      allSummariesSubmittedAndMarked = false;
-                      break;
-                    }
+                  if (lessons.length === 0) { // لا يوجد دروس لهذا المستوى
+                      allRequiredSummariesPresentAndMarked = true;
+                  } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) { // ليست كل الدروس لديها ملخص
+                      allRequiredSummariesPresentAndMarked = false;
+                  } else {
+                      for (let i = 0; i < lessons.length; i++) {
+                          const lessonId = lessons[i].id;
+                          const summary = summariesMapForExamCheck[lessonId];
+                          // الشرط الجديد: الملخص موجود، مسلم، والعلامة ليست null/undefined وأكبر من صفر
+                          if (!summary || summary.status !== 'submitted' || summary.mark_from_student_marks === null || summary.mark_from_student_marks <= 0) {
+                              allRequiredSummariesPresentAndMarked = false;
+                              break;
+                          }
+                      }
                   }
-                }
 
-                if(allSummariesSubmittedAndMarked){
-                    btn.style.display="";
-                    warn.innerText = '';
-                    btn.onclick = function(){
-                        currentExamLevel = lastActiveLevelIndex;
-                        checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
-                        setTimeout(function(){
-                            document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
-                        }, 300);
-                    };
-                } else {
-                    btn.style.display="none";
-                    warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها.';
-                }
+                  if(allRequiredSummariesPresentAndMarked){
+                      btn.style.display="";
+                      warn.innerText = '';
+                      btn.onclick = function(){
+                          currentExamLevel = lastActiveLevelIndex;
+                          checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+                          setTimeout(function(){
+                              document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+                          }, 300);
+                      };
+                  } else {
+                      btn.style.display="none";
+                      warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+                  }
               }).catch(error => {
-                  console.error("Error in Promise.all for marks inside exam button check:", error);
+                  console.error("Error in Promise.all for summary/mark check:", error);
                   btn.style.display="none";
                   warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
               });
@@ -672,9 +674,8 @@
       }
     };
 
-    // إرسال الإجابات
-    document.getElementById('examForm').onsubmit = function(e){
-      e.preventDefault();
+    // الدالة الموحدة لمعالجة تسليم الاختبار
+    function processExamSubmission(isTimerSubmission = false) {
       let totalMark = 0, gainedMark = 0, empty = 0;
       let details = [];
       randomizedExamQuestions.forEach((q, i) => {
@@ -685,7 +686,12 @@
         let mark = parseFloat(q.mark) || 1;
         totalMark += mark;
 
-        if (selected.length===0) { empty++; return; }
+        // عد الأسئلة الفارغة فقط إذا لم يكن التسليم تلقائياً بسبب انتهاء الوقت
+        if (selected.length === 0) {
+          if (!isTimerSubmission) {
+            empty++;
+          }
+        }
 
         details.push({
           question_id: q.id,
@@ -709,11 +715,14 @@
           if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
         }
       });
-      if (empty>0) {
+
+      // عرض رسالة تحذير للأسئلة الفارغة فقط إذا كان التسليم يدوياً
+      if (!isTimerSubmission && empty > 0) {
         showFormMsg('يرجى الإجابة على جميع الأسئلة!');
         showToast("يرجى الإجابة على جميع الأسئلة!", "#e63946");
-        return;
+        return; // إيقاف التسليم اليدوي إذا كانت هناك أسئلة فارغة
       }
+
       gainedMark = Math.round(gainedMark * 100) / 100;
 
       firestore.collection('exam_results')
@@ -760,6 +769,12 @@
             });
           showFormMsg('');
         });
+    }
+
+    // ربط نموذج الاختبار بالدالة الجديدة
+    document.getElementById('examForm').onsubmit = function(e){
+      e.preventDefault();
+      processExamSubmission(false); // تسليم يدوي
     };
 
     function showFormMsg(msg) {
@@ -816,7 +831,7 @@
 
             summarySnapshot.forEach(function(doc) {
               let s = { ...doc.data(), docId: doc.id }; // Include docId for fetching mark
-              summariesMap[s.lesson_id] = s; // This is the map for rendering, not necessarily for exam check.
+              summariesMap[s.lesson_id] = s;
 
               // If summary is submitted, fetch its mark from student_marks
               // If not submitted (draft), mark_from_student_marks remains null or undefined,
