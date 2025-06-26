@@ -109,10 +109,113 @@
     }
     .add-section input:focus, .add-section select:focus { border-color: #3b5cb8; outline: none;}
     .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
-    table { width: 100%; border-collapse: collapse; margin-top: 14px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px #00000008;}
-    th, td { padding: 9px 6px; border-bottom: 1px solid #e5e7ea; text-align: center; font-size: 1rem; color: #23272f;}
-    th { background: #f2f5fc; color: #294169; font-weight: bold;}
-    tr:last-child td { border-bottom: none;}
+    /* تحسينات عامة على الجداول */
+table {
+  width: 100%;
+  border-collapse: collapse; /* لدمج حدود الخلايا */
+  margin-top: 20px;
+  background: #ffffff; /* خلفية بيضاء للجداول */
+  border-radius: 12px; /* حواف أكثر دائرية */
+  overflow: hidden; /* لإخفاء أي محتوى يتجاوز الحواف الدائرية */
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* تظليل أعمق وأكثر احترافية */
+  margin-bottom: 25px; /* مسافة بعد الجدول */
+}
+
+/* ترويسة الجدول */
+th {
+  background: #4361ee; /* لون أزرق جذاب */
+  color: #ffffff; /* نص أبيض */
+  padding: 15px 10px; /* تباعد أكبر للخلايا */
+  text-align: center;
+  font-size: 1.05rem; /* حجم خط أكبر قليلاً */
+  font-weight: 700; /* خط سميك */
+  letter-spacing: 0.5px; /* تباعد بين الحروف */
+  text-transform: uppercase; /* تحويل النص إلى حروف كبيرة (اختياري، قد لا يناسب العربية) */
+}
+
+/* خلايا البيانات */
+td {
+  padding: 12px 8px; /* تباعد أكبر للخلايا */
+  border-bottom: 1px solid #eef2fa; /* خط فاصل أفتح وأكثر نعومة */
+  text-align: center;
+  font-size: 0.98rem;
+  color: #333d4b; /* لون نص داكن قليلاً */
+  vertical-align: middle; /* محاذاة عمودية للمنتصف */
+}
+
+/* تأثير عند تمرير المؤشر على الصفوف */
+tbody tr:hover {
+  background-color: #f7f9fc; /* تغيير لون الخلفية عند التمرير */
+  cursor: pointer; /* تغيير شكل المؤشر */
+}
+
+/* إزالة الحد السفلي لآخر صف */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* تحسينات خاصة بخلية نص التلخيص */
+td[style*="max-width:180px"] { /* هذا سيستهدف عمود نص التلخيص */
+  text-align: right; /* محاذاة النص إلى اليمين */
+  line-height: 1.6; /* تباعد بين السطور لتحسين القراءة */
+}
+
+/* تحسين أزرار الإجراءات داخل الجدول */
+.btn[onclick^="saveSummaryMark"] {
+  background-color: #1dad87; /* لون أخضر جذاب للحفظ */
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+.btn[onclick^="saveSummaryMark"]:hover {
+  background-color: #159b79; /* لون أخضر أغمق عند التمرير */
+}
+
+/* تحسين حقل إدخال العلامة */
+input[id^="markinp_"] {
+  padding: 5px 8px;
+  border: 1px solid #c5c9d2;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  text-align: center;
+  width: 70px; /* أو حسب الحاجة */
+  margin-left: 5px; /* مسافة بين الحقل والزر */
+}
+
+/* تحسينات لحالة التلخيص */
+.summary-status {
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  display: inline-block;
+}
+.summary-status.submitted {
+  background-color: #e3f6ed;
+  color: #219e4b;
+  border: 1px solid #b7eecd;
+}
+.summary-status.draft {
+  background-color: #fff4e0;
+  color: #b96d0d;
+  border: 1px solid #ffe0b2;
+}
+
+/* تنسيق خاص بالعنوان "تلخيصات الطالب" */
+#summariesTableWrapper h4 {
+    color: #294169;
+    margin-top: 30px; /* مسافة علوية أكبر */
+    margin-bottom: 15px;
+    font-size: 1.25rem; /* حجم خط أكبر */
+    font-weight: 700;
+    text-align: right;
+    border-bottom: 2px solid #eef2fa; /* خط سفلي خفيف */
+    padding-bottom: 8px; /* تباعد تحت الخط */
+}
     .student-selection-area { margin-bottom: 20px;}
     #selectedStudentDetails {
       background: #f9fbfd;
