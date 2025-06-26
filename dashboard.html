@@ -160,15 +160,33 @@
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
     .toast.show { visibility: visible; opacity: 1; }
     .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
-    /* Modal */
-    #summaryModal {display:none;position:fixed;top:0;right:0;width:100vw;height:100vh;background:#0004;z-index:9999;align-items:center;justify-content:center;}
-    #summaryModal .modal-content {
-      background:#fff;max-width:520px;width:98vw;padding:24px;border-radius:10px;position:relative;box-shadow:0 2px 12px #0004;
+    /* صندوق التلخيص الجديد */
+    #summaryDetailsBox {
+      display:none;
+      margin-top:18px;
     }
-    #summaryModal textarea {width:100%;min-height:100px;font-size:1.08em;border-radius:6px;padding:7px;background:#f7f8fa;color:#23272f;border:1px solid #c5c9d2;}
-    #summaryModal label {font-weight:bold;}
-    #summaryModal .modal-row {margin-bottom:9px;}
-    #summaryModal .close-btn {position:absolute;top:10px;left:10px;background:#b83b3b;color:#fff;border:none;border-radius:4px;padding:3px 12px;cursor:pointer;}
+    #summaryDetailsBox .summary-details-inner {
+      background:#fff;
+      border:1px solid #e0e4e8;
+      padding:22px 14px;
+      border-radius:8px;
+      box-shadow:0 2px 10px #3b5cb820;
+      max-width:520px;
+      margin:auto;
+      position:relative;
+      direction:rtl;
+    }
+    #summaryDetailsBox button.close-btn {
+      position:absolute;
+      top:10px;
+      left:10px;
+      background:#b83b3b;
+      color:#fff;
+      border:none;
+      border-radius:4px;
+      padding:3px 12px;
+      cursor:pointer;
+    }
   </style>
 </head>
 <body>
@@ -249,6 +267,7 @@
         <div id="examsTableWrapper"></div>
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
         <div id="summariesTableWrapper"></div>
+        <div id="summaryDetailsBox"></div>
       </div>
     </div>
 
@@ -271,25 +290,6 @@
     </div>
   </div>
 
-  <!-- Modal لعرض التلخيص والتقييم -->
-  <div id="summaryModal">
-    <div class="modal-content">
-      <button class="close-btn" onclick="closeSummaryModal()">إغلاق</button>
-      <h3 id="modalLessonTitle" style="margin-top:0"></h3>
-      <div class="modal-row"><b>الطالب:</b> <span id="modalStudentName"></span></div>
-      <div class="modal-row"><b>البريد:</b> <span id="modalStudentEmail"></span></div>
-      <div class="modal-row"><b>حالة التسليم:</b> <span id="modalStatus"></span></div>
-      <div class="modal-row"><b>التاريخ:</b> <span id="modalTimestamp"></span></div>
-      <div style="margin:10px 0;">
-        <label><b>التلخيص:</b></label>
-        <textarea id="modalSummaryText" readonly></textarea>
-      </div>
-      <label>العلامة:</label>
-      <input type="number" id="modalMarkInput" min="0" max="100" style="width:80px;text-align:center;">
-      <button class="btn" onclick="saveModalMark()" id="modalSaveBtn">اعتماد العلامة</button>
-      <div id="modalMsg" style="margin-top:8px;font-size:0.98em;color:#e63946;"></div>
-    </div>
-  </div>
   <script>
     // Toast & Loading
     function showToast(msg, color="#3b5cb8") {
@@ -723,7 +723,7 @@
       });
     }
 
-    // تلخيصات الطالب - عرض التلخيص في Modal
+    // تلخيصات الطالب - عرض التلخيص في مربع ثابت
     function loadStudentSummaries(email, studentName, studentId) {
       showLoading(true);
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
@@ -741,10 +741,9 @@
             <thead><tr><th>الدرس</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
           summaries.forEach(s=>{
             let valMark = typeof s.mark !== "undefined" && s.mark !== null ? s.mark : "";
-            // اسم الدرس كزر يفتح الـ modal
             html += `<tr>
               <td>
-                <button class="btn" style="padding:3px 8px;font-size:0.98em;" onclick="openSummaryModal(
+                <button class="btn" style="padding:3px 8px;font-size:0.98em;" onclick="openSummaryDetailsBox(
                   '${s.docId}',
                   '${lessonsMap[s.lesson_id]||s.lesson_id}',
                   '${s.student_name||studentName||""}',
@@ -765,47 +764,59 @@
           });
           html += "</tbody></table>";
           document.getElementById('summariesTableWrapper').innerHTML = html;
+          // عند عرض أي تلخيص جديد، أخفِ مربع التفاصيل
+          document.getElementById('summaryDetailsBox').style.display = "none";
           showLoading(false);
         });
       });
     }
 
-    // Modal functions
-    let currentSummaryDocId = null;
-    function openSummaryModal(docId, lessonTitle, studentName, studentEmail, status, timestamp, mark, summaryText) {
-      currentSummaryDocId = docId;
-      document.getElementById('modalLessonTitle').innerText = "تلخيص الدرس: " + lessonTitle;
-      document.getElementById('modalStudentName').innerText = studentName;
-      document.getElementById('modalStudentEmail').innerText = studentEmail;
-      document.getElementById('modalStatus').innerText = status==='submitted' ? 'تم التسليم' : 'مسودة';
-      document.getElementById('modalTimestamp').innerText = timestamp ? new Date(timestamp).toLocaleString('ar-EG') : '';
-      document.getElementById('modalSummaryText').value = summaryText;
-      document.getElementById('modalMarkInput').value = (typeof mark !== "undefined" && mark !== null) ? mark : "";
-      document.getElementById('modalMsg').innerText = "";
-      document.getElementById('modalMsg').style.color = "#e63946";
-      document.getElementById('summaryModal').style.display = "flex";
+    // صندوق عرض التلخيص
+    function openSummaryDetailsBox(docId, lessonTitle, studentName, studentEmail, status, timestamp, mark, summaryText) {
+      const box = document.getElementById('summaryDetailsBox');
+      let html = `
+        <div class="summary-details-inner">
+          <button class="close-btn" onclick="closeSummaryDetailsBox()">إغلاق</button>
+          <h3 style="margin-top:0;color:#294169;font-size:1.1rem;">تلخيص الدرس: ${lessonTitle}</h3>
+          <div style="margin-bottom:7px;"><b>الطالب:</b> ${studentName}</div>
+          <div style="margin-bottom:7px;"><b>البريد:</b> ${studentEmail}</div>
+          <div style="margin-bottom:7px;"><b>الحالة:</b> ${status==='submitted' ? 'تم التسليم' : 'مسودة'}</div>
+          <div style="margin-bottom:7px;"><b>التاريخ:</b> ${timestamp ? new Date(timestamp).toLocaleString('ar-EG') : ''}</div>
+          <div style="margin:10px 0;">
+            <label><b>التلخيص:</b></label>
+            <textarea style="width:100%;min-height:100px;font-size:1.08em;border-radius:6px;padding:7px;background:#f7f8fa;color:#23272f;border:1px solid #c5c9d2;" readonly>${summaryText}</textarea>
+          </div>
+          <label>العلامة:</label>
+          <input type="number" id="detailsBoxMarkInput" min="0" max="100" style="width:80px;text-align:center;" value="${typeof mark !== "undefined" && mark !== null ? mark : ""}">
+          <button class="btn" onclick="saveDetailsBoxMark('${docId}')">اعتماد العلامة</button>
+          <div id="detailsBoxMsg" style="margin-top:8px;font-size:0.98em;color:#e63946;"></div>
+        </div>
+      `;
+      box.innerHTML = html;
+      box.style.display = "block";
+      box.setAttribute('data-docid', docId);
     }
-    function closeSummaryModal() {
-      document.getElementById('summaryModal').style.display = "none";
-      currentSummaryDocId = null;
+    function closeSummaryDetailsBox() {
+      const box = document.getElementById('summaryDetailsBox');
+      box.style.display = 'none';
+      box.innerHTML = '';
     }
-    function saveModalMark() {
-      let val = Number(document.getElementById('modalMarkInput').value);
+    function saveDetailsBoxMark(docId) {
+      let val = Number(document.getElementById('detailsBoxMarkInput').value);
       if(isNaN(val)) {
-        document.getElementById('modalMsg').innerText = 'أدخل رقمًا صحيحًا';
-        document.getElementById('modalMsg').style.color = "#e63946";
+        document.getElementById('detailsBoxMsg').innerText = 'أدخل رقمًا صحيحًا';
+        document.getElementById('detailsBoxMsg').style.color = "#e63946";
         return;
       }
-      if (!currentSummaryDocId) return;  
-      firestore.collection('summaries').doc(currentSummaryDocId).update({mark: val}).then(()=>{
-        document.getElementById('modalMsg').style.color = "#1dad87";
-        document.getElementById('modalMsg').innerText = 'تم حفظ العلامة.';
-        document.getElementById('markval_' + currentSummaryDocId).innerText = val;
-        document.getElementById('markinp_' + currentSummaryDocId).value = val;
-        setTimeout(closeSummaryModal, 900);
+      firestore.collection('summaries').doc(docId).update({mark: val}).then(()=>{
+        document.getElementById('detailsBoxMsg').style.color = "#1dad87";
+        document.getElementById('detailsBoxMsg').innerText = 'تم حفظ العلامة.';
+        document.getElementById('markval_' + docId).innerText = val;
+        document.getElementById('markinp_' + docId).value = val;
+        setTimeout(closeSummaryDetailsBox, 900);
       }).catch((e)=>{
-        document.getElementById('modalMsg').style.color = "#e63946";
-        document.getElementById('modalMsg').innerText = 'خطأ أثناء حفظ العلامة: ' + e.message;
+        document.getElementById('detailsBoxMsg').style.color = "#e63946";
+        document.getElementById('detailsBoxMsg').innerText = 'خطأ أثناء حفظ العلامة: ' + e.message;
       });
     }
 
