@@ -783,20 +783,38 @@
     }
 
     // حفظ علامة التلخيص - احترافي
-    function saveSummaryMark(docId) {
-      let val = document.getElementById('markinp_' + docId).value;
-      if(val === "" || isNaN(val) || Number(val) < 0 || Number(val) > 100){
-        showToast("يرجى إدخال علامة صحيحة بين 0 و 100", "#e63946");
-        return;
+   // function saveSummaryMark(docId) {
+   //   let val = document.getElementById('markinp_' + docId).value;
+   //   if(val === "" || isNaN(val) || Number(val) < 0 || Number(val) > 100){
+    //    showToast("يرجى إدخال علامة صحيحة بين 0 و 100", "#e63946");
+     //   return;
+    //  }
+    //  firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=>{
+    //    document.getElementById('markval_' + docId).innerText = val;
+   //     showToast('تم تحديث العلامة بنجاح', "#1dad87");
+   //   }).catch(()=>{
+   //     showToast('خطأ أثناء تحديث العلامة', "#e63946");
+  //    });
+ //   }
+      function saveSummaryMark(docId) {
+        let val = document.getElementById('markinp_' + docId).value;
+        if(val === "" || isNaN(val) || Number(val) < 0 || Number(val) > 100){
+          showToast("يرجى إدخال علامة صحيحة بين 0 و 100", "#e63946");
+          return;
+        }
+        // مهم جدًا: أرسل فقط {mark: ...} ولا شيء آخر!
+        firestore.collection('summaries').doc(docId).update({mark: Number(val)})
+          .then(()=>{
+            document.getElementById('markval_' + docId).innerText = val;
+            showToast('تم تحديث العلامة بنجاح', "#1dad87");
+            // يمكن هنا إعادة تحميل التلاخيص إذا أردت تحديث الجدول تلقائيًا:
+            // loadStudentSummaries(/* بريد الطالب */);  // إذا كنت تعرف البريد هنا
+          })
+          .catch((error)=>{
+            // أظهر الخطأ الحقيقي للمساعدة في التشخيص
+            showToast('خطأ أثناء تحديث العلامة: ' + error.message, "#e63946");
+          });
       }
-      firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=>{
-        document.getElementById('markval_' + docId).innerText = val;
-        showToast('تم تحديث العلامة بنجاح', "#1dad87");
-      }).catch(()=>{
-        showToast('خطأ أثناء تحديث العلامة', "#e63946");
-      });
-    }
-
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
