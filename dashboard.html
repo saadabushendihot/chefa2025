@@ -744,7 +744,6 @@
       });
     }
 
-    // حفظ علامة التلخيص
   function saveSummaryMark(docId) {
   let val = document.getElementById('markinp_' + docId).value;
 
@@ -763,8 +762,8 @@
     const lessonTitle = row.cells[0].textContent || '';
     const statusText = row.cells[2].textContent || '';
 
-    // إضافة البيانات إلى جدول student_marks
-    firestore.collection('student_marks').add({
+    // البيانات المراد إضافتها
+    const dataToAdd = {
       summary_id: docId,
       student_name: studentName,
       student_email: studentEmail,
@@ -773,7 +772,20 @@
       status: statusText,
       mark: Number(val),
       updated_at: new Date()
-    }).catch((err) => {
+    };
+
+    // رسالة توضيحية
+    let msg =
+      "سيتم إضافة البيانات التالية إلى الجدول:\n" +
+      "اسم الجدول: student_marks\n" +
+      "الحقول والقيم:\n" +
+      Object.entries(dataToAdd).map(([key, value]) => `${key}: ${value}`).join('\n');
+
+    // تظهر الرسالة للمستخدم (يمكنك استخدام alert أو showToast أو console.log)
+    alert(msg);
+
+    // إضافة البيانات إلى جدول student_marks
+    firestore.collection('student_marks').add(dataToAdd).catch((err) => {
       showToast('حدث خطأ في حفظ العلامة في جدول العلامات: ' + err.message, "#e63946");
       console.error(err);
     });
