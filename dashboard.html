@@ -171,7 +171,7 @@
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V9
+  V10
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -340,6 +340,25 @@
     var editLessonId = null;
     var allStudentsData = {};
 
+    // جلب العلامة من student_marks حسب summary_id
+function getMarkForSummary(summaryId) {
+  return firestore.collection('student_marks')
+    .where('summary_id', '==', summaryId)
+    .limit(1)
+    .get()
+    .then((querySnapshot) => {
+      if (!querySnapshot.empty) {
+        return querySnapshot.docs[0].data().mark;
+      } else {
+        return ""; // لا يوجد علامة
+      }
+    })
+    .catch((error) => {
+      console.error('خطأ في جلب العلامة:', error);
+      return ""; // أو null حسب رغبتك
+    });
+}
+    
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
@@ -728,20 +747,26 @@
           let html = `<table style="width:100%;margin-top:8px;">
             <thead><tr><th>الدرس</th><th>النص</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
           summaries.forEach(s=>{
-            let valMark = typeof s.mark !== "undefined" && s.mark !== null ? s.mark : "";
             html += `<tr>
-              <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
-              <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
-              <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-              <td id="markval_${s.docId}">${valMark}</td>
-              <td>
-                <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="${valMark}" min="0" max="100">
-                <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
-              </td>
-            </tr>`;
+          <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
+          <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
+          <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
+          <td id="markval_${s.docId}">جاري التحميل...</td>
+          <td>
+            <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="" min="0" max="100">
+            <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
+          </td>
+        </tr>`;
           });
           html += "</tbody></table>";
           document.getElementById('summariesTableWrapper').innerHTML = html;
+          // اجلب العلامات لكل تلخيص حسب student_marks
+          summaries.forEach(s=>{
+            getMarkForSummary(s.docId).then(mark=>{
+              document.getElementById('markval_'+s.docId).innerText = mark;
+              document.getElementById('markinp_'+s.docId).value = mark;
+            });
+          });
           showLoading(false);
         });
       });
