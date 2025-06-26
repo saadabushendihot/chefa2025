@@ -745,46 +745,40 @@
     }
 
     // حفظ علامة التلخيص
-    function saveSummaryMark(docId) {
+  function saveSummaryMark(docId) {
   let val = document.getElementById('markinp_' + docId).value;
 
-  // تحديث العلامة في جدول summaries القديم
-  firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=> {
+  // تحديث العلامة في جدول summaries
+  firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(() => {
     document.getElementById('markval_' + docId).innerText = val;
     showToast('تم تحديث العلامة بنجاح', "#1dad87");
 
-    // === استخراج بيانات الطالب والدرس من الشاشة ===
-    // بيانات الطالب
+    // استخراج بيانات الطالب من الشاشة
     const studentName = document.getElementById('detailName').textContent || '';
     const studentEmail = document.getElementById('detailEmail').textContent || '';
     const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
 
-    // بيانات التلخيص والدرس (مطلوب جلبها من الـ row نفسه)
+    // استخراج بيانات الدرس من صف الجدول
     const row = document.getElementById('markinp_' + docId).closest('tr');
     const lessonTitle = row.cells[0].textContent || '';
-    const summaryText = row.cells[1].textContent || '';
     const statusText = row.cells[2].textContent || '';
 
-    // يمكنك إضافة المزيد حسب الحاجة
-    // حفظ في جدول جديد student_marks
-    firestore.collection('student_mark').add({
+    // إضافة البيانات إلى جدول student_marks
+    firestore.collection('student_marks').add({
       summary_id: docId,
       student_name: studentName,
       student_email: studentEmail,
       course_number: courseNumber,
       lesson_title: lessonTitle,
-      summary_text: summaryText,
       status: statusText,
       mark: Number(val),
       updated_at: new Date()
-    }).then(()=>{
-      // يمكنك إضافة رسالة نجاح إضافية هنا إذا أردت
-    }).catch((err)=>{
+    }).catch((err) => {
       showToast('حدث خطأ في حفظ العلامة في جدول العلامات: ' + err.message, "#e63946");
       console.error(err);
     });
 
-  }).catch((error)=>{
+  }).catch((error) => {
     showToast('خطأ أثناء تحديث العلامة: ' + error.message, "#e63946");
     console.error(error);
   });
