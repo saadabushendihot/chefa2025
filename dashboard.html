@@ -774,7 +774,7 @@
       lesson_title: lessonTitle,
       status: statusText,
       mark: Number(val),
-      updated_at: firebase.firestore.Timestamp.now()updated_at: new Date()
+      updated_at: firebase.firestore.Timestamp.now()
     };
 
     // رسالة توضيحية تظهر دائمًا قبل أي حفظ
