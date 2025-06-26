@@ -171,7 +171,7 @@
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V11
+  V12
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -838,6 +838,7 @@
       // لا يوجد سجل، أضف جديد
       firestore.collection('student_marks').add(dataToAdd).then(() => {
         showToast('تم إضافة العلامة!', "#1dad87");
+        loadStudentSummaries(studentEmail); // أعد تحميل الجدول
       }).catch((err) => {
         alert('خطأ أثناء إضافة العلامة:\n' + err.message);
         console.error(err);
