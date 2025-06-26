@@ -274,7 +274,7 @@ input[id^="markinp_"] {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V13
+  V14
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -912,15 +912,6 @@ input[id^="markinp_"] {
       status: statusText,
       mark: Number(val)
     };
-
-    // رسالة توضيحية
-    alert(
-      "سيتم إضافة البيانات التالية إلى جدول student_marks:\n\n" +
-      "اسم المعلم: " + teacherName + "\n" +
-      "البريد الإلكتروني للمعلم: " + teacherEmail + "\n" +
-      "الدور: " + teacherRole + "\n" +
-      Object.entries(dataToAdd).map(([k, v]) => `${k}: ${v}`).join('\n')
-    );
 
     // إضافة البيانات إلى جدول student_marks فقط
     firestore.collection('student_marks')
