@@ -171,7 +171,7 @@
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V12
+  V13
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -830,6 +830,7 @@
       const docRef = querySnapshot.docs[0].ref;
       docRef.update(dataToAdd).then(() => {
         showToast('تم تحديث العلامة بنجاح!', "#1dad87");
+        loadStudentSummaries(studentEmail); // بعد إتمام التحديث فقط
       }).catch((err) => {
         alert('خطأ أثناء تحديث العلامة:\n' + err.message);
         console.error(err);
