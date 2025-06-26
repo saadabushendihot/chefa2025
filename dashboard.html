@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
-  <!-- مكتبة تصدير PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f5f7fa; color: #23272f; min-height: 100vh;}
@@ -167,6 +166,35 @@
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
     .toast.show { visibility: visible; opacity: 1; }
     .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
+    /* ----------- تحسين عرض التلخيصات ----------- */
+    .summary-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 0.97rem;
+      font-weight: bold;
+    }
+    .summary-status.submitted { background: #1dad87; }
+    .summary-status.draft { background: #b83b3b; }
+    .summaries-table th, .summaries-table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+    .summaries-table tr td:nth-child(2) {
+      max-width: 220px;
+      word-break: break-word;
+      text-align: right;
+      font-size: 0.98rem;
+    }
+    .mark-edit-input {
+      width: 60px;
+      text-align: center;
+      border-radius: 5px;
+      border: 1px solid #c5c9d2;
+      padding: 5px;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -224,7 +252,6 @@
     <div class="students-area">
       <h2> ******** إدارة مستويات الطلاب **********</h2>
       <div id="msg"></div>
-      <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
 
       <div class="student-selection-area">
@@ -233,7 +260,6 @@
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
-      <!-- زر تصدير نتائج الطالب PDF -->
       <div style="text-align:left;margin:10px 0;">
         <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
       </div>
@@ -247,7 +273,6 @@
         <div id="detailLevels" class="levels-grid"></div>
         <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
         <div id="examsTableWrapper"></div>
-        <!-- جدول تلخيصات الطالب -->
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
         <div id="summariesTableWrapper"></div>
       </div>
@@ -312,7 +337,6 @@
       html2pdf().set(opt).from(el).save();
     }
 
-    // --- كودك الأصلي كما هو مع التعديلات في الدوال أدناه فقط ---
     function toggleSection(sectionId){
       var sec = document.getElementById(sectionId);
       var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
@@ -578,7 +602,7 @@
         "الثاني": 2, "ثاني": 2, "2": 2,
         "الثالث": 3, "ثالث": 3, "3": 3,
         "الرابع": 4, "رابع": 4, "4": 4,
-        "الخامس": 5, "خامس": 5, "5": 5,
+        "الخامس": 5, "خمس": 5, "5": 5,
         "السادس": 6, "سادس": 6, "6": 6,
         "السابع": 7, "سابع": 7, "7": 7,
       };
@@ -707,7 +731,7 @@
       });
     }
 
-    // تلخيصات الطالب
+    // تلخيصات الطالب - عرض احترافي وتفعيل الحفظ المنسق
     function loadStudentSummaries(email) {
       showLoading(true);
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
@@ -722,17 +746,31 @@
         firestore.collection('lessons').get().then(lessonsSnap=>{
           let lessonsMap = {};
           lessonsSnap.forEach(doc=>lessonsMap[doc.data().id]=doc.data().title);
-          let html = `<table style="width:100%;margin-top:8px;">
-            <thead><tr><th>الدرس</th><th>النص</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
+          let html = `<table class="summaries-table" style="width:100%;margin-top:8px;">
+            <thead>
+              <tr>
+                <th>الدرس</th>
+                <th>النص</th>
+                <th>الحالة</th>
+                <th>العلامة</th>
+                <th>تعديل العلامة</th>
+              </tr>
+            </thead>
+            <tbody>`;
           summaries.forEach(s=>{
             let valMark = typeof s.mark !== "undefined" && s.mark !== null ? s.mark : "";
+            let summaryStatus = s.status === "submitted" ? "submitted" : "draft";
             html += `<tr>
               <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
-              <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
-              <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-              <td id="markval_${s.docId}">${valMark}</td>
+              <td>${s.summary_text||""}</td>
+              <td><span class="summary-status ${summaryStatus}">
+                  ${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}
+              </span></td>
+              <td style="font-weight:bold;" id="markval_${s.docId}">
+                ${valMark !== "" ? valMark : "<span style='color:#aaa;'>غير محدد</span>"}
+              </td>
               <td>
-                <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="${valMark}" min="0" max="100">
+                <input class="mark-edit-input" id="markinp_${s.docId}" type="number" min="0" max="100" value="${valMark}">
                 <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
               </td>
             </tr>`;
@@ -744,13 +782,19 @@
       });
     }
 
-    // حفظ علامة التلخيص
+    // حفظ علامة التلخيص - احترافي
     function saveSummaryMark(docId) {
       let val = document.getElementById('markinp_' + docId).value;
+      if(val === "" || isNaN(val) || Number(val) < 0 || Number(val) > 100){
+        showToast("يرجى إدخال علامة صحيحة بين 0 و 100", "#e63946");
+        return;
+      }
       firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=>{
         document.getElementById('markval_' + docId).innerText = val;
         showToast('تم تحديث العلامة بنجاح', "#1dad87");
-      }).catch(()=>showToast('خطأ أثناء تحديث العلامة', "#e63946"));
+      }).catch(()=>{
+        showToast('خطأ أثناء تحديث العلامة', "#e63946");
+      });
     }
 
     function logout() {
