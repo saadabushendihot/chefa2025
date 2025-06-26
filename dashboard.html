@@ -3,20 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <title>لوحة المعلم - إدارة الطلاب والدروس</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <!-- تأكد من وجود ملف firebase-config.js في نفس المجلد ويحتوي على تهيئة Firebase الخاصة بك -->
   <script src="firebase-config.js"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- مكتبة تصدير PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    body {
-      font-family: Tajawal, Arial, sans-serif;
-      margin: 0;
-      background: #f5f7fa;
-      color: #23272f;
-      min-height: 100vh;
-    }
+    body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f5f7fa; color: #23272f; min-height: 100vh;}
     header {
       background: #3b5cb8;
       color: #fff;
@@ -29,19 +24,8 @@
       border-bottom-left-radius: 10px;
       border-bottom-right-radius: 10px;
     }
-    .container {
-      max-width: 1100px;
-      margin: 32px auto 24px auto;
-      padding: 0 8px;
-    }
-    h2 {
-      color: #294169;
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 1.22rem;
-      letter-spacing: 0.5px;
-      font-weight: 700;
-    }
+    .container { max-width: 1100px; margin: 32px auto 24px auto; padding: 0 8px;}
+    h2 { color: #294169; margin-top: 0; margin-bottom: 18px; font-size: 1.22rem; letter-spacing: 0.5px; font-weight: 700;}
     .btn {
       background: #3b5cb8;
       color: #fff;
@@ -111,18 +95,8 @@
       letter-spacing: 0.5px;
       text-align: center;
     }
-    .add-section form {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .add-section label {
-      font-size: 1rem;
-      color: #2e4061;
-      margin-bottom: 4px;
-      margin-right: 2px;
-      font-weight: 500;
-    }
+    .add-section form { display: flex; flex-direction: column; gap: 14px;}
+    .add-section label { font-size: 1rem; color: #2e4061; margin-bottom: 4px; margin-right: 2px; font-weight: 500;}
     .add-section input, .add-section select {
       padding: 9px;
       border: 1px solid #c5c9d2;
@@ -133,38 +107,13 @@
       transition: border 0.15s;
       margin-bottom: 6px;
     }
-    .add-section input:focus, .add-section select:focus {
-      border-color: #3b5cb8;
-      outline: none;
-    }
-    .add-section .btn {
-      margin-top: 8px;
-      width: 100%;
-      padding: 10px 0;
-      font-size: 1.1rem;
-      border-radius: 7px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 14px;
-      background: #fff;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 4px #00000008;
-    }
-    th, td {
-      padding: 9px 6px;
-      border-bottom: 1px solid #e5e7ea;
-      text-align: center;
-      font-size: 1rem;
-      color: #23272f;
-    }
+    .add-section input:focus, .add-section select:focus { border-color: #3b5cb8; outline: none;}
+    .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
+    table { width: 100%; border-collapse: collapse; margin-top: 14px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px #00000008;}
+    th, td { padding: 9px 6px; border-bottom: 1px solid #e5e7ea; text-align: center; font-size: 1rem; color: #23272f;}
     th { background: #f2f5fc; color: #294169; font-weight: bold;}
-    tr:last-child td { border-bottom: none; }
-    .student-selection-area {
-      margin-bottom: 20px;
-    }
+    tr:last-child td { border-bottom: none;}
+    .student-selection-area { margin-bottom: 20px;}
     #selectedStudentDetails {
       background: #f9fbfd;
       padding: 15px;
@@ -172,60 +121,14 @@
       border: 1px solid #e0e4e8;
       display: none;
     }
-    #selectedStudentDetails h3 {
-      color: #294169;
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      text-align: right;
-    }
-    #selectedStudentDetails p {
-      margin-bottom: 8px;
-      font-size: 1rem;
-      color: #23272f;
-      text-align: right;
-    }
-    #selectedStudentDetails p strong {
-      color: #294169;
-    }
-    #selectedStudentDetails h4 {
-      color: #294169;
-      margin-top: 20px;
-      margin-bottom: 10px;
-      font-size: 1.05rem;
-      font-weight: bold;
-      text-align: right;
-    }
-    .levels-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 10px;
-      margin-top: 10px;
-    }
-    .level-item {
-      display: flex;
-      align-items: center;
-      background: #f2f5fc;
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #e5e7ea;
-      cursor: pointer;
-      user-select: none;
-    }
-    .level-item input[type="checkbox"] {
-      margin-left: 8px;
-      width: 20px;
-      height: 20px;
-      cursor: pointer;
-    }
-    .level-item label {
-      font-size: 0.95rem;
-      color: #294169;
-      font-weight: 500;
-      flex-grow: 1;
-      cursor: pointer;
-    }
+    #selectedStudentDetails h3 { color: #294169; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold; text-align: right;}
+    #selectedStudentDetails p { margin-bottom: 8px; font-size: 1rem; color: #23272f; text-align: right;}
+    #selectedStudentDetails p strong { color: #294169;}
+    #selectedStudentDetails h4 { color: #294169; margin-top: 20px; margin-bottom: 10px; font-size: 1.05rem; font-weight: bold; text-align: right;}
+    .levels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;}
+    .level-item { display: flex; align-items: center; background: #f2f5fc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7ea; cursor: pointer; user-select: none;}
+    .level-item input[type="checkbox"] { margin-left: 8px; width: 20px; height: 20px; cursor: pointer;}
+    .level-item label { font-size: 0.95rem; color: #294169; font-weight: 500; flex-grow: 1; cursor: pointer;}
     .level-color-1 { background: #e7f2fa !important; }
     .level-color-2 { background: #f8e7fa !important; }
     .level-color-3 { background: #e7faf0 !important; }
@@ -249,10 +152,7 @@
     .save-btn:hover {background:#156c59;}
     .cancel-btn {background:#b83b3b; color:#fff;}
     .cancel-btn:hover {background:#7a2626;}
-    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg {
-      color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px;
-      text-align: center;
-    }
+    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
     @media (max-width: 900px){
       .container {padding:8px;}
       th, td {font-size: 0.91rem;}
@@ -260,10 +160,13 @@
       .students-area, .lessons-area, .add-section {padding:10px 4px;}
       header {font-size:1rem; padding:10px;}
       .add-section {max-width: 99vw;}
-      .levels-grid {
-        grid-template-columns: 1fr;
-      }
+      .levels-grid { grid-template-columns: 1fr;}
     }
+    .spinner { border: 4px solid #eee; border-top: 4px solid #3b5cb8; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 30px auto; display: none;}
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
+    .toast.show { visibility: visible; opacity: 1; }
+    .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
   </style>
 </head>
 <body>
@@ -273,6 +176,11 @@
   </header>
   <div class="container">
 
+    <!-- Spinner -->
+    <div class="spinner" id="loadingSpinner"></div>
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+    <!-- إضافة طالب ودروس -->
     <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
       <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
       <span style="font-weight:bold;">إضافة طالب جديد</span>
@@ -316,12 +224,20 @@
     <div class="students-area">
       <h2> ******** إدارة مستويات الطلاب **********</h2>
       <div id="msg"></div>
+      <!-- شريط البحث الجديد -->
+      <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
+
       <div class="student-selection-area">
         <label for="studentSelect" style="font-weight:bold; margin-bottom: 10px; display: block; text-align: right;">اختر الطالب:</label>
         <select id="studentSelect" onchange="showSelectedStudentDetails(this.value)" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #c5c9d2; font-size: 1rem; background: #f7f8fa; color: #23272f;">
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
+      <!-- زر تصدير نتائج الطالب PDF -->
+      <div style="text-align:left;margin:10px 0;">
+        <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
+      </div>
+
       <div id="selectedStudentDetails" style="background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; margin-top: 20px; display: none;">
         <h3>تفاصيل الطالب المحدد:</h3>
         <p><strong>الاسم:</strong> <span id="detailName"></span></p>
@@ -331,6 +247,9 @@
         <div id="detailLevels" class="levels-grid"></div>
         <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
         <div id="examsTableWrapper"></div>
+        <!-- جدول تلخيصات الطالب -->
+        <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
+        <div id="summariesTableWrapper"></div>
       </div>
     </div>
 
@@ -353,6 +272,47 @@
     </div>
   </div>
   <script>
+    // Toast & Loading
+    function showToast(msg, color="#3b5cb8") {
+      const toast = document.getElementById("toast");
+      toast.innerText = msg;
+      toast.style.background = color;
+      toast.className = "toast show";
+      setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
+    }
+    function showLoading(show) {
+      document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
+    }
+
+    // بحث الطلاب
+    function filterStudents() {
+      let val = document.getElementById('studentSearch').value.trim().toLowerCase();
+      let studentSelect = document.getElementById('studentSelect');
+      let options = studentSelect.querySelectorAll('option');
+      options.forEach((opt,i)=>{
+        if(i==0){ opt.style.display=""; return; }
+        let txt = opt.textContent.toLowerCase();
+        let email = allStudentsData[opt.value]?.email?.toLowerCase() || '';
+        opt.style.display =
+          (txt.includes(val)||email.includes(val)) ? "" : "none";
+      });
+    }
+
+    // تصدير PDF
+    function downloadStudentReport() {
+      let el = document.getElementById('selectedStudentDetails');
+      let studentName = document.getElementById('detailName').innerText || "student";
+      let opt = {
+        margin: 0.2,
+        filename: `تقرير_${studentName}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(el).save();
+    }
+
+    // --- كودك الأصلي كما هو مع التعديلات في الدوال أدناه فقط ---
     function toggleSection(sectionId){
       var sec = document.getElementById(sectionId);
       var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
@@ -487,6 +447,7 @@
     }
 
     function loadStudents() {
+      showLoading(true);
       firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
         let studentSelect = document.getElementById('studentSelect');
         studentSelect.innerHTML = '<option value="">-- اختر طالباً لعرض بياناته --</option>';
@@ -499,6 +460,7 @@
           option.textContent = data.name || 'غير معروف';
           studentSelect.appendChild(option);
         });
+        showLoading(false);
         const currentSelectedStudentId = studentSelect.value;
         if (currentSelectedStudentId && allStudentsData[currentSelectedStudentId]) {
             showSelectedStudentDetails(currentSelectedStudentId);
@@ -510,7 +472,8 @@
             showSelectedStudentDetails(querySnapshot.docs[0].id);
         }
       }).catch(function(error) {
-        console.error("خطأ في جلب بيانات الطلاب:", error);
+        showLoading(false);
+        showToast("خطأ في تحميل الطلاب", "#e63946");
         document.getElementById('msg').innerText = "خطأ في تحميل بيانات الطلاب.";
       });
     }
@@ -519,6 +482,7 @@
       const studentDetailsDiv = document.getElementById('selectedStudentDetails');
       if (!studentId) {
         studentDetailsDiv.style.display = 'none';
+        document.getElementById('teacherPDFBtn').style.display = "none";
         return;
       }
       const student = allStudentsData[studentId];
@@ -548,9 +512,12 @@
           detailLevelsDiv.appendChild(levelItem);
         }
         renderExamsTable(studentId, student);
+        document.getElementById('teacherPDFBtn').style.display = "";
+        loadStudentSummaries(student.email);
         studentDetailsDiv.style.display = 'block';
       } else {
         studentDetailsDiv.style.display = 'none';
+        document.getElementById('teacherPDFBtn').style.display = "none";
         document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
         setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
       }
@@ -738,6 +705,52 @@
       }).catch(function(err){
         document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
       });
+    }
+
+    // تلخيصات الطالب
+    function loadStudentSummaries(email) {
+      showLoading(true);
+      firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
+        let summaries = [];
+        snap.forEach(doc=>summaries.push({...doc.data(), docId: doc.id}));
+        if (!summaries.length) {
+          document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص.</b>";
+          showLoading(false);
+          return;
+        }
+        // جلب عناوين الدروس
+        firestore.collection('lessons').get().then(lessonsSnap=>{
+          let lessonsMap = {};
+          lessonsSnap.forEach(doc=>lessonsMap[doc.data().id]=doc.data().title);
+          let html = `<table style="width:100%;margin-top:8px;">
+            <thead><tr><th>الدرس</th><th>النص</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
+          summaries.forEach(s=>{
+            let valMark = typeof s.mark !== "undefined" && s.mark !== null ? s.mark : "";
+            html += `<tr>
+              <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
+              <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
+              <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
+              <td id="markval_${s.docId}">${valMark}</td>
+              <td>
+                <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="${valMark}" min="0" max="100">
+                <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
+              </td>
+            </tr>`;
+          });
+          html += "</tbody></table>";
+          document.getElementById('summariesTableWrapper').innerHTML = html;
+          showLoading(false);
+        });
+      });
+    }
+
+    // حفظ علامة التلخيص
+    function saveSummaryMark(docId) {
+      let val = document.getElementById('markinp_' + docId).value;
+      firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=>{
+        document.getElementById('markval_' + docId).innerText = val;
+        showToast('تم تحديث العلامة بنجاح', "#1dad87");
+      }).catch(()=>showToast('خطأ أثناء تحديث العلامة', "#e63946"));
     }
 
     function logout() {
