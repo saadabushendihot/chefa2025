@@ -802,39 +802,52 @@
       box.innerHTML = '';
     }
     function saveDetailsBoxMark(docId) {
-      let val = Number(document.getElementById('detailsBoxMarkInput').value);
-      if(isNaN(val)) {
-        document.getElementById('detailsBoxMsg').innerText = 'أدخل رقمًا صحيحًا';
-        document.getElementById('detailsBoxMsg').style.color = "#e63946";
-        return;
-      }
-      firestore.collection('summaries').doc(docId).update({mark: val}).then(()=>{
-        document.getElementById('detailsBoxMsg').style.color = "#1dad87";
-        document.getElementById('detailsBoxMsg').innerText = 'تم حفظ العلامة.';
-        document.getElementById('markval_' + docId).innerText = val;
-        document.getElementById('markinp_' + docId).value = val;
-        setTimeout(closeSummaryDetailsBox, 900);
-      }).catch((e)=>{
-        document.getElementById('detailsBoxMsg').style.color = "#e63946";
-        document.getElementById('detailsBoxMsg').innerText = 'خطأ أثناء حفظ العلامة: ' + e.message;
-      });
-    }
+  let val = Number(document.getElementById('detailsBoxMarkInput').value);
+  let saveData = { mark: val };
+  let docPath = `summaries/${docId}`;
+  console.log('[تلخيص] محاولة حفظ العلامة:', saveData, 'في:', docPath);
+
+  if(isNaN(val)) {
+    document.getElementById('detailsBoxMsg').innerText = 'أدخل رقمًا صحيحًا';
+    document.getElementById('detailsBoxMsg').style.color = "#e63946";
+    console.warn("[تلخيص] القيمة المدخلة غير رقمية");
+    return;
+  }
+  firestore.collection('summaries').doc(docId).update(saveData).then(()=>{
+    document.getElementById('detailsBoxMsg').style.color = "#1dad87";
+    document.getElementById('detailsBoxMsg').innerText = 'تم حفظ العلامة.';
+    document.getElementById('markval_' + docId).innerText = val;
+    document.getElementById('markinp_' + docId).value = val;
+    setTimeout(closeSummaryDetailsBox, 900);
+    console.log('[تلخيص] تم الحفظ بنجاح!', saveData, 'في:', docPath);
+  }).catch((e)=>{
+    document.getElementById('detailsBoxMsg').style.color = "#e63946";
+    document.getElementById('detailsBoxMsg').innerText = 'خطأ أثناء حفظ العلامة: ' + e.message;
+    console.error('[تلخيص] خطأ أثناء الحفظ:', e, 'البيانات:', saveData, 'المسار:', docPath);
+  });
+}
 
     // حفظ علامة التلخيص من الجدول مباشرة
-    function saveSummaryMark(docId) {
-      let val = Number(document.getElementById('markinp_' + docId).value);
-      if(isNaN(val)) {
-        showToast('أدخل رقمًا صحيحًا', "#e63946");
-        return;
-      }
-      firestore.collection('summaries').doc(docId).update({mark: val}).then(()=>{
-        document.getElementById('markval_' + docId).innerText = val;
-        showToast('تم تحديث العلامة بنجاح', "#1dad87");
-      }).catch((e)=>{
-        showToast('خطأ أثناء تحديث العلامة: ' + e.message, "#e63946");
-        console.error("Firestore error:", e);
-      });
-    }
+  function saveSummaryMark(docId) {
+  let val = Number(document.getElementById('markinp_' + docId).value);
+  let saveData = { mark: val };
+  let docPath = `summaries/${docId}`;
+  console.log('[تلخيص-جدول] محاولة حفظ العلامة:', saveData, 'في:', docPath);
+
+  if(isNaN(val)) {
+    showToast('أدخل رقمًا صحيحًا', "#e63946");
+    console.warn('[تلخيص-جدول] القيمة المدخلة غير رقمية');
+    return;
+  }
+  firestore.collection('summaries').doc(docId).update(saveData).then(()=>{
+    document.getElementById('markval_' + docId).innerText = val;
+    showToast('تم تحديث العلامة بنجاح', "#1dad87");
+    console.log('[تلخيص-جدول] تم الحفظ بنجاح!', saveData, 'في:', docPath);
+  }).catch((e)=>{
+    showToast('خطأ أثناء تحديث العلامة: ' + e.message, "#e63946");
+    console.error('[تلخيص-جدول] خطأ أثناء الحفظ:', e, 'البيانات:', saveData, 'المسار:', docPath);
+  });
+}
 
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
