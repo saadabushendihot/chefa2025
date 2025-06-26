@@ -215,7 +215,7 @@
 
     // عداد الوقت للاختبار
     let examTimerInterval, examTimeLeft = 0;
-    function startExamTimer(minutes = 1) {
+    function startExamTimer(minutes = 20) {
       clearInterval(examTimerInterval);
       examTimeLeft = minutes * 60;
       updateExamTimer();
@@ -585,7 +585,7 @@
         }
         loadExamQuestions(level);
         // بدء العداد (مثال: 20 دقيقة)
-        startExamTimer(20);
+        startExamTimer(1);
       });
       document.getElementById('formMsg').innerText = '';
       document.getElementById('resultArea').innerText = '';
