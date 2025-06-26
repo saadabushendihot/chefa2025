@@ -796,9 +796,9 @@
         document.getElementById('modalMsg').style.color = "#e63946";
         return;
       }
-      console.log("سيتم تحديث الملخص:", docId, {mark: val});
-      firestore.collection('summaries').doc(docId).update({mark: val})
       if (!currentSummaryDocId) return;
+     console.log("سيتم تحديث الملخص:", docId, {mark: val});
+      firestore.collection('summaries').doc(docId).update({mark: val})      
       firestore.collection('summaries').doc(currentSummaryDocId).update({mark: val}).then(()=>{
         document.getElementById('modalMsg').style.color = "#1dad87";
         document.getElementById('modalMsg').innerText = 'تم حفظ العلامة.';
