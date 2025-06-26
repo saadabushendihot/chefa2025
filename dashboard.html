@@ -747,7 +747,7 @@
     // حفظ علامة التلخيص
     function saveSummaryMark(docId) {
       let val = document.getElementById('markinp_' + docId).value;
-      firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(()=>{
+      firestore.collection('summark').doc(docId).update({mark: Number(val)}).then(()=>{
         document.getElementById('markval_' + docId).innerText = val;
         showToast('تم تحديث العلامة بنجاح', "#1dad87");
       }).catch((error)=>{
