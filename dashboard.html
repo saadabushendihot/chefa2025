@@ -854,18 +854,18 @@
         console.error("خطأ في تسجيل الخروج:", error);
       });
     }
-    function showDebug(msg, data = null) {
+   function showDebug(msg, data = null) {
     let box = document.getElementById('debugBox');
-    let html = `<div style="margin-bottom:4px;"><strong>${msg}</strong>`;
+    let html = `<div style="margin-bottom:6px;"><strong>${msg}</strong>`;
     if (data !== null) {
-        html += "<pre style='background:#eee;padding:5px;overflow-x:auto;'>" + JSON.stringify(data, null, 2) + "</pre>";
+        html += "<pre style='background:#eee;padding:5px;overflow-x:auto;margin:0'>" + JSON.stringify(data, null, 2) + "</pre>";
     }
     html += "</div>";
     box.innerHTML = html + box.innerHTML; // كل جديد في الأعلى
 }
+}
   </script>
 
-  <div id="debugBox" style="background:#f7f7f7;border:1px solid #ccc;padding:10px;margin:10px;color:#555;direction:ltr;font-size:12px;max-width:600px;overflow-x:auto"></div>
-  
+  <div id="debugBox" style="background:#f9f9f9;border:1px solid #ccc;padding:10px;margin:10px 0;color:#333;font-size:13px;max-width:600px;overflow-x:auto"></div>
 </body>
 </html>
