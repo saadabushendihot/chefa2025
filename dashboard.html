@@ -222,7 +222,7 @@
     </div>
 
     <div class="students-area">
-      <h2>   v1إدارة مستويات الطلاب </h2>
+      <h2>   v2إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
       <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
@@ -743,46 +743,44 @@
         });
       });
     }
-
+// حفظ علامة التلخيص
   function saveSummaryMark(docId) {
   let val = document.getElementById('markinp_' + docId).value;
+
+  // استخراج بيانات الطالب من الشاشة
+  const studentName = document.getElementById('detailName').textContent || '';
+  const studentEmail = document.getElementById('detailEmail').textContent || '';
+  const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
+
+  // استخراج بيانات الدرس من صف الجدول
+  const row = document.getElementById('markinp_' + docId).closest('tr');
+  const lessonTitle = row.cells[0].textContent || '';
+  const statusText = row.cells[2].textContent || '';
+
+  // البيانات المراد إضافتها
+  const dataToAdd = {
+    summary_id: docId,
+    student_name: studentName,
+    student_email: studentEmail,
+    course_number: courseNumber,
+    lesson_title: lessonTitle,
+    status: statusText,
+    mark: Number(val),
+    updated_at: new Date()
+  };
+
+  // رسالة توضيحية تظهر دائمًا قبل أي حفظ
+  let msg =
+    "سيتم محاولة إضافة/تحديث البيانات التالية:\n" +
+    "اسم الجدول: student_marks\n" +
+    "الحقول والقيم:\n" +
+    Object.entries(dataToAdd).map(([key, value]) => `${key}: ${value}`).join('\n');
+  alert(msg);
 
   // تحديث العلامة في جدول summaries
   firestore.collection('summaries').doc(docId).update({mark: Number(val)}).then(() => {
     document.getElementById('markval_' + docId).innerText = val;
     showToast('تم تحديث العلامة بنجاح', "#1dad87");
-
-    // استخراج بيانات الطالب من الشاشة
-    const studentName = document.getElementById('detailName').textContent || '';
-    const studentEmail = document.getElementById('detailEmail').textContent || '';
-    const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
-
-    // استخراج بيانات الدرس من صف الجدول
-    const row = document.getElementById('markinp_' + docId).closest('tr');
-    const lessonTitle = row.cells[0].textContent || '';
-    const statusText = row.cells[2].textContent || '';
-
-    // البيانات المراد إضافتها
-    const dataToAdd = {
-      summary_id: docId,
-      student_name: studentName,
-      student_email: studentEmail,
-      course_number: courseNumber,
-      lesson_title: lessonTitle,
-      status: statusText,
-      mark: Number(val),
-      updated_at: new Date()
-    };
-
-    // رسالة توضيحية
-    let msg =
-      "سيتم إضافة البيانات التالية إلى الجدول:\n" +
-      "اسم الجدول: student_marks\n" +
-      "الحقول والقيم:\n" +
-      Object.entries(dataToAdd).map(([key, value]) => `${key}: ${value}`).join('\n');
-
-    // تظهر الرسالة للمستخدم (يمكنك استخدام alert أو showToast أو console.log)
-    alert(msg);
 
     // إضافة البيانات إلى جدول student_marks
     firestore.collection('student_marks').add(dataToAdd).catch((err) => {
@@ -793,9 +791,10 @@
   }).catch((error) => {
     showToast('خطأ أثناء تحديث العلامة: ' + error.message, "#e63946");
     console.error(error);
+    // إذا أردت يمكنك هنا أيضًا طباعة البيانات في الكونسول لمزيد من التدقيق
+    console.log('بيانات الحفظ التي كانت ستستخدم:', dataToAdd);
   });
 }
-
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
