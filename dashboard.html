@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
-  <!-- مكتبة تصدير PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body { font-family: Tajawal, Arial, sans-serif; margin: 0; background: #f5f7fa; color: #23272f; min-height: 100vh;}
@@ -274,7 +273,7 @@ input[id^="markinp_"] {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V15
+  V16
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -282,11 +281,8 @@ input[id^="markinp_"] {
   </header>
   <div class="container">
 
-    <!-- Spinner -->
     <div class="spinner" id="loadingSpinner"></div>
-    <!-- Toast -->
     <div id="toast" class="toast"></div>
-    <!-- إضافة طالب ودروس -->
     <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
       <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
       <span style="font-weight:bold;">إضافة طالب جديد</span>
@@ -330,7 +326,6 @@ input[id^="markinp_"] {
     <div class="students-area">
       <h2>إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
-      <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
 
       <div class="student-selection-area">
@@ -339,7 +334,6 @@ input[id^="markinp_"] {
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
-      <!-- زر تصدير نتائج الطالب PDF -->
       <div style="text-align:left;margin:10px 0;">
         <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
       </div>
@@ -353,7 +347,6 @@ input[id^="markinp_"] {
         <div id="detailLevels" class="levels-grid"></div>
         <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
         <div id="examsTableWrapper"></div>
-        <!-- جدول تلخيصات الطالب -->
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
         <div id="summariesTableWrapper"></div>
       </div>
@@ -849,13 +842,15 @@ input[id^="markinp_"] {
           let lessonsMap = {};
           lessonsSnap.forEach(doc=>lessonsMap[doc.data().id]=doc.data().title);
                let html = `<table style="width:100%;margin-top:8px;">
-          <thead><tr><th>الدرس</th><th>النص</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
+          <thead><tr><th>الدرس</th><th>النص</th><th>الحالة والعلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
         summaries.forEach(s=>{
           html += `<tr>
             <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
             <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
-            <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-            <td id="markval_${s.docId}">جاري التحميل...</td>
+            <td>
+              <span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span>
+              <span id="markval_${s.docId}"></span>
+            </td>
             <td>
               <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="" min="0" max="100">
               <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
@@ -868,7 +863,7 @@ input[id^="markinp_"] {
         // اجلب العلامات لكل تلخيص بعد بناء الجدول
         summaries.forEach(s=>{
           getMarkForSummary(s.docId, s.student_email).then(mark=>{
-            document.getElementById('markval_'+s.docId).innerText = mark;
+            document.getElementById('markval_'+s.docId).innerText = mark ? ` (العلامة: ${mark})` : '';
             document.getElementById('markinp_'+s.docId).value = mark;
           });
         });
