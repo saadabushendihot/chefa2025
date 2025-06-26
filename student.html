@@ -4,10 +4,12 @@
   <meta charset="UTF-8">
   <title>لوحة الطالب - شفاء</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Tajawal','Cairo',Arial,sans-serif; margin: 0; background: #f8fafc;}
@@ -137,7 +139,9 @@
     </div>
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
+    <!-- مؤشر تحميل -->
     <div class="spinner" id="loadingSpinner"></div>
+    <!-- الجدول المدمج الجديد -->
     <div id="levelsExamsTableArea"></div>
     <div id="examWarnMsg"></div>
     <div class="exams-box" id="examsBox" style="display:none;">
@@ -164,6 +168,7 @@
       <div class="result" id="resultArea"></div>
     </div>
   </div>
+  <!-- رسالة منبثقة -->
   <div id="toast" class="toast"></div>
   <script>
     // الوضع الليلي
@@ -286,6 +291,7 @@
     // مراقبة الدخول
     auth.onAuthStateChanged(function(user) {
       if (user) {
+        showLoading(true);
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
           if (doc.exists) {
             if (doc.data().role !== "student") {
@@ -365,7 +371,7 @@
           document.getElementById('oralExamMark').innerText = oralMark;
           document.getElementById('fExam').innerText = fMark;
 
-          // تحميل الدروس والتلاخيص (مع التعديل الجديد)
+          // تحميل الدروس والتلاخيص
           const allowedLevels = getAllowedLevels(data);
           loadActiveLessonsAndSummaries(allowedLevels);
         }
@@ -444,46 +450,23 @@
               let validSummaries = 0;
               summariesSnap.forEach(doc=>{
                 const data = doc.data();
-                if(data.status === "submitted"){ // Check if submitted
-                  // Get mark from student_marks table
-                  firestore.collection('student_marks')
-                    .where('summary_id', '==', doc.id) // Use doc.id for summaries to match with summary_id in student_marks
-                    .where('student_email', '==', currentStudentEmail)
-                    .limit(1)
-                    .get()
-                    .then(markSnap => {
-                      if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark !== undefined) {
-                        validSummaries++;
-                      }
-                      // Check if all lessons have submitted summaries with marks after all promises resolve
-                      if (validSummaries === lessons.length) {
-                        btn.style.display="";
-                        warn.innerText = '';
-                        btn.onclick = function(){
-                          currentExamLevel = lastActiveLevelIndex;
-                          checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
-                          setTimeout(function(){
-                            document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
-                          }, 300);
-                        };
-                      } else {
-                        btn.style.display="none";
-                        warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها.';
-                      }
-                    })
-                    .catch(error => {
-                      console.error("Error fetching mark for summary in exam check:", doc.id, error);
-                      // If there's an error fetching mark, consider it not valid for exam check
-                      btn.style.display="none";
-                      warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
-                    });
+                if(data.status === "submitted" && data.hasOwnProperty('mark') && data.mark !== null && data.mark !== undefined){
+                  validSummaries++;
                 }
               });
-              // This part will run before mark fetches complete, so it needs to be inside the .then of mark fetches
-              // A better approach would be to use Promise.all for mark fetches here too.
-              if (summariesSnap.empty && lessons.length > 0) { // If no summaries but there are lessons
-                 btn.style.display="none";
-                 warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها.';
+              if(validSummaries === lessons.length){
+                btn.style.display="";
+                warn.innerText = '';
+                btn.onclick = function(){
+                  currentExamLevel = lastActiveLevelIndex;
+                  checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+                  setTimeout(function(){
+                    document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+                  }, 300);
+                };
+              } else {
+                btn.style.display="none";
+                warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها.';
               }
             });
         });
@@ -738,7 +721,7 @@
       }
     }
 
-    // تحميل الدروس والتلاخيص مع عرض العلامة وتاريخ التسليم (مُعدلة)
+    // تحميل الدروس والتلاخيص مع عرض العلامة وتاريخ التسليم
     function loadActiveLessonsAndSummaries(activeLevels) {
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
@@ -754,103 +737,43 @@
             lessons.push(lesson);
           }
         });
-
         if (lessons.length === 0) {
           document.getElementById('lessonsSummariesArea').innerHTML = "";
           showLoading(false);
           return;
         }
-
-        let lessonIds = lessons.map(l => l.id);
+        let lessonIds = lessons.map(l=>l.id);
         firestore.collection('summaries')
           .where('student_email', '==', currentStudentEmail)
           .where('lesson_id', 'in', lessonIds)
           .get()
-          .then(function(summarySnapshot) {
+          .then(function(summarySnapshot){
             let summariesMap = {};
-            let markPromises = [];
-
-            summarySnapshot.forEach(function(doc) {
-              let s = { ...doc.data(), docId: doc.id }; // Include docId for fetching mark
-              summariesMap[s.lesson_id] = s;
-
-              // If summary is submitted, fetch its mark from student_marks
-              // If not submitted (draft), mark_from_student_marks remains null or undefined,
-              // and the render function will display '-'
-              if (s.status === 'submitted') {
-                markPromises.push(
-                  firestore.collection('student_marks')
-                  .where('summary_id', '==', s.docId) // Use summary's docId to link
-                  .where('student_email', '==', currentStudentEmail) // Important: filter by current student
-                  .limit(1)
-                  .get()
-                  .then(markSnap => {
-                    if (!markSnap.empty) {
-                      s.mark_from_student_marks = markSnap.docs[0].data().mark;
-                    } else {
-                      s.mark_from_student_marks = null; // No mark found for submitted summary
-                    }
-                  }).catch(err => {
-                    console.error("Error fetching mark for summary:", s.docId, err);
-                    s.mark_from_student_marks = null; // Handle error gracefully
-                  })
-                );
-              } else {
-                s.mark_from_student_marks = null; // Mark should be null for drafts
-              }
+            summarySnapshot.forEach(function(doc){
+              let s = doc.data();
+              summariesMap[s.lesson_id] = { ...s, docId: doc.id };
             });
-
-            // Wait for all mark fetching promises to resolve before rendering
-            Promise.all(markPromises).then(() => {
-              renderSummariesLessonsUI(lessons, summariesMap);
-              showLoading(false);
-            }).catch(err => {
-              showToast("خطأ في تحميل العلامات", "#e63946");
-              showLoading(false);
-              console.error("Error in Promise.all for marks:", err);
-            });
-
-          }).catch(function(err) {
-            showToast("خطأ في تحميل التلاخيص", "#e63946");
+            renderSummariesLessonsUI(lessons, summariesMap);
             showLoading(false);
-            console.error("Error fetching summaries:", err);
-          });
-      }).catch(err => {
-        showToast("خطأ في تحميل الدروس", "#e63946");
-        showLoading(false);
-        console.error("Error fetching lessons:", err);
+          }).catch(()=>{ showToast("خطأ في تحميل التلاخيص", "#e63946"); showLoading(false); });
       });
     }
 
-    // عرض التلاخيص مع العلامة والتاريخ (مُعدلة)
+    // عرض التلاخيص مع العلامة والتاريخ
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
         let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft" };
         let submitted = sum.status === 'submitted';
-
-        // تحديد العلامة للعرض بناءً على حالة التلخيص والعلامة المجلوبة
-        let markToDisplay = '—';
-        let markBadgeClass = 'none'; // الفئة الافتراضية للعلامة الفارغة أو للمسودة
-
-        if (sum.status === 'submitted') {
-            // إذا كان التلخيص "تم التسليم"، حاول عرض العلامة المجلوبة
-            if (typeof sum.mark_from_student_marks !== 'undefined' && sum.mark_from_student_marks !== null) {
-                markToDisplay = 'العلامة: ' + sum.mark_from_student_marks;
-                markBadgeClass = ''; // إزالة فئة 'none' إذا كانت العلامة موجودة
-            }
-        }
-        // إذا كان sum.status === 'draft'، فإن markToDisplay ستبقى '—'
-
+        let mark = (typeof sum.mark !== 'undefined' && sum.mark !== null) ? sum.mark : null;
         let time = sum.timestamp ? `<span style="color:#888;font-size:0.97em;">(${(new Date(sum.timestamp)).toLocaleString('ar-EG')})</span>` : "";
-
         html += `
         <div class="lesson-summary-block">
           <div class="lesson-student-name">اسم الطالب: ${currentStudentName || ""}</div>
           <h4>
             (${lesson.id}) ${lesson.title}
-            <span class="lesson-mark-badge ${markBadgeClass}">
-              ${markToDisplay}
+            <span class="lesson-mark-badge ${mark === null ? 'none' : ''}">
+              ${mark !== null ? ('العلامة: ' + mark) : '—'}
             </span>
             ${time}
           </h4>
@@ -916,7 +839,7 @@
               lesson_id: lessonId,
               summary_text: text,
               status: "draft",
-              // لا تضع علامة افتراضية هنا، ستُضاف لاحقًا من قبل المعلم
+              mark: 1,
               timestamp: new Date().toISOString()
             }).then(function(){
               msg.style.color = "#1dad87";
@@ -957,7 +880,7 @@
               msg.style.color = "#1dad87";
               msg.innerText = "تم تسليم التلخيص بنجاح.";
               textarea.readOnly = true;
-              loadStudentData(currentStudentEmail, currentStudentName); // إعادة تحميل البيانات لتحديث الواجهة
+              loadStudentData(currentStudentEmail, currentStudentName);
               showToast("تم تسليم التلخيص بنجاح!", "#1dad87");
               setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
             }).catch(()=>{ showToast("خطأ أثناء التسليم", "#e63946"); });
@@ -968,13 +891,13 @@
               lesson_id: lessonId,
               summary_text: text,
               status: "submitted",
-              // لا تضع علامة افتراضية هنا
+              mark: 1,
               timestamp: new Date().toISOString()
             }).then(function(){
               msg.style.color = "#1dad87";
               msg.innerText = "تم تسليم التلخيص بنجاح.";
               textarea.readOnly = true;
-              loadStudentData(currentStudentEmail, currentStudentName); // إعادة تحميل البيانات لتحديث الواجهة
+              loadStudentData(currentStudentEmail, currentStudentName);
               showToast("تم تسليم التلخيص بنجاح!", "#1dad87");
               setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
             }).catch(()=>{ showToast("خطأ أثناء التسليم", "#e63946"); });
