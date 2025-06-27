@@ -363,6 +363,57 @@ input[id^="markinp_"] {
     .dark-mode #summaryViewerModal #summaryViewerContent {
       color: #e0e0e0; /* Lighter text */
     }
+
+    /* Media Queries for Small Screens/Mobile Devices - Summary Modal Responsiveness */
+    @media (max-width: 768px) {
+      #summaryViewerModal > div {
+        width: 95%; /* Make it wider on small screens */
+        margin: 10% auto; /* More margin from top on smaller screens */
+        padding: 15px; /* Reduce padding for less wasted space */
+      }
+
+      #summaryViewerModal .close-btn {
+        font-size: 28px; /* Slightly smaller close button */
+        top: 5px;
+        left: 10px;
+      }
+
+      #summaryViewerModal h3 {
+        font-size: 1.2rem; /* Smaller heading */
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+      }
+
+      #summaryViewerModal #summaryViewerContent {
+        font-size: 1rem; /* Smaller text size for content */
+        line-height: 1.6;
+        max-height: 70vh; /* Allow more vertical space for content */
+      }
+
+      #summaryViewerModal .modal-footer-btn .btn {
+        padding: 6px 20px; /* Smaller button padding */
+        font-size: 0.95rem;
+      }
+    }
+
+    @media (max-width: 480px) { /* Even smaller screens */
+        #summaryViewerModal > div {
+            width: 98%;
+            margin: 5% auto; /* Can be tighter on very small screens */
+            padding: 10px;
+        }
+        #summaryViewerModal .close-btn {
+            font-size: 24px;
+            top: 5px;
+            left: 5px;
+        }
+        #summaryViewerModal h3 {
+            font-size: 1.1rem;
+        }
+        #summaryViewerModal #summaryViewerContent {
+            font-size: 0.95rem;
+        }
+    }
   </style>
 </head>
 <body>
