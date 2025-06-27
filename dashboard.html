@@ -269,11 +269,105 @@ input[id^="markinp_"] {
     .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
     .toast.show { visibility: visible; opacity: 1; }
     .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
+
+    /* Summary Viewer Modal Styles */
+    #summaryViewerModal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1000; /* Sit on top */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+      padding-top: 60px; /* Location of the box */
+    }
+
+    #summaryViewerModal > div {
+      background-color: #fefefe;
+      margin: 5% auto; /* 5% from the top and centered */
+      padding: 30px;
+      border: 1px solid #888;
+      width: 80%; /* Could be more or less, depending on screen size */
+      max-width: 800px; /* Max width for larger screens */
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      position: relative; /* Needed for close button positioning */
+      text-align: right; /* RTL text alignment */
+    }
+
+    #summaryViewerModal .close-btn {
+      color: #aaa;
+      float: left; /* Close button on the left for RTL */
+      font-size: 32px;
+      font-weight: bold;
+      cursor: pointer;
+      position: absolute; /* Absolute positioning within the modal content */
+      top: 10px;
+      left: 20px;
+    }
+
+    #summaryViewerModal .close-btn:hover,
+    #summaryViewerModal .close-btn:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    #summaryViewerModal h3 {
+      color: #2260af;
+      margin-top:0;
+      margin-bottom: 20px;
+      font-size: 1.4rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    #summaryViewerModal #summaryViewerContent {
+      white-space: pre-wrap; /* Preserve whitespace and line breaks */
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #333;
+      max-height: 60vh; /* Max height with scroll */
+      overflow-y: auto;
+      direction: rtl; /* Ensure text direction for content */
+    }
+    
+    #summaryViewerModal .modal-footer-btn {
+        margin-top: 25px;
+        text-align: center;
+    }
+    #summaryViewerModal .modal-footer-btn .btn {
+        padding: 8px 30px;
+    }
+
+    /* Dark mode for Summary Viewer Modal */
+    .dark-mode #summaryViewerModal > div {
+      background-color: #323946;
+      border: 1px solid #4a576b;
+      color: #e0e0e0; /* Lighter text for dark mode */
+    }
+    .dark-mode #summaryViewerModal .close-btn {
+      color: #bbb;
+    }
+    .dark-mode #summaryViewerModal .close-btn:hover,
+    .dark-mode #summaryViewerModal .close-btn:focus {
+      color: #fff;
+    }
+    .dark-mode #summaryViewerModal h3 {
+      color: #8cafff; /* Lighter blue for heading */
+      border-bottom: 1px solid #4a576b;
+    }
+    .dark-mode #summaryViewerModal #summaryViewerContent {
+      color: #e0e0e0; /* Lighter text */
+    }
   </style>
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V16
+  V15
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -370,6 +464,19 @@ input[id^="markinp_"] {
       </table>
     </div>
   </div>
+
+<div id="summaryViewerModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
+  <div style="background-color: #fefefe; margin: 5% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); position: relative; text-align: right;">
+    <span class="close-btn" onclick="closeSummaryViewer()">&times;</span>
+    <h3 id="summaryViewerTitle" style="color:#2260af; margin-top:0;">تلخيص الدرس: </h3>
+    <div id="summaryViewerContent" style="white-space: pre-wrap; font-family: 'Tajawal', sans-serif; font-size: 1.1rem; line-height: 1.8; color: #333; max-height: 60vh; overflow-y: auto; direction: rtl;"></div>
+    <div class="modal-footer-btn">
+        <button class="btn" onclick="closeSummaryViewer()">إغلاق</button>
+    </div>
+  </div>
+</div>
+
+
   <script>
     // Toast & Loading
     function showToast(msg, color="#3b5cb8") {
@@ -435,6 +542,8 @@ input[id^="markinp_"] {
 
     var editLessonId = null;
     var allStudentsData = {};
+    window.studentSummariesMap = {}; // متغير عام لتخزين التلاخيص
+    window.lessonsMap = {}; // متغير عام لتخزين معلومات الدروس
 
     // جلب العلامة من student_marks حسب summary_id
       function getMarkForSummary(summaryId, studentEmail) {
@@ -613,7 +722,7 @@ input[id^="markinp_"] {
         detailLevelsDiv.innerHTML = '';
         let exams = {};
         for (let i = 1; i <= 7; i++) {
-          exams['exam' + i] = Boolean(student['exam' + i]);
+          exams['exam' + i] = Boolean(student[examField]);
         }
         for (let i = 1; i <= 7; i++) {
           const level = 'level' + i;
@@ -708,8 +817,10 @@ input[id^="markinp_"] {
     function loadLessons() {
       firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
         let html = '';
+        window.lessonsMap = {}; // Clear and initialize global lessonsMap
         querySnapshot.forEach(function(doc){
           let data = doc.data();
+          window.lessonsMap[data.id] = data.title; // Store lesson title by ID globally
           let levelNum = getLevelNumFromText(data.level);
           let rowClass = levelNum ? `level-color-${levelNum}` : '';
           if (editLessonId === doc.id) {
@@ -831,7 +942,13 @@ input[id^="markinp_"] {
       showLoading(true);
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
         let summaries = [];
-        snap.forEach(doc=>summaries.push({...doc.data(), docId: doc.id}));
+        window.studentSummariesMap = {}; // Clear previous and initialize
+        snap.forEach(doc=>{
+            const s = {...doc.data(), docId: doc.id};
+            summaries.push(s);
+            window.studentSummariesMap[s.docId] = s; // Store by docId for easy lookup
+        });
+
         if (!summaries.length) {
           document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص.</b>";
           showLoading(false);
@@ -839,21 +956,21 @@ input[id^="markinp_"] {
         }
         // جلب عناوين الدروس
         firestore.collection('lessons').get().then(lessonsSnap=>{
-          let lessonsMap = {};
-          lessonsSnap.forEach(doc=>lessonsMap[doc.data().id]=doc.data().title);
+          lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title); // Populate global lessonsMap
+          
                let html = `<table style="width:100%;margin-top:8px;">
-          <thead><tr><th>الدرس</th><th>النص</th><th>الحالة والعلامة</th><th>تعديل العلامة</th></tr></thead><tbody>`;
+          <thead><tr><th>الدرس</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th><th>عرض التلخيص</th></tr></thead><tbody>`;
         summaries.forEach(s=>{
           html += `<tr>
-            <td>${lessonsMap[s.lesson_id]||s.lesson_id}</td>
-            <td style="max-width:180px;word-break:break-all;">${s.summary_text||""}</td>
-            <td>
-              <span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span>
-              <span id="markval_${s.docId}"></span>
-            </td>
+            <td>${window.lessonsMap[s.lesson_id]||s.lesson_id}</td>
+            <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
+            <td id="markval_${s.docId}">جاري التحميل...</td>
             <td>
               <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="" min="0" max="100">
               <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
+            </td>
+            <td>
+                <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="viewSummaryText('${s.docId}')">عرض</button>
             </td>
           </tr>`;
         });
@@ -863,7 +980,7 @@ input[id^="markinp_"] {
         // اجلب العلامات لكل تلخيص بعد بناء الجدول
         summaries.forEach(s=>{
           getMarkForSummary(s.docId, s.student_email).then(mark=>{
-            document.getElementById('markval_'+s.docId).innerText = mark ? ` (العلامة: ${mark})` : '';
+            document.getElementById('markval_'+s.docId).innerText = mark;
             document.getElementById('markinp_'+s.docId).value = mark;
           });
         });
@@ -872,7 +989,6 @@ input[id^="markinp_"] {
       });
     }
 // حفظ علامة التلخيص
- // حفظ علامة التلخيص
 function saveSummaryMark(docId) {
   let val = document.getElementById('markinp_' + docId).value;
 
@@ -900,7 +1016,7 @@ function saveSummaryMark(docId) {
     // استخراج بيانات الدرس من صف الجدول (الكود الأصلي)
     const row = document.getElementById('markinp_' + docId).closest('tr');
     const lessonTitle = row.cells[0].textContent || '';
-    const statusText = row.cells[2].textContent || ''; // هذا سيعطينا "تم التسليم" أو "مسودة" من العرض
+    const statusText = row.cells[1].textContent || ''; // هذا سيعطينا "تم التسليم" أو "مسودة" من العرض
 
     // جلب بيانات المعلم من الحساب الحالي (الكود الأصلي)
     const user = firebase.auth().currentUser;
@@ -969,6 +1085,24 @@ function saveSummaryMark(docId) {
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
       });
+    }
+
+    // Functions for Summary Viewer Modal
+    function viewSummaryText(docId) {
+        const summary = window.studentSummariesMap[docId];
+        if (summary) {
+            // Use window.lessonsMap to get the lesson title
+            const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
+            document.getElementById('summaryViewerTitle').innerText = 'تلخيص الدرس: ' + lessonTitle;
+            document.getElementById('summaryViewerContent').innerText = summary.summary_text;
+            document.getElementById('summaryViewerModal').style.display = 'block';
+        } else {
+            showToast("تعذر العثور على التلخيص.", "#e63946");
+        }
+    }
+
+    function closeSummaryViewer() {
+        document.getElementById('summaryViewerModal').style.display = 'none';
     }
   </script>
 </body>
