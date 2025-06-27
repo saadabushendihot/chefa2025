@@ -35,17 +35,24 @@
       box-sizing: border-box; /* لضمان احتساب البادينج ضمن العرض */
     }
 
-    .main-nav .nav-center {
+    .main-nav .nav-brand {
         display: flex;
         align-items: center;
-        gap: 25px; /* تباعد بين العناصر في الوسط */
-        flex-grow: 1; /* للسماح بالنمو واخذ المساحة المتاحة */
-        justify-content: center; /* لمحاذاة العناصر في المنتصف */
+        /*flex-grow: 1; /* يمكن إزالته إذا أردت أن تكون الروابط هي التي تأخذ المساحة */
+        justify-content: flex-start;
     }
 
     .main-nav .center-logo {
         height: 40px; /* حجم الشعار */
-        margin-left: 20px; /* مسافة عن الروابط */
+        vertical-align: middle;
+    }
+
+    .main-nav .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 25px; /* تباعد بين الروابط */
+        flex-grow: 1; /* للسماح بالنمو واخذ المساحة المتاحة للروابط */
+        justify-content: center; /* لمحاذاة الروابط في المنتصف */
     }
 
     .main-nav .nav-link {
@@ -64,7 +71,14 @@
         color: #fff;
     }
 
+    .main-nav .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
 
+    .container { max-width: 1100px; margin: 32px auto 24px auto; padding: 0 8px;}
+    h2 { color: #294169; margin-top: 0; margin-bottom: 18px; font-size: 1.22rem; letter-spacing: 0.5px; font-weight: 700;}
     .btn {
       background: #3b5cb8;
       color: #fff;
@@ -374,6 +388,7 @@ input[id^="markinp_"] {
       max-height: 60vh; /* Max height with scroll */
       overflow-y: auto;
       direction: rtl; /* Ensure text direction for content */
+      word-break: break-word; /* لمنع اقتصاص الكلمات الطويلة */
     }
     
     #summaryViewerModal .modal-footer-btn {
@@ -437,34 +452,177 @@ input[id^="markinp_"] {
       }
     }
 
-    @media (max-width: 480px) { /* Even smaller screens */
+    @media (max-width: 480px) { /* Even smaller screens (Full-screen modal) */
+        #summaryViewerModal {
+            padding-top: 0; /* إزالة المسافة العلوية لملء الشاشة */
+        }
         #summaryViewerModal > div {
-            width: 98%;
-            margin: 5% auto; /* Can be tighter on very small screens */
-            padding: 10px;
+            width: 100%; /* عرض كامل الشاشة */
+            height: 100%; /* ارتفاع كامل الشاشة */
+            margin: 0; /* إزالة الهوامش */
+            border-radius: 0; /* إزالة الحواف الدائرية */
+            padding: 10px; /* تبطين أقل */
+            box-shadow: none; /* إزالة الظلال */
+            border: none; /* إزالة الحدود */
         }
         #summaryViewerModal .close-btn {
             font-size: 24px;
-            top: 5px;
-            right: 5px; /* Closer to edge on very small screens */
+            top: 10px; /* ضبط الموضع العلوي */
+            right: 10px; /* ضبط الموضع الأيمن */
+            z-index: 1001; /* التأكد من ظهوره فوق المحتوى */
         }
         #summaryViewerModal h3 {
             font-size: 1.1rem;
+            padding-top: 20px; /* مسافة علوية لعنوان المودال */
+            margin-bottom: 10px; /* ضبط هامش سفلي */
         }
         #summaryViewerModal #summaryViewerContent {
             font-size: 0.95rem;
+            max-height: calc(100vh - 120px); /* ضبط الارتفاع الأقصى للمحتوى بناءً على ارتفاع الشاشة مطروحاً منه ارتفاع الرأس والتذييل */
+            padding-bottom: 10px; /* تباعد سفلي للمحتوى */
+        }
+        #summaryViewerModal .modal-footer-btn {
+            margin-top: 10px; /* ضبط هامش التذييل */
+        }
+    }
+
+    /* Professional Navigation Bar Styles */
+    .main-nav {
+      background: #3b5cb8; /* لون خلفية أزرق داكن */
+      color: #fff;
+      padding: 10px 30px;
+      font-size: 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* ظل أكثر احترافية */
+      position: fixed; /* تثبيت شريط التنقل */
+      top: 0;
+      width: 100%;
+      z-index: 100; /* لضمان ظهوره فوق العناصر الأخرى */
+      box-sizing: border-box; /* لضمان احتساب البادينج ضمن العرض */
+    }
+
+    .main-nav .nav-brand {
+        display: flex;
+        align-items: center;
+    }
+
+    .main-nav .center-logo {
+        height: 40px; /* حجم الشعار */
+        vertical-align: middle;
+        margin-right: 15px; /* مسافة بين الشعار والروابط/العنوان */
+    }
+
+    .main-nav .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 25px; /* تباعد بين الروابط */
+        flex-grow: 1; /* لجعل الروابط تتوزع في المنتصف */
+        justify-content: center; /* لمحاذاة الروابط في المنتصف */
+    }
+
+    .main-nav .nav-link {
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 15px;
+        font-size: 1.05rem;
+        transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
+        border-radius: 5px;
+        white-space: nowrap; /* منع التفاف النص */
+    }
+
+    .main-nav .nav-link:hover,
+    .main-nav .nav-link.active {
+        background-color: #26407a; /* لون الخلفية عند التمرير أو للرابط النشط */
+        border-radius: 7px; /* حواف دائرية أنعم عند التفاعل */
+    }
+
+    .main-nav .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    /* Dark Mode for Navigation Bar */
+    .dark-mode .main-nav {
+        background: #222f3e; /* خلفية أغمق للوضع الليلي */
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+    .dark-mode .main-nav .nav-link:hover,
+    .dark-mode .main-nav .nav-link.active {
+        background-color: #1a2430; /* خلفية أغمق للروابط في الوضع الليلي */
+    }
+
+    /* Responsive adjustments for the main navigation */
+    @media (max-width: 768px) {
+        .main-nav {
+            flex-wrap: wrap; /* السماح بالتفاف العناصر */
+            justify-content: center; /* توسيط العناصر عند التفافها */
+            padding: 10px 15px;
+        }
+        .main-nav .nav-brand,
+        .main-nav .nav-links,
+        .main-nav .nav-actions {
+            flex-basis: 100%; /* جعل كل قسم يأخذ عرض كامل عند التفاف */
+            justify-content: center; /* توسيط المحتوى داخل الأقسام */
+            margin-bottom: 5px; /* مسافة بين الصفوف المتراصة */
+            gap: 10px; /* تباعد أقل بين الروابط */
+        }
+        .main-nav .nav-links {
+            order: 2; /* وضع الروابط في المنتصف في ترتيب التفاف */
+        }
+        .main-nav .nav-brand {
+            order: 1; /* الشعار أولاً */
+            margin-bottom: 10px;
+        }
+        .main-nav .nav-actions {
+            order: 3; /* الأزرار أخيراً */
+            margin-bottom: 0;
+        }
+        .main-nav .nav-link {
+            font-size: 0.95rem; /* حجم خط أصغر للروابط */
+            padding: 6px 10px;
+        }
+        .main-nav .center-logo {
+            height: 35px; /* حجم أصغر للشعار */
+            margin-right: 0; /* إزالة المسافة الجانبية */
+        }
+        body {
+            padding-top: 130px; /* ضبط المسافة العلوية لتناسب ارتفاع شريط التنقل المتراص */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .main-nav .nav-links {
+            gap: 10px; /* تباعد أقل للروابط على شاشات أضيق */
+        }
+        .main-nav .nav-link {
+            font-size: 0.9rem; /* حجم خط أصغر */
+            padding: 5px 8px;
+        }
+        body {
+            padding-top: 120px; /* ضبط المسافة العلوية لضمان عدم اختباء المحتوى */
         }
     }
   </style>
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V16
+  V19
 </div>
-  <header>
-    <span>لوحة المعلم - إدارة الطلاب والدروس</span>
-    <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
-  </header>
+  <nav class="main-nav">
+    <div class="nav-brand">
+      <img src="https://i.ibb.co/cSpS2NDk/logo-1.png" alt="شعار المركز" class="center-logo">
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-link active">لوحة المعلم - إدارة الطلاب والدروس</a>
+      <a href="questions-admin.html" class="nav-link">إدارة الأسئلة وإعدادات الامتحان</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
+    </div>
+  </nav>
   <div class="container">
 
     <div class="spinner" id="loadingSpinner"></div>
@@ -1112,7 +1270,7 @@ function saveSummaryMark(docId) {
     const statusText = row.cells[1].textContent || ''; // الحالة هي العمود الثاني
 
 
-    // جلب بيانات المعلم من الحساب الحالي (الكود الأصلي)
+    // جلب بيانات المعلم من الحساب الحالي (Kود الأصلي)
     const user = firebase.auth().currentUser;
     if (!user) {
       showToast("لم يتم التعرف على المستخدم الحالي! يرجى إعادة تسجيل الدخول.", "#e63946");
