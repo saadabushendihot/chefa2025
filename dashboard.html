@@ -8,7 +8,10 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
+  <!-- مكتبة تصدير PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Font Awesome for icons (optional, if you want actual icons instead of text) -->
+  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
   <style>
     body { 
         font-family: Tajawal, Arial, sans-serif; 
@@ -38,20 +41,19 @@
     .main-nav .nav-brand {
         display: flex;
         align-items: center;
-        /*flex-grow: 1; /* يمكن إزالته إذا أردت أن تكون الروابط هي التي تأخذ المساحة */
-        justify-content: flex-start;
     }
 
     .main-nav .center-logo {
         height: 40px; /* حجم الشعار */
         vertical-align: middle;
+        margin-right: 15px; /* مسافة بين الشعار والروابط/العنوان */
     }
 
     .main-nav .nav-links {
         display: flex;
         align-items: center;
         gap: 25px; /* تباعد بين الروابط */
-        flex-grow: 1; /* للسماح بالنمو واخذ المساحة المتاحة للروابط */
+        flex-grow: 1; /* لجعل الروابط تتوزع في المنتصف */
         justify-content: center; /* لمحاذاة الروابط في المنتصف */
     }
 
@@ -60,7 +62,7 @@
         text-decoration: none;
         padding: 8px 15px;
         font-size: 1.05rem;
-        transition: background-color 0.3s, color 0.3s;
+        transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
         border-radius: 5px;
         white-space: nowrap; /* منع التفاف النص */
     }
@@ -163,15 +165,21 @@
     .add-section input:focus, .add-section select:focus { border-color: #3b5cb8; outline: none;}
     .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
     /* تحسينات عامة على الجداول */
+.table-wrapper { /* New wrapper for horizontal scroll */
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+}
+
 table {
   width: 100%;
   border-collapse: collapse; /* لدمج حدود الخلايا */
-  margin-top: 20px;
-  background: #ffffff; /* خلفية بيضاء للجداول */
-  border-radius: 12px; /* حواف أكثر دائرية */
-  overflow: hidden; /* لإخفاء أي محتوى يتجاوز الحواف الدائرية */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* تظليل أعمق وأكثر احترافية */
-  margin-bottom: 25px; /* مسافة بعد الجدول */
+  min-width: 700px; /* Ensure table is wide enough for small screens to scroll */
+  /* Remove direct background, border-radius, overflow, box-shadow here */
 }
 
 /* ترويسة الجدول */
@@ -184,6 +192,7 @@ th {
   font-weight: 700; /* خط سميك */
   letter-spacing: 0.5px; /* تباعد بين الحروف */
   text-transform: uppercase; /* تحويل النص إلى حروف كبيرة (اختياري، قد لا يناسب العربية) */
+  white-space: nowrap; /* Prevent header text from wrapping */
 }
 
 /* خلايا البيانات */
@@ -194,6 +203,7 @@ td {
   font-size: 0.98rem;
   color: #333d4b; /* لون نص داكن قليلاً */
   vertical-align: middle; /* محاذاة عمودية للمنتصف */
+  white-space: nowrap; /* Prevent text from wrapping by default */
 }
 
 /* تأثير عند تمرير المؤشر على الصفوف */
@@ -208,10 +218,14 @@ tbody tr:last-child td {
 }
 
 /* تحسينات خاصة بخلية نص التلخيص */
-td[style*="max-width:180px"] { /* هذا سيستهدف عمود نص التلخيص */
+.summary-text-cell { /* Changed from td[style*="max-width:180px"] */
   text-align: right; /* محاذاة النص إلى اليمين */
   line-height: 1.6; /* تباعد بين السطور لتحسين القراءة */
+  white-space: normal; /* Allow text to wrap within the cell */
+  max-width: 250px; /* Set a max-width for readability */
+  word-break: break-word; /* Break long words */
 }
+
 
 /* تحسين أزرار الإجراءات داخل الجدول */
 .btn[onclick^="saveSummaryMark"] {
@@ -246,6 +260,7 @@ input[id^="markinp_"] {
   font-size: 0.85rem;
   font-weight: bold;
   display: inline-block;
+  white-space: nowrap;
 }
 .summary-status.submitted {
   background-color: #e3f6ed;
@@ -257,6 +272,31 @@ input[id^="markinp_"] {
   color: #b96d0d;
   border: 1px solid #ffe0b2;
 }
+
+/* New style for reset summary button */
+.btn.reset-summary {
+    background: #dc3545; /* Red color for reset/warning */
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+.btn.reset-summary:hover {
+    background: #c82333;
+}
+/* Optional: style for a text icon if not using Font Awesome */
+.reset-icon {
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #dc3545; /* Red color */
+    vertical-align: middle;
+    margin-right: 5px;
+    transition: transform 0.2s ease-in-out;
+}
+.reset-icon:hover {
+    transform: rotate(15deg);
+}
+
 
 /* تنسيق خاص بالعنوان "تلخيصات الطالب" */
 #summariesTableWrapper h4 {
@@ -311,10 +351,10 @@ input[id^="markinp_"] {
     #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
     @media (max-width: 900px){
       .container {padding:8px;}
-      th, td {font-size: 0.91rem;}
+      /* th, td {font-size: 0.91rem;} */ /* Let table's own media query handle this */
       h2 {font-size:1rem;}
       .students-area, .lessons-area, .add-section {padding:10px 4px;}
-      header {font-size:1rem; padding:10px;}
+      /* header {font-size:1rem; padding:10px;} */ /* Handled by main-nav media queries */
       .add-section {max-width: 99vw;}
       .levels-grid { grid-template-columns: 1fr;}
     }
@@ -354,7 +394,6 @@ input[id^="markinp_"] {
 
     #summaryViewerModal .close-btn {
       color: #aaa;
-      /* تم تغيير float: left; و left: 20px; */
       position: absolute; /* Absolute positioning within the modal content */
       top: 15px; /* تعديل الموضع العلوي */
       right: 15px; /* وضع الزر في الزاوية العلوية اليمنى (للمحتوى الذي يظهر من اليمين لليسار) */
@@ -609,7 +648,7 @@ input[id^="markinp_"] {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V19
+  V20
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -670,6 +709,7 @@ input[id^="markinp_"] {
     <div class="students-area">
       <h2>إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
+      <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
 
       <div class="student-selection-area">
@@ -678,6 +718,7 @@ input[id^="markinp_"] {
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
+      <!-- زر تصدير نتائج الطالب PDF -->
       <div style="text-align:left;margin:10px 0;">
         <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
       </div>
@@ -691,6 +732,7 @@ input[id^="markinp_"] {
         <div id="detailLevels" class="levels-grid"></div>
         <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
         <div id="examsTableWrapper"></div>
+        <!-- جدول تلخيصات الطالب -->
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
         <div id="summariesTableWrapper"></div>
       </div>
@@ -715,6 +757,7 @@ input[id^="markinp_"] {
     </div>
   </div>
 
+<!-- Summary Viewer Modal -->
 <div id="summaryViewerModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
   <div style="background-color: #fefefe; margin: 5% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); position: relative; text-align: right;">
     <span class="close-btn" onclick="closeSummaryViewer()">&times;</span>
@@ -1208,9 +1251,20 @@ input[id^="markinp_"] {
         firestore.collection('lessons').get().then(lessonsSnap=>{
           lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title); // Populate global lessonsMap
           
-               let html = `<table style="width:100%;margin-top:8px;">
-          <thead><tr><th>الدرس</th><th>الحالة</th><th>العلامة</th><th>تعديل العلامة</th><th>عرض التلخيص</th></tr></thead><tbody>`;
+               let html = `
+               <div class="table-wrapper"> <!-- New wrapper for horizontal scroll -->
+               <table style="width:100%;margin-top:8px;">
+          <thead><tr>
+            <th>الدرس</th>
+            <th>الحالة</th>
+            <th>العلامة</th>
+            <th>تعديل العلامة</th>
+            <th>عرض التلخيص</th>
+            <th>إعادة التلخيص</th> <!-- New column header -->
+          </tr></thead><tbody>`;
         summaries.forEach(s=>{
+          // Check if status is 'submitted' to enable/disable reset button
+          const isSubmitted = s.status === 'submitted';
           html += `<tr>
             <td>${window.lessonsMap[s.lesson_id]||s.lesson_id}</td>
             <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
@@ -1222,9 +1276,16 @@ input[id^="markinp_"] {
             <td>
                 <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="viewSummaryText('${s.docId}')">عرض</button>
             </td>
+            <td>
+                ${isSubmitted ? `
+                    <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${s.student_email}')" title="إعادة التلخيص إلى مسودة">
+                        🔄 <!-- or <i class="fas fa-undo"></i> if Font Awesome is used -->
+                    </button>
+                ` : '—'}
+            </td>
           </tr>`;
         });
-        html += "</tbody></table>";
+        html += "</tbody></table></div>"; <!-- Close table-wrapper -->
         document.getElementById('summariesTableWrapper').innerHTML = html;
         
         // اجلب العلامات لكل تلخيص بعد بناء الجدول
@@ -1333,6 +1394,44 @@ function saveSummaryMark(docId) {
     console.error(err);
   });
 }
+
+// New function to reset summary status
+window.resetSummary = function(summaryDocId, studentEmail) {
+    if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة المرتبطة به.')) {
+        return;
+    }
+
+    showLoading(true);
+    // Update summary status to 'draft'
+    firestore.collection('summaries').doc(summaryDocId).update({
+        status: 'draft'
+    }).then(() => {
+        // Find and delete the corresponding mark in student_marks collection
+        return firestore.collection('student_marks')
+            .where('summary_id', '==', summaryDocId)
+            .where('student_email', '==', studentEmail)
+            .get();
+    }).then(markSnapshot => {
+        if (!markSnapshot.empty) {
+            const deletePromises = [];
+            markSnapshot.forEach(doc => {
+                deletePromises.push(doc.ref.delete());
+            });
+            return Promise.all(deletePromises);
+        }
+        return Promise.resolve(); // No mark to delete
+    }).then(() => {
+        showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', '#1dad87');
+        loadStudentSummaries(studentEmail); // Reload summaries to reflect changes
+        showLoading(false);
+    }).catch(error => {
+        showToast(`حدث خطأ أثناء إعادة تعيين التلخيص: ${error.message}`, '#e63946');
+        console.error('Error resetting summary:', error);
+        showLoading(false);
+    });
+};
+
+
     function logout() {
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
