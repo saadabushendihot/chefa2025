@@ -52,7 +52,25 @@
     /* تم نقل أنماط logout-btn إلى main-nav */
     /* header تم استبدالها بتصميم main-nav */
     .settings-table {width:100%;border-collapse:collapse;margin-bottom:24px;}
-    .settings-table th,.settings-table td {border-bottom:1px solid #e4e7ef;padding:9px;text-align:center;font-size:1.07rem;}
+    .settings-table th,.settings-table td {
+        border-bottom:1px solid #e4e7ef;
+        padding:9px;
+        text-align:center;
+        font-size:1.07rem;
+        /* Default width for auto-sizing */
+        width: auto;
+    }
+    /* Specific widths for settings table columns */
+    .settings-table th:nth-child(1), .settings-table td:nth-child(1) { width: 10%; } /* المستوى */
+    .settings-table th:nth-child(2), .settings-table td:nth-child(2) { width: 25%; } /* عدد الأسئلة */
+    .settings-table th:nth-child(3), .settings-table td:nth-child(3) { width: 25%; } /* عدد العلامات */
+    .settings-table th:nth-child(4), .settings-table td:nth-child(4) { width: 25%; } /* الوقت */
+    .settings-table th:nth-child(5), .settings-table td:nth-child(5) { width: 15%; } /* إجراء */
+
+    .settings-table input[type="number"] {
+        max-width: 100%; /* Allow inputs to fill their column */
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    }
     .settings-table th {background:#eef2fa;}
     .settings-table input[type="number"] {max-width:80px;}
     .settings-msg {margin:8px 0 0 0;font-weight:bold;min-height:20px;}
@@ -283,11 +301,13 @@
           <tr>
             <th>المستوى</th>
             <th>عدد الأسئلة</th>
+            <th>عدد العلامات للمستوى</th> <!-- New Header -->
+            <th>الوقت المخصص للامتحان (دقيقة)</th> <!-- New Header -->
             <th>إجراء</th>
           </tr>
         </thead>
         <tbody id="settingsTbody">
-          <tr><td colspan="3" style="color:#888">جاري التحميل...</td></tr>
+          <tr><td colspan="5" style="color:#888">جاري التحميل...</td></tr> <!-- Updated colspan -->
         </tbody>
       </table>
       <div class="settings-msg" id="settingsMsg"></div>
@@ -395,20 +415,29 @@ function logout() {
 // إعدادات عدد الأسئلة لكل مستوى
 function loadSettingsTable() {
   const tbody = document.getElementById('settingsTbody');
-  tbody.innerHTML = '<tr><td colspan="3" style="color:#888">جاري التحميل...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" style="color:#888">جاري التحميل...</td></tr>'; // Updated colspan
   firestore.collection('exam_settings').get().then(snapshot => {
     let data = {};
     snapshot.forEach(doc => {
-      data[doc.id] = doc.data().question_num;
+      data[doc.id] = doc.data(); // Get all data for the level
     });
     let rows = '';
     LEVELS.forEach(lvl => {
-      let val = data[`level_${lvl}`] !== undefined ? data[`level_${lvl}`] : '';
+      let questionNum = data[`level_${lvl}`]?.question_num !== undefined ? data[`level_${lvl}`].question_num : '';
+      let totalMarks = data[`level_${lvl}`]?.total_marks !== undefined ? data[`level_${lvl}`].total_marks : ''; // New field
+      let examDuration = data[`level_${lvl}`]?.exam_duration !== undefined ? data[`level_${lvl}`].exam_duration : ''; // New field
+
       rows += `
         <tr>
           <td>المستوى ${lvl}</td>
           <td>
-            <input type="number" min="1" id="input_level_${lvl}" value="${val}" placeholder="أدخل عدد الأسئلة" required>
+            <input type="number" min="1" id="input_qnum_${lvl}" value="${questionNum}" placeholder="عدد الأسئلة" required>
+          </td>
+          <td>
+            <input type="number" min="1" id="input_tmarks_${lvl}" value="${totalMarks}" placeholder="عدد العلامات" required>
+          </td>
+          <td>
+            <input type="number" min="1" id="input_duration_${lvl}" value="${examDuration}" placeholder="الوقت (دقيقة)" required>
           </td>
           <td>
             <button type="button" class="btn" onclick="saveLevel(${lvl})">حفظ</button>
@@ -423,23 +452,45 @@ function loadSettingsTable() {
 function saveLevel(lvl) {
   const msgEl = document.getElementById('settingsMsg');
   msgEl.innerText = '';
-  let input = document.getElementById(`input_level_${lvl}`);
-  let val = parseInt(input.value);
-  if (!val || val<1) {
-    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر للمستوى ${lvl}`;
+  let inputQNum = document.getElementById(`input_qnum_${lvl}`);
+  let inputTMarks = document.getElementById(`input_tmarks_${lvl}`); // New input
+  let inputDuration = document.getElementById(`input_duration_${lvl}`); // New input
+
+  let qNum = parseInt(inputQNum.value);
+  let tMarks = parseInt(inputTMarks.value); // New value
+  let duration = parseInt(inputDuration.value); // New value
+
+  if (!qNum || qNum < 1) {
+    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`;
     msgEl.style.color = '#e63946';
-    input.focus();
+    inputQNum.focus();
     return;
   }
+  if (!tMarks || tMarks < 1) { // Validation for total_marks
+    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`;
+    msgEl.style.color = '#e63946';
+    inputTMarks.focus();
+    return;
+  }
+  if (!duration || duration < 1) { // Validation for exam_duration
+    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`;
+    msgEl.style.color = '#e63946';
+    inputDuration.focus();
+    return;
+  }
+
   firestore.collection('exam_settings').doc(`level_${lvl}`).set({
-    question_num: val
+    question_num: qNum,
+    total_marks: tMarks, // New field
+    exam_duration: duration // New field
   }).then(()=>{
-    msgEl.innerText = `تم حفظ عدد الأسئلة للمستوى ${lvl} بنجاح`;
+    msgEl.innerText = `تم حفظ إعدادات المستوى ${lvl} بنجاح`;
     msgEl.style.color = '#219e4b';
     setTimeout(()=>{msgEl.innerText='';}, 1800);
-  }).catch(()=>{
-    msgEl.innerText = "حدث خطأ أثناء الحفظ!";
+  }).catch((error)=>{ // Added error parameter for better logging
+    msgEl.innerText = "حدث خطأ أثناء الحفظ! " + error.message; // Displaying error message
     msgEl.style.color = '#e63946';
+    console.error("Error saving level settings:", error); // Log the error for debugging
   });
 }
 
