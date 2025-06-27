@@ -81,21 +81,19 @@
     .dark-mode .levels-table th, .dark-mode .exams-table th {background: #253150; color: #fff;}
     .dark-mode .lesson-summary-block {background: #242b39;}
     .dark-mode textarea.summary-text {background: #23272f; color: #fff;}
-    /* NEW: Dark mode styles for Exam Box */
-    .dark-mode #examBox {background: #293043;} /* خلفية داكنة لخانة الامتحان بالكامل */
-    .dark-mode #examBox h2 {color: #fff;} /* عنوان واضح */
-    .dark-mode .student-info, .dark-mode .level-info {background: #2b3547; color: #e0e0e0;} /* خلفية أغمق ونصوص أفتح */
-    .dark-mode .question-block {background: #3a455a; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);} /* خلفية أغمق وظلال معدلة */
-    .dark-mode .question-title {color: #fff;} /* نص السؤال أبيض */
-    .dark-mode .multi-note {color: #ffcc80;} /* لون ملاحظة الإجابات المتعددة */
-    .dark-mode .question-mark {color: #8cafff;} /* لون علامة السؤال */
-    .dark-mode .choices-list label {color: #e0e0e0;} /* نص الخيارات أفتح */
-    .dark-mode .scoring-note {color: #66b2b2;} /* لون ملاحظة التصحيح */
-    .dark-mode .msg {color: #ff8080;} /* لون رسائل الخطأ */
-    .dark-mode .result {color: #66bb6a;} /* لون رسائل النتائج */
-    /* قد تحتاج لتعديلات إضافية لأزرار الراديو/المربعات إذا كانت مخصصة */
+    /* Dark mode styles for Exam Box */
+    .dark-mode #examBox {background: #293043;}
+    .dark-mode #examBox h2 {color: #fff;}
+    .dark-mode .student-info, .dark-mode .level-info {background: #2b3547; color: #e0e0e0;}
+    .dark-mode .question-block {background: #3a455a; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);}
+    .dark-mode .question-title {color: #fff;}
+    .dark-mode .multi-note {color: #ffcc80;}
+    .dark-mode .question-mark {color: #8cafff;}
+    .dark-mode .choices-list label {color: #e0e0e0;}
+    .dark-mode .scoring-note {color: #66b2b2;}
+    .dark-mode .msg {color: #ff8080;}
+    .dark-mode .result {color: #66bb6a;}
     .dark-mode input[type="radio"], .dark-mode input[type="checkbox"] {
-        /* مثال بسيط لعكس الألوان، قد تحتاج لتصميم أكثر تعقيدًا إذا كانت لديك أيقونات مخصصة */
         filter: invert(0.8);
     }
     /* الفئة الجديدة للعلامة صفر */
@@ -382,6 +380,122 @@
       });
     }
 
+    // دالة مساعدة للتحقق من أهلية الامتحان والمتابعة
+    function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = false) {
+      const btn = document.getElementById('goToExamBtn');
+      const warn = document.getElementById('examWarnMsg');
+
+      if (!lastActiveLevelIndex || !studentData.accepted) {
+        btn.style.display = "none";
+        warn.innerText = ''; // مسح أي تحذيرات سابقة
+        return; // لا يوجد مستوى نشط أو الطالب غير مقبول
+      }
+
+      const levelText = getLevelText(lastActiveLevelIndex);
+      showLoading(true); // إظهار مؤشر التحميل أثناء التحقق
+
+      firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
+        let lessons = [];
+        lessonQuery.forEach(doc => lessons.push(doc.data()));
+        const lessonIds = lessons.map(l=>l.id);
+
+        if(!lessonIds.length) {
+          btn.style.display = "none";
+          warn.innerText = 'لا توجد دروس في هذا المستوى.';
+          showLoading(false);
+          return;
+        }
+
+        let summaryAndMarkPromises = [];
+        firestore.collection('summaries')
+          .where('student_email', '==', currentStudentEmail)
+          .where('lesson_id', 'in', lessonIds)
+          .get()
+          .then(function(summariesSnap){
+            let summariesMapForExamCheck = {};
+            summariesSnap.forEach(doc => {
+                let s = { ...doc.data(), docId: doc.id };
+                summariesMapForExamCheck[s.lesson_id] = s;
+                if (s.status === 'submitted') {
+                    summaryAndMarkPromises.push(
+                        firestore.collection('student_marks')
+                        .where('summary_id', '==', s.docId)
+                        .where('student_email', '==', currentStudentEmail)
+                        .limit(1)
+                        .get()
+                        .then(markSnap => {
+                            // الشرط الجديد: يجب أن تكون العلامة أكبر من صفر
+                            if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark !== undefined && markSnap.docs[0].data().mark > 0) {
+                                s.mark_from_student_marks = markSnap.docs[0].data().mark;
+                                return true;
+                            }
+                            s.mark_from_student_marks = null;
+                            return false;
+                        }).catch(error => {
+                            console.error("Error fetching mark for summary in exam check:", s.docId, error);
+                            s.mark_from_student_marks = null;
+                            return false;
+                        })
+                    );
+                } else {
+                    s.mark_from_student_marks = null;
+                    summaryAndMarkPromises.push(Promise.resolve(false));
+                }
+            });
+
+            Promise.all(summaryAndMarkPromises).then(() => {
+              let allRequiredSummariesPresentAndMarked = true;
+
+              if (lessons.length === 0) {
+                allRequiredSummariesPresentAndMarked = true;
+              } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) {
+                allRequiredSummariesPresentAndMarked = false;
+              } else {
+                for (let i = 0; i < lessons.length; i++) {
+                  const lessonId = lessons[i].id;
+                  const summary = summariesMapForExamCheck[lessonId];
+                  if (!summary || summary.status !== 'submitted' || summary.mark_from_student_marks === null || summary.mark_from_student_marks <= 0) {
+                    allRequiredSummariesPresentAndMarked = false;
+                    break;
+                  }
+                }
+              }
+
+              if(allRequiredSummariesPresentAndMarked){
+                  btn.style.display="";
+                  warn.innerText = '';
+                  if (proceedIfEligible) { // فقط إذا كانت الدالة قد استدعيت بهدف المتابعة للامتحان
+                      currentExamLevel = lastActiveLevelIndex;
+                      checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+                      setTimeout(function(){
+                          document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
+                      }, 300);
+                  }
+              } else {
+                  btn.style.display="none";
+                  warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+              }
+              showLoading(false); // إخفاء مؤشر التحميل بعد التحقق
+            }).catch(error => {
+                console.error("Error in Promise.all for summary/mark check:", error);
+                btn.style.display="none";
+                warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
+                showLoading(false);
+            });
+          }).catch(error => {
+              console.error("Error fetching summaries for exam check:", error);
+              btn.style.display="none";
+              warn.innerText = 'حدث خطأ في جلب التلاخيص.';
+              showLoading(false);
+          });
+      }).catch(error => {
+          console.error("Error fetching lessons for exam check:", error);
+          btn.style.display="none";
+          warn.innerText = 'حدث خطأ في جلب الدروس.';
+          showLoading(false);
+      });
+    }
+
     // المستويات + الامتحانات (مع تحسينات عرض)
     function renderLevelsExamsMergedTable(data) {
       let html = `<div class="exams-title-bar">حالة المستويات ونتائج الامتحانات</div>
@@ -428,107 +542,13 @@
       }
       document.getElementById('levelsExamsTableArea').innerHTML = html;
 
-      // تحقق من شرط التلاخيص قبل إظهار زر الانتقال للاختبار
+      // عند تحميل الصفحة، نقوم بالتحقق الأولي (لا نتقدم للامتحان تلقائياً)
       if(lastActiveLevelIndex && data.accepted === true){
-        const levelText = getLevelText(lastActiveLevelIndex);
-        firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
-          let lessons = [];
-          lessonQuery.forEach(doc => lessons.push(doc.data()));
-          const lessonIds = lessons.map(l=>l.id);
-          const btn = document.getElementById('goToExamBtn');
-          const warn = document.getElementById('examWarnMsg');
-          if(!lessonIds.length) {
-            btn.style.display = "none";
-            warn.innerText = 'لا توجد دروس في هذا المستوى.';
-            return;
-          }
-          // استخدام Promise.all لضمان جلب جميع العلامات قبل التحقق النهائي
-          let summaryAndMarkPromises = [];
-          firestore.collection('summaries')
-            .where('student_email', '==', currentStudentEmail)
-            .where('lesson_id', 'in', lessonIds)
-            .get()
-            .then(function(summariesSnap){
-              let summariesMapForExamCheck = {};
-              summariesSnap.forEach(doc => {
-                  let s = { ...doc.data(), docId: doc.id };
-                  summariesMapForExamCheck[s.lesson_id] = s;
-                  if (s.status === 'submitted') {
-                      summaryAndMarkPromises.push(
-                          firestore.collection('student_marks')
-                          .where('summary_id', '==', s.docId)
-                          .where('student_email', '==', currentStudentEmail)
-                          .limit(1)
-                          .get()
-                          .then(markSnap => {
-                              // الشرط الجديد: يجب أن تكون العلامة أكبر من صفر
-                              if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark !== undefined && markSnap.docs[0].data().mark > 0) {
-                                  s.mark_from_student_marks = markSnap.docs[0].data().mark; // حفظ العلامة للتحقق
-                                  return true; // الملخص مسلم وبه علامة أكبر من صفر
-                              }
-                              s.mark_from_student_marks = null; // العلامة غير صالحة (صفر أو أقل)
-                              return false; // الملخص مسلم لكن لا يوجد علامة صالحة
-                          }).catch(error => {
-                              console.error("Error fetching mark for summary in exam check:", s.docId, error);
-                              s.mark_from_student_marks = null;
-                              return false; // اعتبارها غير صالحة في حالة الخطأ
-                          })
-                      );
-                  } else {
-                      s.mark_from_student_marks = null; // الملخصات المسودة لا تؤهل للامتحان
-                      summaryAndMarkPromises.push(Promise.resolve(false));
-                  }
-              });
-
-              // التحقق النهائي بعد جلب جميع العلامات
-              Promise.all(summaryAndMarkPromises).then(() => {
-                  let allRequiredSummariesPresentAndMarked = true;
-
-                  if (lessons.length === 0) { // لا يوجد دروس لهذا المستوى
-                      allRequiredSummariesPresentAndMarked = true;
-                  } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) { // ليست كل الدروس لديها ملخص
-                      allRequiredSummariesPresentAndMarked = false;
-                  } else {
-                      for (let i = 0; i < lessons.length; i++) {
-                          const lessonId = lessons[i].id;
-                          const summary = summariesMapForExamCheck[lessonId];
-                          // الشرط الجديد: الملخص موجود، مسلم، والعلامة ليست null/undefined وأكبر من صفر
-                          if (!summary || summary.status !== 'submitted' || summary.mark_from_student_marks === null || summary.mark_from_student_marks <= 0) {
-                              allRequiredSummariesPresentAndMarked = false;
-                              break;
-                          }
-                      }
-                  }
-
-                  if(allRequiredSummariesPresentAndMarked){
-                      btn.style.display="";
-                      warn.innerText = '';
-                      btn.onclick = function(){
-                          currentExamLevel = lastActiveLevelIndex;
-                          checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
-                          setTimeout(function(){
-                              document.getElementById('examBox').scrollIntoView({behavior: 'smooth'});
-                          }, 300);
-                      };
-                  } else {
-                      btn.style.display="none";
-                      warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
-                  }
-              }).catch(error => {
-                  console.error("Error in Promise.all for summary/mark check:", error);
-                  btn.style.display="none";
-                  warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
-              });
-            }).catch(error => {
-                console.error("Error fetching summaries for exam check:", error);
-                btn.style.display="none";
-                warn.innerText = 'حدث خطأ في جلب التلاخيص.';
-            });
-        }).catch(error => {
-            console.error("Error fetching lessons for exam check:", error);
-            btn.style.display="none";
-            warn.innerText = 'حدث خطأ في جلب الدروس.';
-        });
+          performExamEligibilityCheckAndProceed(data, false); // التحقق الأولي
+          // عند الضغط على الزر، نعيد التحقق ونتقدم إذا كانت الشروط مستوفاة
+          document.getElementById('goToExamBtn').onclick = function(){
+              performExamEligibilityCheckAndProceed(data, true); // إعادة التحقق والتقدم عند النقر
+          };
       }
     }
 
