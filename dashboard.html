@@ -295,17 +295,18 @@ input[id^="markinp_"] {
       box-shadow: 0 8px 25px rgba(0,0,0,0.2);
       position: relative; /* Needed for close button positioning */
       text-align: right; /* RTL text alignment */
+      box-sizing: border-box; /* هام: لضمان أن التبطين لا يزيد العرض الكلي */
     }
 
     #summaryViewerModal .close-btn {
       color: #aaa;
-      float: left; /* Close button on the left for RTL */
+      /* تم تغيير float: left; و left: 20px; */
+      position: absolute; /* Absolute positioning within the modal content */
+      top: 15px; /* تعديل الموضع العلوي */
+      right: 15px; /* وضع الزر في الزاوية العلوية اليمنى (للمحتوى الذي يظهر من اليمين لليسار) */
       font-size: 32px;
       font-weight: bold;
       cursor: pointer;
-      position: absolute; /* Absolute positioning within the modal content */
-      top: 10px;
-      left: 20px;
     }
 
     #summaryViewerModal .close-btn:hover,
@@ -374,8 +375,8 @@ input[id^="markinp_"] {
 
       #summaryViewerModal .close-btn {
         font-size: 28px; /* Slightly smaller close button */
-        top: 5px;
-        left: 10px;
+        top: 10px;
+        right: 10px; /* Closer to edge on smaller screens */
       }
 
       #summaryViewerModal h3 {
@@ -405,7 +406,7 @@ input[id^="markinp_"] {
         #summaryViewerModal .close-btn {
             font-size: 24px;
             top: 5px;
-            left: 5px;
+            right: 5px; /* Closer to edge on very small screens */
         }
         #summaryViewerModal h3 {
             font-size: 1.1rem;
@@ -418,7 +419,7 @@ input[id^="markinp_"] {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V17
+  V18
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
