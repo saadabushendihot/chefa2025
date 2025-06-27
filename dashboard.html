@@ -367,7 +367,7 @@ input[id^="markinp_"] {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V15
+  V16
 </div>
   <header>
     <span>لوحة المعلم - إدارة الطلاب والدروس</span>
@@ -722,7 +722,7 @@ input[id^="markinp_"] {
         detailLevelsDiv.innerHTML = '';
         let exams = {};
         for (let i = 1; i <= 7; i++) {
-          exams['exam' + i] = Boolean(student[examField]);
+          exams['exam' + i] = Boolean(student['exam' + i]);
         }
         for (let i = 1; i <= 7; i++) {
           const level = 'level' + i;
@@ -1015,8 +1015,10 @@ function saveSummaryMark(docId) {
 
     // استخراج بيانات الدرس من صف الجدول (الكود الأصلي)
     const row = document.getElementById('markinp_' + docId).closest('tr');
-    const lessonTitle = row.cells[0].textContent || '';
-    const statusText = row.cells[1].textContent || ''; // هذا سيعطينا "تم التسليم" أو "مسودة" من العرض
+    // ملاحظة: تم تعديل هذا الجزء ليتناسب مع الترتيب الجديد للأعمدة في الجدول
+    const lessonTitle = row.cells[0].textContent || ''; // الدرس هو العمود الأول
+    const statusText = row.cells[1].textContent || ''; // الحالة هي العمود الثاني
+
 
     // جلب بيانات المعلم من الحساب الحالي (الكود الأصلي)
     const user = firebase.auth().currentUser;
