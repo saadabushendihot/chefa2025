@@ -104,7 +104,8 @@
       border-radius:15px; padding:1px 13px; font-size:0.99em; margin-right:8px; border:1px solid #b7eecd;
       min-width:44px; vertical-align:middle;
     }
-    .lesson-mark-badge.none {background:#ffecf0; color:#a40b2b; border:1px solid #ffbcbc;}
+    /* الفئة الجديدة للعلامة صفر */
+    .lesson-mark-badge.zero-mark {background:#ffecf0; color:#e63946; border:1px solid #ffbcbc;}
     textarea.summary-text {
       width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
       resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
@@ -898,7 +899,12 @@
             // إذا كان التلخيص "تم التسليم"، حاول عرض العلامة المجلوبة
             if (typeof sum.mark_from_student_marks !== 'undefined' && sum.mark_from_student_marks !== null) {
                 markToDisplay = 'العلامة: ' + sum.mark_from_student_marks;
-                markBadgeClass = ''; // إزالة فئة 'none' إذا كانت العلامة موجودة
+                // تحديد الفئة بناءً على قيمة العلامة
+                if (sum.mark_from_student_marks > 0) {
+                    markBadgeClass = ''; // أخضر/نجاح (الفئة الافتراضية)
+                } else {
+                    markBadgeClass = 'zero-mark'; // أحمر/تحذير
+                }
             }
         }
         // إذا كان sum.status === 'draft'، فإن markToDisplay ستبقى '—'
