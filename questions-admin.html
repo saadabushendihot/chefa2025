@@ -73,7 +73,7 @@
     }
     .settings-table th {background:#eef2fa;}
     .settings-table input[type="number"] {max-width:80px;}
-    .settings-msg {margin:8px 0 0 0;font-weight:bold;min-height:20px;}
+    /* .settings-msg {margin:8px 0 0 0;font-weight:bold;min-height:20px;} تم إزالته ليحل محله الـ Toast */
     @media (max-width:900px){.container{padding:7px;}.table-questions th,.table-questions td{padding:4px;}}
     
     /* Professional Navigation Bar Styles - تم نسخها من dashboard.html */
@@ -216,10 +216,9 @@
     .dark-mode .msg {
         color: #ff8080;
     }
-    .dark-mode .settings-msg {
+    .dark-mode .settings-msg { /* لا يزال هذا موجوداً في الأنماط القديمة، لكنه غير مستخدم الآن */
         color: #66bb6a;
     }
-
 
     /* Responsive adjustments for the main navigation */
     @media (max-width: 768px) {
@@ -272,6 +271,31 @@
             padding-top: 120px; /* ضبط المسافة العلوية لضمان عدم اختباء المحتوى */
         }
     }
+
+    /* Toast Styles - تم نسخها من dashboard.html */
+    .toast {
+      visibility: hidden; /* Hidden by default. */
+      min-width: 250px; /* Set a default minimum width */
+      margin-left: -125px; /* Div is centered horizontally */
+      background-color: #3b5cb8; /* Blue background */
+      color: #fff; /* White text color */
+      text-align: center; /* Centered text */
+      border-radius: 8px; /* Rounded borders */
+      padding: 16px; /* Padding */
+      position: fixed; /* Sit on top of the screen */
+      z-index: 999; /* Add a z-index if needed */
+      left: 50%; /* Center the toast horizontally */
+      bottom: 30px; /* 30px from the bottom */
+      font-size: 1.05rem;
+      opacity: 0; /* Start with 0 opacity */
+      transition: opacity 0.5s, visibility 0.5s; /* Add a fade-in effect */
+    }
+
+    /* Show the toast when it has the .show class */
+    .toast.show {
+      visibility: visible; /* Show the toast */
+      opacity: 1; /* Fade in */
+    }
   </style>
 </head>
 <body>
@@ -301,16 +325,16 @@
           <tr>
             <th>المستوى</th>
             <th>عدد الأسئلة</th>
-            <th>عدد العلامات</th> <!-- New Header -->
-            <th>الوقت (دقيقة)</th> <!-- New Header -->
+            <th>عدد العلامات =</th>
+            <th>الوقت (دقيقة)</th>
             <th>إجراء</th>
           </tr>
         </thead>
         <tbody id="settingsTbody">
-          <tr><td colspan="5" style="color:#888">جاري التحميل...</td></tr> <!-- Updated colspan -->
+          <tr><td colspan="5" style="color:#888">جاري التحميل...</td></tr>
         </tbody>
       </table>
-      <div class="settings-msg" id="settingsMsg"></div>
+      <!-- تم إزالة div.settings-msg من هنا -->
     </form>
   </div>
   <!-- نهاية إعدادات عدد الأسئلة -->
@@ -382,7 +406,33 @@
   </table>
 </div>
 
+<!-- Toast element for messages -->
+<div id="toast" class="toast"></div>
+
 <script>
+// Toast & Loading Functions (copied from dashboard.html)
+function showToast(msg, color="#3b5cb8") {
+  const toast = document.getElementById("toast");
+  if (!toast) {
+      console.error("Toast element not found!");
+      return;
+  }
+  toast.innerText = msg;
+  toast.style.background = color;
+  toast.className = "toast show";
+  setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
+}
+function showLoading(show) {
+  // Assuming a spinner exists if needed, otherwise this can be a placeholder.
+  // For this page, a spinner might not be strictly necessary for settings saves,
+  // but keeping the function consistent.
+  const spinner = document.getElementById("loadingSpinner");
+  if (spinner) {
+      spinner.style.display = show ? "block" : "none";
+  }
+}
+
+
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
 var auth = firebase.auth();
 var firestore = firebase.firestore();
@@ -419,7 +469,7 @@ function loadSettingsTable() {
   firestore.collection('exam_settings').get().then(snapshot => {
     let data = {};
     snapshot.forEach(doc => {
-      data[doc.id] = doc.data(); // Get all data for the level
+      data[doc.id] = doc.data(); // Get all data for the level (question_num, total_marks, exam_duration)
     });
     let rows = '';
     LEVELS.forEach(lvl => {
@@ -450,8 +500,7 @@ function loadSettingsTable() {
 }
 
 function saveLevel(lvl) {
-  const msgEl = document.getElementById('settingsMsg');
-  msgEl.innerText = '';
+  // تم إزالة msgEl لأنه سنستخدم showToast
   let inputQNum = document.getElementById(`input_qnum_${lvl}`);
   let inputTMarks = document.getElementById(`input_tmarks_${lvl}`); // New input
   let inputDuration = document.getElementById(`input_duration_${lvl}`); // New input
@@ -461,20 +510,17 @@ function saveLevel(lvl) {
   let duration = parseInt(inputDuration.value); // New value
 
   if (!qNum || qNum < 1) {
-    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`;
-    msgEl.style.color = '#e63946';
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`, '#e63946');
     inputQNum.focus();
     return;
   }
   if (!tMarks || tMarks < 1) { // Validation for total_marks
-    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`;
-    msgEl.style.color = '#e63946';
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`, '#e63946');
     inputTMarks.focus();
     return;
   }
   if (!duration || duration < 1) { // Validation for exam_duration
-    msgEl.innerText = `يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`;
-    msgEl.style.color = '#e63946';
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`, '#e63946');
     inputDuration.focus();
     return;
   }
@@ -484,12 +530,9 @@ function saveLevel(lvl) {
     total_marks: tMarks, // New field
     exam_duration: duration // New field
   }).then(()=>{
-    msgEl.innerText = `تم حفظ إعدادات المستوى ${lvl} بنجاح`;
-    msgEl.style.color = '#219e4b';
-    setTimeout(()=>{msgEl.innerText='';}, 1800);
+    showToast(`تم حفظ إعدادات المستوى ${lvl} بنجاح`, '#219e4b');
   }).catch((error)=>{ // Added error parameter for better logging
-    msgEl.innerText = "حدث خطأ أثناء الحفظ! " + error.message; // Displaying error message
-    msgEl.style.color = '#e63946';
+    showToast(`حدث خطأ أثناء الحفظ! ${error.message}`, '#e63946');
     console.error("Error saving level settings:", error); // Log the error for debugging
   });
 }
