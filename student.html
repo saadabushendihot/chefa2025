@@ -81,28 +81,22 @@
     .dark-mode .levels-table th, .dark-mode .exams-table th {background: #253150; color: #fff;}
     .dark-mode .lesson-summary-block {background: #242b39;}
     .dark-mode textarea.summary-text {background: #23272f; color: #fff;}
-    /* Responsive */
-    @media (max-width:900px){#examBox{padding:7px;}}
-    @media (max-width: 900px){
-      .container{padding:8px;}
-      header {padding:10px;}
-      .levels-table th, .levels-table td, .exams-table th, .exams-table td {padding: 7px 2px;}
-      .lesson-summary-block{padding:10px 4px;}
-      textarea.summary-text {width:96%;}
-      .lesson-summary-block audio {width:100%!important;}
-    }
-    .lesson-summary-block {background: #f5f7fb; border-radius: 10px; margin: 18px 0 28px 0; padding: 18px 14px; box-shadow: 0 2px 6px #e0e7ef33;}
-    .lesson-summary-block h4 {margin:0 0 8px 0; color:#1b3e72;}
-    .lesson-link {color:#4361ee; text-decoration:none;}
-    .summary-actions {margin-top: 8px;}
-    .summary-status {font-weight:bold; font-size:0.95rem; margin-right:8px;}
-    .summary-status.draft { color: #e6a100;}
-    .summary-status.submitted { color: #219e4b;}
-    .lesson-student-name {font-size:1rem; color:#888; margin-bottom:7px;}
-    .lesson-mark-badge {
-      display:inline-block; background:#e3f6ed; color:#219e4b; font-weight:bold;
-      border-radius:15px; padding:1px 13px; font-size:0.99em; margin-right:8px; border:1px solid #b7eecd;
-      min-width:44px; vertical-align:middle;
+    /* NEW: Dark mode styles for Exam Box */
+    .dark-mode #examBox {background: #293043;} /* خلفية داكنة لخانة الامتحان بالكامل */
+    .dark-mode #examBox h2 {color: #fff;} /* عنوان واضح */
+    .dark-mode .student-info, .dark-mode .level-info {background: #2b3547; color: #e0e0e0;} /* خلفية أغمق ونصوص أفتح */
+    .dark-mode .question-block {background: #3a455a; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);} /* خلفية أغمق وظلال معدلة */
+    .dark-mode .question-title {color: #fff;} /* نص السؤال أبيض */
+    .dark-mode .multi-note {color: #ffcc80;} /* لون ملاحظة الإجابات المتعددة */
+    .dark-mode .question-mark {color: #8cafff;} /* لون علامة السؤال */
+    .dark-mode .choices-list label {color: #e0e0e0;} /* نص الخيارات أفتح */
+    .dark-mode .scoring-note {color: #66b2b2;} /* لون ملاحظة التصحيح */
+    .dark-mode .msg {color: #ff8080;} /* لون رسائل الخطأ */
+    .dark-mode .result {color: #66bb6a;} /* لون رسائل النتائج */
+    /* قد تحتاج لتعديلات إضافية لأزرار الراديو/المربعات إذا كانت مخصصة */
+    .dark-mode input[type="radio"], .dark-mode input[type="checkbox"] {
+        /* مثال بسيط لعكس الألوان، قد تحتاج لتصميم أكثر تعقيدًا إذا كانت لديك أيقونات مخصصة */
+        filter: invert(0.8);
     }
     /* الفئة الجديدة للعلامة صفر */
     .lesson-mark-badge.zero-mark {background:#ffecf0; color:#e63946; border:1px solid #ffbcbc;}
