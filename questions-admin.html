@@ -68,11 +68,12 @@
     .settings-table th:nth-child(5), .settings-table td:nth-child(5) { width: 15%; } /* إجراء */
 
     .settings-table input[type="number"] {
-        max-width: 100%; /* Allow inputs to fill their column */
+        width: 100%; /* Make it fill the cell */
+        max-width: none; /* Remove any previous max-width constraint */
         box-sizing: border-box; /* Include padding and border in the element's total width and height */
     }
     .settings-table th {background:#eef2fa;}
-    .settings-table input[type="number"] {max-width:80px;}
+    /* .settings-table input[type="number"] {max-width:80px;} تم إزالة هذا السطر */
     /* .settings-msg {margin:8px 0 0 0;font-weight:bold;min-height:20px;} تم إزالته ليحل محله الـ Toast */
     @media (max-width:900px){.container{padding:7px;}.table-questions th,.table-questions td{padding:4px;}}
     
