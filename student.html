@@ -96,8 +96,36 @@
     .dark-mode input[type="radio"], .dark-mode input[type="checkbox"] {
         filter: invert(0.8);
     }
-    /* الفئة الجديدة للعلامة صفر */
-    .lesson-mark-badge.zero-mark {background:#ffecf0; color:#e63946; border:1px solid #ffbcbc;}
+    /* الأساس لشكل العلامة البيضاوي */
+    .lesson-mark-badge {
+      display:inline-block;
+      font-weight:bold;
+      border-radius:15px; /* لجعلها بيضاوية */
+      padding:1px 13px;
+      font-size:0.99em;
+      margin-right:8px;
+      min-width:44px;
+      vertical-align:middle;
+    }
+    /* فئة للعلامات الإيجابية (أكبر من صفر) */
+    .lesson-mark-badge.positive-mark {
+        background:#e3f6ed; /* أخضر فاتح */
+        color:#219e4b;     /* أخضر داكن */
+        border:1px solid #b7eecd; /* حدود خضراء */
+    }
+    /* فئة للعلامة صفر */
+    .lesson-mark-badge.zero-mark {
+        background:#ffecf0; /* أحمر فاتح */
+        color:#e63946;     /* أحمر داكن */
+        border:1px solid #ffbcbc; /* حدود حمراء */
+    }
+    /* فئة للعلامة غير الموجودة (مثل المسودة أو لم يتم تحديد علامة) */
+    .lesson-mark-badge.no-mark {
+        background:#f5f7fb; /* رمادي فاتح */
+        color:#555;         /* رمادي داكن */
+        border:1px solid #d2d8e6; /* حدود رمادية */
+    }
+
     textarea.summary-text {
       width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
       resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
@@ -159,7 +187,8 @@
   <div id="toast" class="toast"></div>
   <audio id="timeWarningSound" src="path/to/your/warning_sound.mp3" preload="auto"></audio>
 
-  <script src="firebase-config.js"></script> <script>
+  <script src="firebase-config.js"></script>
+  <script>
     // Firebase Config: تم حذف الكائن من هنا وسيتم جلبه من firebase-config.js
     
     // الوضع الليلي
@@ -907,7 +936,7 @@
 
         // تحديد العلامة للعرض بناءً على حالة التلخيص والعلامة المجلوبة
         let markToDisplay = '—';
-        let markBadgeClass = 'none'; // الفئة الافتراضية للعلامة الفارغة أو للمسودة
+        let markBadgeClass = 'no-mark'; // الافتراضي للعلامة الفارغة أو للمسودة
 
         if (sum.status === 'submitted') {
             // إذا كان التلخيص "تم التسليم"، حاول عرض العلامة المجلوبة
@@ -915,13 +944,12 @@
                 markToDisplay = 'العلامة: ' + sum.mark_from_student_marks;
                 // تحديد الفئة بناءً على قيمة العلامة
                 if (sum.mark_from_student_marks > 0) {
-                    markBadgeClass = ''; // أخضر/نجاح (الفئة الافتراضية)
+                    markBadgeClass = 'positive-mark'; // أخضر/نجاح
                 } else {
                     markBadgeClass = 'zero-mark'; // أحمر/تحذير
                 }
             }
         }
-        // إذا كان sum.status === 'draft'، فإن markToDisplay ستبقى '—'
 
         let time = sum.timestamp ? `<span style="color:#888;font-size:0.97em;">(${(new Date(sum.timestamp)).toLocaleString('ar-EG')})</span>` : "";
 
