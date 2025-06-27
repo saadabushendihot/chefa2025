@@ -126,6 +126,45 @@
         border:1px solid #d2d8e6; /* حدود رمادية */
     }
 
+    /* تحسينات تصميم مربع التلخيص */
+    .lesson-summary-block {
+      background: #ffffff; /* خلفية بيضاء لتباين أفضل */
+      border-radius: 12px; /* حواف دائرية أكثر */
+      margin: 20px 0 30px 0; /* هوامش لتباعد أفضل */
+      padding: 24px; /* مسافات داخلية أكبر للمحتوى */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* ظل أكثر بروزًا ونعومة */
+      border: 1px solid #e0e4e8; /* حدود خفيفة */
+      transition: all 0.3s ease; /* انتقال سلس لتأثير التمرير */
+    }
+    .lesson-summary-block:hover {
+        transform: translateY(-5px); /* رفع طفيف عند التمرير */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12); /* ظل معزز عند التمرير */
+    }
+
+    /* تحسين عنوان الدرس داخل مربع التلخيص */
+    .lesson-summary-block h4 {
+        margin-bottom: 15px; /* مسافة أكبر أسفل العنوان */
+        padding-bottom: 10px; /* تباعد أسفل العنوان */
+        border-bottom: 1px solid #f0f2f5; /* خط فاصل رفيع أسفل العنوان */
+        color: #294169; /* لون أزرق داكن للعنوان */
+        font-size: 1.15rem; /* حجم خط أكبر قليلاً */
+    }
+
+    /* تعديلات الوضع الليلي لمربع التلخيص المحسن */
+    .dark-mode .lesson-summary-block {
+      background: #323946; /* خلفية داكنة */
+      border: 1px solid #3d4a5c; /* حدود داكنة */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* ظل داكن */
+    }
+    .dark-mode .lesson-summary-block:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+    .dark-mode .lesson-summary-block h4 {
+        color: #e0e0e0; /* لون أفتح للعنوان في الوضع الليلي */
+        border-bottom: 1px solid #4a576b; /* خط فاصل في الوضع الليلي */
+    }
+
     textarea.summary-text {
       width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
       resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
@@ -458,16 +497,16 @@
                                 s.mark_from_student_marks = markSnap.docs[0].data().mark;
                                 return true;
                             }
-                            s.mark_from_student_marks = null;
-                            return false;
+                            s.mark_from_student_marks = null; // العلامة غير صالحة (صفر أو أقل)
+                            return false; // الملخص مسلم لكن لا يوجد علامة صالحة
                         }).catch(error => {
                             console.error("Error fetching mark for summary in exam check:", s.docId, error);
                             s.mark_from_student_marks = null;
-                            return false;
+                            return false; // اعتبارها غير صالحة في حالة الخطأ
                         })
                     );
                 } else {
-                    s.mark_from_student_marks = null;
+                    s.mark_from_student_marks = null; // الملخصات المسودة لا تؤهل للامتحان
                     summaryAndMarkPromises.push(Promise.resolve(false));
                 }
             });
