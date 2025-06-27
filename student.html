@@ -164,19 +164,11 @@
     </div>
   </div>
   <div id="toast" class="toast"></div>
-  
-<audio id="timeWarningSound" src="https://archive.org/download/c.oussama/%D8%A7%D8%AF%D8%A7%D8%A8%20%D8%B7%D9%84%D8%A8%20%D8%A7%D9%84%D8%B9%D9%84%D9%85.mp3" preload="auto"></audio>
-  <script>
-    // Firebase Config: Moved from firebase-config.js to here for direct access
-    var firebaseConfig = {
-      apiKey: "AIzaSyCNx0wz_Xf5kXHl8kxmn7j6eH90DSMsEHw",
-      authDomain: "shefa-502fe.firebaseapp.com",
-      projectId: "shefa-502fe",
-      storageBucket: "shefa-502fe.appspot.com",
-      messagingSenderId: "639314388969",
-      appId: "1:639314388969:web:ad5245fc2d5d9c750c4d78"
-    };
+  <audio id="timeWarningSound" src="path/to/your/warning_sound.mp3" preload="auto"></audio>
 
+  <script src="firebase-config.js"></script> <script>
+    // Firebase Config: تم حذف الكائن من هنا وسيتم جلبه من firebase-config.js
+    
     // الوضع الليلي
     function toggleNightMode() {
       document.body.classList.toggle('dark-mode');
@@ -262,7 +254,7 @@
     let currentExamLevel = null;
 
     // Firebase init
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } // firebaseConfig يتم جلبه الآن من firebase-config.js
     auth = firebase.auth();
     firestore = firebase.firestore();
 
@@ -597,7 +589,7 @@
         }
         loadExamQuestions(level);
         // بدء العداد (مثال: 20 دقيقة)
-        startExamTimer(1);
+        startExamTimer(20);
       });
       document.getElementById('formMsg').innerText = '';
       document.getElementById('resultArea').innerText = '';
