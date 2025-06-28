@@ -1226,9 +1226,11 @@
 
       // Get lessons first (they don't change often)
       firestore.collection('lessons').orderBy('id').get().then(function(lessonsSnap) {
+        window.lessonsMap = {}; // *** CRITICAL FIX: Initialize or clear lessonsMap here ***
         let lessons = [];
         lessonsSnap.forEach(function(doc) {
           let lesson = doc.data();
+          window.lessonsMap[lesson.id] = lesson.title; // *** CRITICAL FIX: Populate window.lessonsMap ***
           let levelNum = getLevelNumber(lesson.level);
           if (activeLevels.includes(levelNum)) {
             lessons.push(lesson);
