@@ -27,11 +27,11 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      position: fixed;
+      position: fixed; /* تثبيت شريط التنقل */
       top: 0;
       width: 100%;
-      z-index: 100;
-      box-sizing: border-box;
+      z-index: 100; /* لضمان ظهوره فوق العناصر الأخرى */
+      box-sizing: border-box; /* لضمان احتساب البادينج ضمن العرض */
     }
 
     .main-nav .nav-brand {
@@ -40,17 +40,17 @@
     }
 
     .main-nav .center-logo {
-        height: 40px;
+        height: 40px; /* حجم الشعار */
         vertical-align: middle;
-        margin-right: 15px;
+        margin-right: 15px; /* مسافة بين الشعار والروابط/العنوان */
     }
 
     .main-nav .nav-links {
         display: flex;
         align-items: center;
-        gap: 25px;
-        flex-grow: 1;
-        justify-content: center;
+        gap: 25px; /* تباعد بين الروابط */
+        flex-grow: 1; /* لجعل الروابط تتوزع في المنتصف */
+        justify-content: center; /* لمحاذاة الروابط في المنتصف */
     }
 
     .main-nav .nav-link {
@@ -60,12 +60,12 @@
         font-size: 1.05rem;
         transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
         border-radius: 5px;
-        white-space: nowrap;
+        white-space: nowrap; /* منع التفاف النص */
     }
 
     .main-nav .nav-link:hover,
     .main-nav .nav-link.active {
-        background-color: #26407a;
+        background-color: #26407a; /* لون الخلفية عند التمرير أو للرابط النشط */
         color: #fff;
     }
 
@@ -342,7 +342,7 @@ tbody tr:last-child td {
     .save-btn:hover {background:#156c59;}
     .cancel-btn {background:#b83b3b; color:#fff;}
     .cancel-btn:hover {background:#7a2626;}
-    #msg, #addStudentMsg, #addLessonMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
+    #msg, #addStudentMsg, #addLessonMsg, #addNotificationMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
     @media (max-width: 900px){
       .container {padding:8px;}
       h2 {font-size:1rem;}
@@ -741,6 +741,24 @@ tbody tr:last-child td {
       <div id="addLessonMsg"></div>
     </div>
 
+    <div class="add-section-toggle" onclick="toggleSection('sendNotificationSection')">
+      <span class="toggle-icon" id="sendNotificationToggleIcon">🔔</span>
+      <span style="font-weight:bold;">إرسال إشعار جديد</span>
+    </div>
+    <div class="add-section" id="sendNotificationSection">
+      <h3>إرسال إشعار جديد</h3>
+      <form id="sendNotificationForm" onsubmit="sendNotification(event)">
+        <label for="notificationMessage">رسالة الإشعار:</label>
+        <textarea id="notificationMessage" placeholder="اكتب رسالة الإشعار هنا..." required></textarea>
+        <label for="notificationRecipient">إرسال إلى:</label>
+        <select id="notificationRecipient">
+          <option value="selectedStudent">الطالب المحدد حالياً</option>
+          <option value="allStudents">جميع الطلاب</option>
+        </select>
+        <button class="btn" type="submit">إرسال الإشعار</button>
+      </form>
+      <div id="addNotificationMsg"></div>
+    </div>
     <div class="students-area">
       <h2>إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
@@ -886,11 +904,19 @@ tbody tr:last-child td {
     // --- كودك الأصلي كما هو مع التعديلات في الدوال أدناه فقط ---
     function toggleSection(sectionId){
       var sec = document.getElementById(sectionId);
-      var iconId = sectionId === 'addStudentSection' ? 'addStudentToggleIcon' : 'addLessonToggleIcon';
+      var iconId = '';
+      if (sectionId === 'addStudentSection') {
+        iconId = 'addStudentToggleIcon';
+      } else if (sectionId === 'addLessonSection') {
+        iconId = 'addLessonToggleIcon';
+      } else if (sectionId === 'sendNotificationSection') { // New condition
+        iconId = 'sendNotificationToggleIcon';
+      }
+
       var icon = document.getElementById(iconId);
       if (sec.style.display === "block") {
         sec.style.display = "none";
-        icon.textContent = "➕";
+        icon.textContent = (sectionId === 'sendNotificationSection') ? "🔔" : "➕"; // Reset icon
       } else {
         sec.style.display = "block";
         icon.textContent = "✖";
@@ -899,6 +925,7 @@ tbody tr:last-child td {
     window.onload = function() {
       document.getElementById('addStudentSection').style.display = "none";
       document.getElementById('addLessonSection').style.display = "none";
+      document.getElementById('sendNotificationSection').style.display = "none"; // Hide notification section initially
     };
 
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
@@ -1132,12 +1159,28 @@ tbody tr:last-child td {
         deleteStudentBtn.dataset.studentId = studentId;
         currentStudentEmailForSummaries = student.email;
         loadStudentSummaries(student.email); // This will set up the listener now
+
+        // Set the notification recipient dropdown based on selected student
+        const notificationRecipientSelect = document.getElementById('notificationRecipient');
+        notificationRecipientSelect.innerHTML = `
+            <option value="${student.email}">الطالب المحدد حالياً: ${student.name || student.email}</option>
+            <option value="allStudents">جميع الطلاب</option>
+        `;
+        notificationRecipientSelect.value = student.email; // Select the current student as default recipient
+
         studentDetailsDiv.style.display = 'block';
       } else {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
         deleteStudentBtn.style.display = "none";
         document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
+        // Reset notification recipient dropdown to default if no student is selected
+        document.getElementById('notificationRecipient').innerHTML = `
+            <option value="selectedStudent">الطالب المحدد حالياً</option>
+            <option value="allStudents">جميع الطلاب</option>
+        `;
+        document.getElementById('notificationRecipient').value = "selectedStudent";
+
         setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
       }
     };
@@ -1737,7 +1780,6 @@ function saveSummaryComment(docId) {
     });
 }
 
-
 // New function to reset summary status
 window.resetSummary = function(summaryDocId, studentEmail) {
     if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة والتعليق ورد الطالب المرتبطين به.')) {
@@ -1776,6 +1818,67 @@ window.resetSummary = function(summaryDocId, studentEmail) {
         showLoading(false);
     });
 };
+
+// Function to send a notification
+async function sendNotification(e) {
+    e.preventDefault();
+    const message = document.getElementById('notificationMessage').value.trim();
+    const recipientType = document.getElementById('notificationRecipient').value;
+    const msgDiv = document.getElementById('addNotificationMsg');
+    msgDiv.innerText = '';
+    msgDiv.style.color = "#b83b3b";
+
+    if (!message) {
+        msgDiv.innerText = "الرجاء كتابة رسالة الإشعار.";
+        return;
+    }
+
+    showLoading(true);
+
+    let recipientEmail = '';
+    if (recipientType === 'selectedStudent') {
+        const selectedStudentId = document.getElementById('studentSelect').value;
+        if (!selectedStudentId || !allStudentsData[selectedStudentId]) {
+            msgDiv.innerText = "الرجاء تحديد طالب من القائمة أولاً لإرسال الإشعار إليه.";
+            showLoading(false);
+            return;
+        }
+        recipientEmail = allStudentsData[selectedStudentId].email;
+    } else if (recipientType === 'allStudents') {
+        recipientEmail = "all"; // Special value for all students
+    }
+
+    try {
+        const currentUser = firebase.auth().currentUser;
+        if (!currentUser) {
+            msgDiv.innerText = "خطأ: المعلم غير مسجل الدخول.";
+            showLoading(false);
+            return;
+        }
+
+        await firestore.collection('notifications').add({
+            message: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            recipient_email: recipientEmail,
+            is_read: false,
+            sender_email: currentUser.email,
+            sender_name: currentUser.displayName || 'المعلم'
+        });
+
+        msgDiv.style.color = "#1dad87";
+        msgDiv.innerText = "تم إرسال الإشعار بنجاح!";
+        document.getElementById('notificationMessage').value = ''; // Clear message
+        showToast("تم إرسال الإشعار بنجاح!", "#1dad87");
+        setTimeout(() => { msgDiv.innerText = ''; msgDiv.style.color = "#b83b3b"; }, 2000);
+
+    } catch (error) {
+        msgDiv.innerText = "حدث خطأ أثناء إرسال الإشعار: " + error.message;
+        showToast("خطأ أثناء إرسال الإشعار!", "#e63946");
+        console.error("Error sending notification:", error);
+    } finally {
+        showLoading(false);
+    }
+}
 
 
     function logout() {
