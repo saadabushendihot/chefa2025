@@ -276,6 +276,7 @@
       background-color: var(--surface);
       color: var(--text-primary);
       transition: border-color 0.2s ease;
+      box-sizing: border-box; /* Added for correct width calculation */
     }
 
     .form-control:focus {
@@ -356,6 +357,7 @@
       margin-right: 8px; /* Adjusted for RTL */
       background-color: var(--surface);
       color: var(--text-primary);
+      box-sizing: border-box; /* Ensure it stays within bounds */
     }
 
     .table-mark-button {
@@ -396,6 +398,10 @@
         color: var(--on-error);
         padding: 5px 10px;
         font-size: 0.85rem;
+        /* For Material Icons within buttons, ensure spacing */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
     .btn.reset-summary:hover {
         background: var(--error); /* Maintain same color for hover for strong warning */
@@ -486,8 +492,9 @@
       display: none;
       position: fixed;
       top: 64px;
-      right: 16px;
-      width: 360px;
+      max-width: 360px; /* Using max-width instead of fixed width */
+      right: 16px; /* Aligned to right for RTL */
+      left: auto; /* Allow auto positioning from left */
       max-height: calc(100vh - 80px);
       background-color: var(--surface);
       border-radius: 4px;
@@ -547,7 +554,8 @@
     .toast {
       position: fixed;
       bottom: 24px;
-      right: 24px;
+      left: 24px; /* Changed from right to left for RTL */
+      right: auto; /* Allow auto positioning from right */
       padding: 12px 24px;
       background-color: #323232;
       color: white;
@@ -598,6 +606,7 @@
     .d-flex { display: flex; }
     .align-items-center { align-items: center; }
     .justify-content-between { justify-content: space-between; }
+    .ml-1 { margin-left: 4px; } /* For RTL, this means space to the left of the element */
     .ml-2 { margin-left: 8px; } /* For RTL, this means space to the left of the element */
 
     /* Responsive Adjustments */
@@ -643,7 +652,8 @@
       .notification-panel {
         width: calc(100% - 32px);
         right: 16px;
-        left: 16px;
+        left: 16px; /* Explicitly set left for containment */
+        max-width: none; /* Remove max-width for full width on small screens */
       }
     }
 
@@ -707,7 +717,7 @@
         <span id="unreadTeacherNotificationsBadge" class="notification-badge d-none">0</span>
       </div>
       <button class="btn btn-danger ml-2" onclick="logout()">
-        <i class="material-icons mr-1">logout</i> تسجيل الخروج
+        <i class="material-icons ml-1">logout</i> تسجيل الخروج
       </button>
       <button class="btn ml-2" onclick="toggleDarkMode()">
         <i class="material-icons">brightness_4</i>
@@ -1111,8 +1121,7 @@
             panel.style.display = 'none';
         } else {
             // Position the panel dynamically
-            const bellRect = bellIcon.getBoundingClientRect();
-            panel.style.right = (window.innerWidth - bellRect.right) + 'px';
+            // (Removed panel.style.right = (window.innerWidth - bellRect.right) + 'px'; as CSS handles it)
             panel.style.top = (bellRect.bottom + 5) + 'px'; // 5px below the bell
 
             panel.style.display = 'block';
@@ -1571,7 +1580,7 @@
         }
         setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1200);
       }).catch(function(err){
-        document.getElementById('msg').innerText = "حدث خطأ أثناء تحديث الامتحان: " + err.message;
+        document.getElementById('msg').innerText = "خطأ أثناء تحديث الامتحان: " + err.message;
       });
     };
 
@@ -1710,7 +1719,7 @@
         loadLessons();
         setTimeout(()=>{msg.innerText='';}, 1500);
       }).catch(function(err){
-        msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
+        msg.innerText = "خطأ أثناء التحديث: " + err.message;
       });
     }
 
