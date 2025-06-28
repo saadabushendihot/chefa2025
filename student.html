@@ -361,7 +361,7 @@
         }
         .notification-item.unread {
           padding: 10px 5px;
-          margin: 0 -15px;
+          margin: 0 -5px;
         }
     }
 
@@ -522,9 +522,6 @@
     let summariesListenerUnsubscribe = null; // To store unsubscribe function for real-time listener
     let notificationsListenerUnsubscribe = null; // [NEW] To store unsubscribe function for notifications
 
-    // [NEW] Hardcoded teacher email for notifications
-    const TEACHER_ADMIN_EMAIL = "saad.abushendi@gmail.com";
-
 
     // Firebase init
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } // firebaseConfig يتم جلبه الآن من firebase-config.js
@@ -591,32 +588,7 @@
       }
     });
 
-    // [NEW] Helper function to send notifications to the teacher
-    async function sendTeacherNotification(messageContent, type, relatedId = null, relatedName = null) {
-        if (!currentStudentEmail || !currentStudentName || !messageContent) {
-            console.warn("Cannot send teacher notification: Missing student info or message content.");
-            return;
-        }
-        try {
-            await firestore.collection('notifications').add({
-                message: messageContent,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                recipient_email: TEACHER_ADMIN_EMAIL, // Recipient is the teacher
-                is_read: false,
-                sender_email: currentStudentEmail, // Sender is the student
-                sender_name: currentStudentName,
-                notification_type: type, // e.g., 'summary_submitted', 'student_reply'
-                related_id: relatedId,
-                related_name: relatedName
-            });
-            console.log(`Notification sent to teacher: "${messageContent}"`);
-        } catch (error) {
-            console.error("Error sending teacher notification:", error);
-        }
-    }
-
-
-    // [NEW] Notification functions for student UI
+    // [NEW] Notification functions
     function toggleNotificationPanel() {
         const panel = document.getElementById('notificationPanel');
         if (panel.style.display === 'block') {
@@ -1377,13 +1349,13 @@
             <div class="reply-area">
                 <label for="studentreply_${sum.docId}">تعليقك/ردك على الدرس:</label>
                 <textarea class="summary-text" id="studentreply_${sum.docId}" placeholder="اكتب ردك هنا...">${sum.student_reply_comment || ''}</textarea>
-                <button class="btn" onclick="saveStudentReply('${sum.docId}', ${lesson.id})">حفظ الرد</button>
+                <button class="btn" onclick="saveStudentReply('${sum.docId}')">حفظ الرد</button>
             </div>
           ` : ''}
           <div class="summary-actions">
             <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
             <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
-            <button class="btn submit" onclick="submitSummary(${lesson.id})">تسليم نهائي</button>
+            <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
           </div>
           <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
         </div>
@@ -1393,11 +1365,9 @@
     }
 
     // Function to save student reply to teacher's comment (or initiate comment)
-    function saveStudentReply(summaryDocId, lessonId) {
+    function saveStudentReply(summaryDocId) {
         const replyTextarea = document.getElementById(`studentreply_${summaryDocId}`);
         const replyText = sanitizeText(replyTextarea.value.trim());
-        const lessonTitle = window.lessonsMap[lessonId];
-
 
         if (!replyText) {
             showToast("يرجى كتابة الرد أولاً.", "#e63946");
@@ -1408,13 +1378,6 @@
             student_reply_comment: replyText
         }).then(() => {
             showToast("تم حفظ ردك بنجاح!", "#1dad87");
-            // NEW: Send notification to teacher for student reply
-            sendTeacherNotification(
-                `قام الطالب ${currentStudentName} بالرد على تعليقك في درس "${lessonTitle}".`,
-                'student_reply',
-                lessonId,
-                lessonTitle
-            );
             // No need to call loadStudentData here, listener will handle refresh
         }).catch(error => {
             showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "#e63946");
@@ -1500,20 +1463,11 @@
           summaryData.lesson_id = lessonId;
       }
 
-      const lessonTitle = window.lessonsMap[lessonId]; // Get lesson title for notification
-
       docRef.set(summaryData, { merge: true }).then(function(){
           msg.style.color = "#1dad87";
           msg.innerText = "تم تسليم التلخيص بنجاح.";
           // No need to call loadStudentData, listener will handle refresh
           showToast("تم تسليم التلخيص بنجاح!", "#1dad87");
-          // NEW: Send notification to teacher for summary submission
-          sendTeacherNotification(
-              `قام الطالب ${currentStudentName} بتسليم تلخيص جديد لدرس "${lessonTitle}".`,
-              'summary_submitted',
-              lessonId,
-              lessonTitle
-          );
           setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
       }).catch((error)=>{ 
           showToast("خطأ أثناء التسليم: " + error.message, "#e63946"); 
