@@ -8,16 +8,13 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
-  <!-- مكتبة تصدير PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <!-- Font Awesome for icons (optional, if you want actual icons instead of text) -->
-  <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> -->
   <style>
-    body { 
-        font-family: Tajawal, Arial, sans-serif; 
-        margin: 0; 
-        background: #f5f7fa; 
-        color: #23272f; 
+    body {
+        font-family: Tajawal, Arial, sans-serif;
+        margin: 0;
+        background: #f5f7fa;
+        color: #23272f;
         min-height: 100vh;
         padding-top: 70px; /* لتجنب اختباء المحتوى خلف شريط التنقل الثابت */
     }
@@ -95,6 +92,8 @@
     .btn:hover { background: #26407a; }
     .signout { background: #b83b3b;}
     .signout:hover { background: #7a2626;}
+    .delete-btn {background: #dc3545;}
+    .delete-btn:hover {background: #c82333;}
     .students-area, .lessons-area {
       background: #fff;
       border-radius: 10px;
@@ -152,7 +151,7 @@
     }
     .add-section form { display: flex; flex-direction: column; gap: 14px;}
     .add-section label { font-size: 1rem; color: #2e4061; margin-bottom: 4px; margin-right: 2px; font-weight: 500;}
-    .add-section input, .add-section select {
+    .add-section input, .add-section select, .add-section textarea {
       padding: 9px;
       border: 1px solid #c5c9d2;
       border-radius: 6px;
@@ -162,7 +161,7 @@
       transition: border 0.15s;
       margin-bottom: 6px;
     }
-    .add-section input:focus, .add-section select:focus { border-color: #3b5cb8; outline: none;}
+    .add-section input:focus, .add-section select:focus, .add-section textarea:focus { border-color: #3b5cb8; outline: none;}
     .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
     /* تحسينات عامة على الجداول */
 .table-wrapper { /* New wrapper for horizontal scroll */
@@ -228,7 +227,7 @@ tbody tr:last-child td {
 
 
 /* تحسين أزرار الإجراءات داخل الجدول */
-.btn[onclick^="saveSummaryMark"] {
+.btn[onclick^="saveSummaryMark"], .btn[onclick^="saveSummaryComment"] {
   background-color: #1dad87; /* لون أخضر جذاب للحفظ */
   color: #fff;
   border: none;
@@ -238,20 +237,21 @@ tbody tr:last-child td {
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
 }
-.btn[onclick^="saveSummaryMark"]:hover {
+.btn[onclick^="saveSummaryMark"]:hover, .btn[onclick^="saveSummaryComment"]:hover {
   background-color: #159b79; /* لون أخضر أغمق عند التمرير */
 }
 
-/* تحسين حقل إدخال العلامة */
-input[id^="markinp_"] {
+/* تحسين حقل إدخال العلامة والتعليق */
+input[id^="markinp_"], textarea[id^="commentinp_"] {
   padding: 5px 8px;
   border: 1px solid #c5c9d2;
   border-radius: 5px;
   font-size: 0.95rem;
-  text-align: center;
-  width: 70px; /* أو حسب الحاجة */
-  margin-left: 5px; /* مسافة بين الحقل والزر */
+  text-align: right;
+  width: 90%; /* أو حسب الحاجة */
+  margin-bottom: 5px; /* مسافة بين الحقل والزر */
 }
+input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
 
 /* تحسينات لحالة التلخيص */
 .summary-status {
@@ -429,7 +429,7 @@ input[id^="markinp_"] {
       direction: rtl; /* Ensure text direction for content */
       word-break: break-word; /* لمنع اقتصاص الكلمات الطويلة */
     }
-    
+
     #summaryViewerModal .modal-footer-btn {
         margin-top: 25px;
         text-align: center;
@@ -644,11 +644,104 @@ input[id^="markinp_"] {
             padding-top: 120px; /* ضبط المسافة العلوية لضمان عدم اختباء المحتوى */
         }
     }
+
+    /* Dark Mode for general elements */
+    .dark-mode {
+        background: #23272f;
+        color: #e0e0e0;
+    }
+    .dark-mode .container,
+    .dark-mode .students-area,
+    .dark-mode .lessons-area,
+    .dark-mode .add-section,
+    .dark-mode #selectedStudentDetails,
+    .dark-mode .table-wrapper {
+        background: #323946;
+        color: #e0e0e0;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+    .dark-mode h2,
+    .dark-mode h3,
+    .dark-mode h4,
+    .dark-mode #selectedStudentDetails p strong {
+        color: #8cafff;
+    }
+    .dark-mode .btn {
+        background: #4a576b;
+        color: #fff;
+    }
+    .dark-mode .btn:hover {
+        background: #5a6b7e;
+    }
+    .dark-mode .signout,
+    .dark-mode .delete-btn {
+        background: #a40b2b;
+    }
+    .dark-mode .signout:hover,
+    .dark-mode .delete-btn:hover {
+        background: #c02b41;
+    }
+    .dark-mode .add-section-toggle .toggle-icon {
+        background: #4a576b;
+    }
+    .dark-mode .add-section-toggle .toggle-icon:hover {
+        background: #5a6b7e;
+    }
+    .dark-mode input,
+    .dark-mode select,
+    .dark-mode textarea {
+        background: #2b3547;
+        border-color: #4a576b;
+        color: #e0e0e0;
+    }
+    .dark-mode input:focus,
+    .dark-mode select:focus,
+    .dark-mode textarea:focus {
+        border-color: #8cafff;
+    }
+    .dark-mode th {
+        background: #2b3547;
+        color: #fff;
+    }
+    .dark-mode td {
+        border-bottom-color: #4a576b;
+        color: #e0e0e0;
+    }
+    .dark-mode tbody tr:hover {
+        background-color: #3a455a;
+    }
+    .dark-mode .summary-status.submitted {
+        background-color: #1a6b3d;
+        color: #e3f6ed;
+        border-color: #159b79;
+    }
+    .dark-mode .summary-status.draft {
+        background-color: #7a460b;
+        color: #fff4e0;
+        border-color: #b96d0d;
+    }
+    .dark-mode .toast {
+        background-color: #222f3e;
+        color: #fff;
+    }
+    .dark-mode .level-item {
+        background: #2b3547 !important;
+        border-color: #4a576b;
+    }
+    .dark-mode .level-item label {
+        color: #e0e0e0;
+    }
+    .dark-mode .edit-btn { background:#4a576b; }
+    .dark-mode .edit-btn:hover { background:#5a6b7e; }
+    .dark-mode .save-btn { background:#1a6b3d; }
+    .dark-mode .save-btn:hover { background:#159b79; }
+    .dark-mode .cancel-btn { background:#a40b2b; }
+    .dark-mode .cancel-btn:hover { background:#c02b41; }
   </style>
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V20
+  V21
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -709,7 +802,6 @@ input[id^="markinp_"] {
     <div class="students-area">
       <h2>إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
-      <!-- شريط البحث الجديد -->
       <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
 
       <div class="student-selection-area">
@@ -718,9 +810,9 @@ input[id^="markinp_"] {
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
-      <!-- زر تصدير نتائج الطالب PDF -->
       <div style="text-align:left;margin:10px 0;">
         <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
+        <button class="btn delete-btn" id="deleteStudentBtn" onclick="confirmDeleteStudent()" style="display:none; margin-right:10px;">حذف الطالب</button>
       </div>
 
       <div id="selectedStudentDetails" style="background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; margin-top: 20px; display: none;">
@@ -728,12 +820,35 @@ input[id^="markinp_"] {
         <p><strong>الاسم:</strong> <span id="detailName"></span></p>
         <p><strong>البريد الإلكتروني:</strong> <span id="detailEmail"></span></p>
         <p><strong>رقم الدورة:</strong> <span id="detailCourseNumber"></span></p>
+
+        <p>
+            <strong>حالة القبول:</strong>
+            <select id="detailAcceptedStatus" onchange="updateStudentAdmission(this.value)" style="padding: 5px 8px; border: 1px solid #c5c9d2; border-radius: 5px; font-size: 0.95rem; margin-right: 10px;">
+                <option value="pending">قيد المراجعة</option>
+                <option value="accepted">مقبول</option>
+                <option value="rejected">مرفوض</option>
+            </select>
+        </p>
+        <p style="margin-top: 15px;">
+            <strong>ملاحظات المعلم:</strong>
+            <textarea id="detailTeacherNotes" onblur="saveTeacherNotes()" style="width: 98%; height: 80px; padding: 8px; border: 1px solid #c5c9d2; border-radius: 6px; font-size: 1rem; resize: vertical; margin-top: 5px;"></textarea>
+            <button class="btn" onclick="saveTeacherNotes()" style="padding: 5px 15px; font-size: 0.9rem; margin-top: 5px;">حفظ الملاحظات</button>
+        </p>
+
+
         <h4>المستويات:</h4>
         <div id="detailLevels" class="levels-grid"></div>
         <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
         <div id="examsTableWrapper"></div>
-        <!-- جدول تلخيصات الطالب -->
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
+        <div style="margin-bottom: 15px; text-align: right;">
+            <label for="summaryFilterStatus" style="font-weight:bold; margin-left: 10px;">تصفية حسب الحالة:</label>
+            <select id="summaryFilterStatus" onchange="filterSummariesTable()" style="padding: 5px 8px; border-radius: 5px; border: 1px solid #c5c9d2;">
+                <option value="all">الكل</option>
+                <option value="submitted">تم التسليم</option>
+                <option value="draft">مسودة</option>
+            </select>
+        </div>
         <div id="summariesTableWrapper"></div>
       </div>
     </div>
@@ -750,14 +865,13 @@ input[id^="markinp_"] {
             <th>الصوت</th>
             <th>المستوى</th>
             <th>تعديل</th>
-          </tr>
+            <th>حذف</th> </tr>
         </thead>
         <tbody id="lessonsList"></tbody>
       </table>
     </div>
   </div>
 
-<!-- Summary Viewer Modal -->
 <div id="summaryViewerModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
   <div style="background-color: #fefefe; margin: 5% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); position: relative; text-align: right;">
     <span class="close-btn" onclick="closeSummaryViewer()">&times;</span>
@@ -837,6 +951,7 @@ input[id^="markinp_"] {
     var allStudentsData = {};
     window.studentSummariesMap = {}; // متغير عام لتخزين التلاخيص
     window.lessonsMap = {}; // متغير عام لتخزين معلومات الدروس
+    window.allSummaries = []; // [NEW] متغير عام لتخزين جميع التلاخيص للفلترة
 
     // جلب العلامة من student_marks حسب summary_id
       function getMarkForSummary(summaryId, studentEmail) {
@@ -857,7 +972,14 @@ input[id^="markinp_"] {
             return "";
           });
       }
-    
+
+    // [NEW] جلب تعليق المعلم من summaries حسب summary_id
+    function getTeacherCommentForSummary(summaryId) {
+        const summary = window.studentSummariesMap[summaryId];
+        return summary ? summary.teacher_comment || "" : "";
+    }
+
+
     auth.onAuthStateChanged(function(user) {
       if (user) {
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
@@ -905,6 +1027,8 @@ input[id^="markinp_"] {
             role: "student",
             diagnosis_exam: false,
             oral_exam: false,
+            accepted: "pending", // [NEW] افتراضيًا "قيد المراجعة"
+            teacher_notes: "",   // [NEW] ملاحظات المعلم
             ...levelsObj,
             ...examsObj
           }).then(function(){
@@ -1001,9 +1125,11 @@ input[id^="markinp_"] {
 
     window.showSelectedStudentDetails = function(studentId) {
       const studentDetailsDiv = document.getElementById('selectedStudentDetails');
+      const deleteStudentBtn = document.getElementById('deleteStudentBtn'); // [NEW]
       if (!studentId) {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
+        deleteStudentBtn.style.display = "none"; // [NEW]
         return;
       }
       const student = allStudentsData[studentId];
@@ -1011,6 +1137,11 @@ input[id^="markinp_"] {
         document.getElementById('detailName').textContent = student.name || 'غير معروف';
         document.getElementById('detailEmail').textContent = student.email || 'غير معروف';
         document.getElementById('detailCourseNumber').textContent = student.course_number || 'غير معروف';
+
+        // [NEW] عرض وتحديث حالة القبول وملاحظات المعلم
+        document.getElementById('detailAcceptedStatus').value = student.accepted || "pending";
+        document.getElementById('detailTeacherNotes').value = student.teacher_notes || "";
+
         const detailLevelsDiv = document.getElementById('detailLevels');
         detailLevelsDiv.innerHTML = '';
         let exams = {};
@@ -1034,15 +1165,82 @@ input[id^="markinp_"] {
         }
         renderExamsTable(studentId, student);
         document.getElementById('teacherPDFBtn').style.display = "";
+        deleteStudentBtn.style.display = ""; // [NEW] إظهار زر حذف الطالب
+        deleteStudentBtn.dataset.studentId = studentId; // [NEW] حفظ الـ ID لحذف الطالب
         loadStudentSummaries(student.email);
         studentDetailsDiv.style.display = 'block';
       } else {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
+        deleteStudentBtn.style.display = "none"; // [NEW]
         document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
         setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
       }
     };
+
+    // [NEW] دالة لتحديث حالة قبول الطالب
+    window.updateStudentAdmission = function(status) {
+        const studentId = document.getElementById('studentSelect').value;
+        if (!studentId) return;
+
+        firestore.collection('lectures').doc(studentId).update({
+            accepted: status
+        }).then(() => {
+            allStudentsData[studentId].accepted = status; // Update local data
+            showToast('تم تحديث حالة القبول بنجاح!', '#1dad87');
+        }).catch(err => {
+            showToast('خطأ في تحديث حالة القبول: ' + err.message, '#e63946');
+            console.error('Error updating admission status:', err);
+        });
+    };
+
+    // [NEW] دالة لحفظ ملاحظات المعلم
+    window.saveTeacherNotes = function() {
+        const studentId = document.getElementById('studentSelect').value;
+        const notes = document.getElementById('detailTeacherNotes').value.trim();
+        if (!studentId) return;
+
+        firestore.collection('lectures').doc(studentId).update({
+            teacher_notes: notes
+        }).then(() => {
+            allStudentsData[studentId].teacher_notes = notes; // Update local data
+            showToast('تم حفظ ملاحظات المعلم!', '#1dad87');
+        }).catch(err => {
+            showToast('خطأ في حفظ الملاحظات: ' + err.message, '#e63946');
+            console.error('Error saving teacher notes:', err);
+        });
+    };
+
+    // [NEW] دالة لتأكيد وحذف الطالب
+    window.confirmDeleteStudent = function() {
+        const studentId = document.getElementById('studentSelect').value;
+        const studentName = document.getElementById('detailName').textContent;
+        if (!studentId) {
+            showToast('الرجاء اختيار طالب أولاً للحذف.', '#e63946');
+            return;
+        }
+        if (confirm(`هل أنت متأكد من حذف الطالب ${studentName}؟ هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناته الأساسية. (ملاحظة: قد تحتاج لحذف البيانات المرتبطة يدوياً من جداول أخرى أو عبر Cloud Functions).`)) {
+            deleteStudent(studentId);
+        }
+    };
+
+    // [NEW] دالة لحذف الطالب
+    async function deleteStudent(studentId) {
+        showLoading(true);
+        try {
+            await firestore.collection('lectures').doc(studentId).delete();
+            // هنا يجب أن يتم حذف البيانات المرتبطة (summaries, student_marks, exam_results)
+            // يفضل استخدام Cloud Functions لضمان الحذف المتكامل والآمن
+            showToast('تم حذف الطالب بنجاح!', '#1dad87');
+            loadStudents(); // إعادة تحميل قائمة الطلاب
+        } catch (error) {
+            showToast('خطأ في حذف الطالب: ' + error.message, '#e63946');
+            console.error('Error deleting student:', error);
+        } finally {
+            showLoading(false);
+        }
+    }
+
 
     function renderExamsTable(studentId, studentObj) {
       let html = `
@@ -1130,6 +1328,7 @@ input[id^="markinp_"] {
                   <button class="save-btn" onclick="saveLesson('${doc.id}')">حفظ</button>
                   <button class="cancel-btn" onclick="cancelEditLesson()">إلغاء</button>
                 </td>
+                <td></td>
               </tr>
             `;
           } else {
@@ -1148,15 +1347,40 @@ input[id^="markinp_"] {
                 <td>
                   <button class="edit-btn" onclick="editLesson('${doc.id}')">تعديل</button>
                 </td>
+                <td>
+                    <button class="btn delete-btn" onclick="confirmDeleteLesson('${doc.id}', '${data.title}')">حذف</button> </td>
               </tr>`;
           }
         });
-        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="6">لا يوجد دروس بعد.</td></tr>';
+        document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="7">لا يوجد دروس بعد.</td></tr>';
       }).catch(function(error) {
         console.error("خطأ في جلب بيانات الدروس:", error);
         document.getElementById('editLessonMsg').innerText = "خطأ في تحميل بيانات الدروس.";
       });
     }
+
+    // [NEW] دالة لتأكيد وحذف الدرس
+    window.confirmDeleteLesson = function(docId, lessonTitle) {
+        if (confirm(`هل أنت متأكد من حذف الدرس "${lessonTitle}"؟ هذا الإجراء لا يمكن التراجع عنه. (ملاحظة: التلاخيص والعلامات المرتبطة بهذا الدرس لن تُحذف تلقائياً).`)) {
+            deleteLesson(docId);
+        }
+    };
+
+    // [NEW] دالة لحذف الدرس
+    async function deleteLesson(docId) {
+        showLoading(true);
+        try {
+            await firestore.collection('lessons').doc(docId).delete();
+            showToast('تم حذف الدرس بنجاح!', '#1dad87');
+            loadLessons(); // إعادة تحميل قائمة الدروس
+        } catch (error) {
+            showToast('خطأ في حذف الدرس: ' + error.message, '#e63946');
+            console.error('Error deleting lesson:', error);
+        } finally {
+            showLoading(false);
+        }
+    }
+
 
     window.editLesson = function(docId){
       editLessonId = docId;
@@ -1234,15 +1458,15 @@ input[id^="markinp_"] {
     function loadStudentSummaries(email) {
       showLoading(true);
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
-        let summaries = [];
+        window.allSummaries = []; // [NEW] Clear previous and store all summaries
         window.studentSummariesMap = {}; // Clear previous and initialize
         snap.forEach(doc=>{
             const s = {...doc.data(), docId: doc.id};
-            summaries.push(s);
+            window.allSummaries.push(s); // [NEW] Store all summaries
             window.studentSummariesMap[s.docId] = s; // Store by docId for easy lookup
         });
 
-        if (!summaries.length) {
+        if (!window.allSummaries.length) { // Use allSummaries for initial check
           document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص.</b>";
           showLoading(false);
           return;
@@ -1250,55 +1474,80 @@ input[id^="markinp_"] {
         // جلب عناوين الدروس
         firestore.collection('lessons').get().then(lessonsSnap=>{
           lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title); // Populate global lessonsMap
-          
-               let html = `
-               <div class="table-wrapper"> <!-- New wrapper for horizontal scroll -->
-               <table style="width:100%;margin-top:8px;">
+
+          filterSummariesTable(); // [NEW] Call filter function after loading all summaries and lessons
+          showLoading(false);
+        });
+      }).catch(error => { // Added catch for initial fetch
+        showToast("خطأ في تحميل التلاخيص: " + error.message, "#e63946");
+        showLoading(false);
+        console.error("Error loading summaries:", error);
+      });
+    }
+
+    // [NEW] دالة لفلترة وعرض التلاخيص
+    function filterSummariesTable() {
+        const filterStatus = document.getElementById('summaryFilterStatus').value;
+        const filteredSummaries = window.allSummaries.filter(s => {
+            if (filterStatus === 'all') return true;
+            return s.status === filterStatus;
+        });
+
+        if (!filteredSummaries.length) {
+            document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص مطابقة للفلتر.</b>";
+            return;
+        }
+
+        let html = `
+        <div class="table-wrapper"> <table style="width:100%;margin-top:8px;">
           <thead><tr>
             <th>الدرس</th>
             <th>الحالة</th>
             <th>العلامة</th>
-            <th>تعديل العلامة</th>
+            <th>تعليق المعلم</th> <th>تعديل العلامة</th>
             <th>عرض التلخيص</th>
-            <th>إعادة التلخيص</th> <!-- New column header -->
+            <th>إعادة التلخيص</th>
           </tr></thead><tbody>`;
-        summaries.forEach(s=>{
-          // Check if status is 'submitted' to enable/disable reset button
-          const isSubmitted = s.status === 'submitted';
-          html += `<tr>
-            <td>${window.lessonsMap[s.lesson_id]||s.lesson_id}</td>
-            <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-            <td id="markval_${s.docId}">جاري التحميل...</td>
-            <td>
-              <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="" min="0" max="100">
-              <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
-            </td>
-            <td>
-                <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="viewSummaryText('${s.docId}')">عرض</button>
-            </td>
-            <td>
-                ${isSubmitted ? `
-                    <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${s.student_email}')" title="إعادة التلخيص إلى مسودة">
-                        🔄 <!-- or <i class="fas fa-undo"></i> if Font Awesome is used -->
-                    </button>
-                ` : '—'}
-            </td>
-          </tr>`;
+
+        const markPromises = filteredSummaries.map(s =>
+            getMarkForSummary(s.docId, s.student_email).then(mark => {
+                s.mark_value = mark; // Store mark on summary object for rendering
+                return s;
+            })
+        );
+
+        Promise.all(markPromises).then(summariesWithMarks => {
+            summariesWithMarks.forEach(s => {
+                const isSubmitted = s.status === 'submitted';
+                html += `<tr>
+                    <td>${window.lessonsMap[s.lesson_id]||s.lesson_id}</td>
+                    <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
+                    <td id="markval_${s.docId}">${s.mark_value || "—"}</td>
+                    <td>
+                        <textarea id="commentinp_${s.docId}" placeholder="تعليق..." style="width:90%;height:40px;resize:vertical;">${s.teacher_comment || ''}</textarea>
+                        <button class="btn" style="padding:4px 12px;font-size:0.95rem; margin-top:5px;" onclick="saveSummaryComment('${s.docId}')">حفظ التعليق</button>
+                    </td>
+                    <td>
+                        <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="${s.mark_value || ''}" min="0" max="100">
+                        <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
+                    </td>
+                    <td>
+                        <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="viewSummaryText('${s.docId}')">عرض</button>
+                    </td>
+                    <td>
+                        ${isSubmitted ? `
+                            <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${s.student_email}')" title="إعادة التلخيص إلى مسودة">
+                                🔄
+                            </button>
+                        ` : '—'}
+                    </td>
+                </tr>`;
+            });
+            html += "</tbody></table></div>";
+            document.getElementById('summariesTableWrapper').innerHTML = html;
         });
-        html += "</tbody></table></div>"; <!-- Close table-wrapper -->
-        document.getElementById('summariesTableWrapper').innerHTML = html;
-        
-        // اجلب العلامات لكل تلخيص بعد بناء الجدول
-        summaries.forEach(s=>{
-          getMarkForSummary(s.docId, s.student_email).then(mark=>{
-            document.getElementById('markval_'+s.docId).innerText = mark;
-            document.getElementById('markinp_'+s.docId).value = mark;
-          });
-        });
-          showLoading(false);
-        });
-      });
     }
+
 // حفظ علامة التلخيص
 function saveSummaryMark(docId) {
   let val = document.getElementById('markinp_' + docId).value;
@@ -1339,9 +1588,10 @@ function saveSummaryMark(docId) {
     }
 
     firestore.collection('users').doc(user.uid).get().then(userDoc => {
-      const teacherName = user.displayName || '';
-      const teacherEmail = user.email || '';
-      const teacherRole = userDoc.exists ? (userDoc.data().role || '') : '';
+      // teacherName, teacherEmail, teacherRole are not strictly needed for student_marks but are good for logging if needed
+      // const teacherName = user.displayName || '';
+      // const teacherEmail = user.email || '';
+      // const teacherRole = userDoc.exists ? (userDoc.data().role || '') : '';
 
       // البيانات المراد إضافتها/تحديثها (الكود الأصلي)
       const dataToAdd = {
@@ -1395,6 +1645,27 @@ function saveSummaryMark(docId) {
   });
 }
 
+// [NEW] دالة لحفظ تعليق المعلم على التلخيص
+function saveSummaryComment(docId) {
+    const comment = document.getElementById('commentinp_' + docId).value.trim();
+
+    firestore.collection('summaries').doc(docId).update({
+        teacher_comment: comment
+    }).then(() => {
+        showToast('تم حفظ التعليق بنجاح!', '#1dad87');
+        // Update the local allSummaries array to reflect the change
+        const index = window.allSummaries.findIndex(s => s.docId === docId);
+        if (index > -1) {
+            window.allSummaries[index].teacher_comment = comment;
+            window.studentSummariesMap[docId].teacher_comment = comment;
+        }
+    }).catch(err => {
+        showToast('خطأ في حفظ التعليق: ' + err.message, '#e63946');
+        console.error('Error saving summary comment:', err);
+    });
+}
+
+
 // New function to reset summary status
 window.resetSummary = function(summaryDocId, studentEmail) {
     if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة المرتبطة به.')) {
@@ -1404,7 +1675,8 @@ window.resetSummary = function(summaryDocId, studentEmail) {
     showLoading(true);
     // Update summary status to 'draft'
     firestore.collection('summaries').doc(summaryDocId).update({
-        status: 'draft'
+        status: 'draft',
+        teacher_comment: firebase.firestore.FieldValue.delete() // [NEW] حذف تعليق المعلم عند إعادة التعيين
     }).then(() => {
         // Find and delete the corresponding mark in student_marks collection
         return firestore.collection('student_marks')
