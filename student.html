@@ -118,7 +118,7 @@
     .lesson-mark-badge.zero-mark {
         background:#ffecf0; /* أحمر فاتح */
         color:#e63946;     /* أحمر داكن */
-        border:1px solid #b7eecd; /* حدود حمراء */
+        border:1px solid #ffbcbc; /* حدود حمراء */
     }
     /* فئة للعلامة غير الموجودة (مثل المسودة أو لم يتم تحديد علامة) */
     .lesson-mark-badge.no-mark {
@@ -571,6 +571,7 @@
     auth.onAuthStateChanged(function(user) {
       if (user) {
         currentStudentUid = user.uid; // [NEW] Save user UID
+        console.log("معرف المستخدم الحالي (UID): ", currentStudentUid);
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
           if (doc.exists) {
             if (doc.data().role !== "student") {
