@@ -1828,90 +1828,87 @@ window.resetSummary = function(summaryDocId, studentEmail) {
 
 // Function to send a notification
 async function sendNotification(e) {
-    e.preventDefault();
-    console.log("--- sendNotification بدأ ---"); // جديد
-    const message = document.getElementById('notificationMessage').value.trim();
-    const recipientType = document.getElementById('notificationRecipient').value;
-    const msgDiv = document.getElementById('addNotificationMsg');
-    msgDiv.innerText = '';
-    msgDiv.style.color = "#b83b3b";
+    e.preventDefault();
+    console.log("--- sendNotification بدأ ---"); // جديد
+    const message = document.getElementById('notificationMessage').value.trim();
+    const recipientValueFromDropdown = document.getElementById('notificationRecipient').value; // تم تغيير المتغير
+    const msgDiv = document.getElementById('addNotificationMsg');
+    msgDiv.innerText = '';
+    msgDiv.style.color = "#b83b3b";
 
-    if (!message) {
-        msgDiv.innerText = "الرجاء كتابة رسالة الإشعار.";
-        console.log("رسالة الإشعار فارغة."); // جديد
-        return;
-    }
+    if (!message) {
+        msgDiv.innerText = "الرجاء كتابة رسالة الإشعار.";
+        console.log("رسالة الإشعار فارغة."); // جديد
+        return;
+    }
 
-    showLoading(true);
+    showLoading(true);
 
-    let recipientEmail = '';
-    console.log("recipientType المختار:", recipientType); // جديد
+    let recipientEmailToSend = ''; // متغير جديد لتجنب الخلط
+    console.log("القيمة المسترجعة من القائمة المنسدلة للمستلم:", recipientValueFromDropdown); // جديد
 
-    if (recipientType === 'selectedStudent') {
-        const selectedStudentId = document.getElementById('studentSelect').value;
-        console.log("selectedStudentId من القائمة المنسدلة:", selectedStudentId); // جديد
+    // المنطق الجديد لتعيين recipientEmailToSend
+    if (recipientValueFromDropdown === 'allStudents') {
+        recipientEmailToSend = "all";
+        console.log("البريد الإلكتروني للمستلم (جميع الطلاب):", recipientEmailToSend); // جديد
+    } else if (recipientValueFromDropdown.includes('@')) { // تحقق بسيط إذا كانت القيمة تبدو كبريد إلكتروني
+        recipientEmailToSend = recipientValueFromDropdown;
+        console.log("البريد الإلكتروني المسترجع من القائمة المنسدلة لطالب محدد:", recipientEmailToSend); // جديد
+    } else {
+        // حالة احتياطية إذا لم تكن القيمة "allStudents" وليست بريد إلكتروني (مثل "selectedStudent" إذا لم يتم اختيار طالب)
+        msgDiv.innerText = "خطأ: لم يتم تحديد مستلم صحيح للإشعار.";
+        showLoading(false);
+        console.log("خطأ: قيمة غير متوقعة للمستلم:", recipientValueFromDropdown); // جديد
+        return;
+    }
 
-        if (!selectedStudentId || !allStudentsData[selectedStudentId]) {
-            msgDiv.innerText = "الرجاء تحديد طالب من القائمة أولاً لإرسال الإشعار إليه.";
-            showLoading(false);
-            console.log("لم يتم تحديد طالب أو بياناته غير موجودة."); // جديد
-            return;
-        }
-        // السطر الذي يحصل على البريد الإلكتروني للطالب
-        recipientEmail = allStudentsData[selectedStudentId].email;
-        console.log("البريد الإلكتروني المسترجع من allStudentsData:", recipientEmail); // جديد
-    } else if (recipientType === 'allStudents') {
-        recipientEmail = "all";
-        console.log("البريد الإلكتروني للمستلم (جميع الطلاب):", recipientEmail); // جديد
-    }
+    try {
+        const currentUser = firebase.auth().currentUser;
+        if (!currentUser) {
+            msgDiv.innerText = "خطأ: المعلم غير مسجل الدخول.";
+            showLoading(false);
+            console.log("المستخدم الحالي غير مسجل الدخول."); // جديد
+            return;
+        }
 
-    try {
-        const currentUser = firebase.auth().currentUser;
-        if (!currentUser) {
-            msgDiv.innerText = "خطأ: المعلم غير مسجل الدخول.";
-            showLoading(false);
-            console.log("المستخدم الحالي غير مسجل الدخول."); // جديد
-            return;
-        }
+        await firestore.collection('notifications').add({
+            message: message,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            recipient_email: recipientEmailToSend, // استخدام المتغير الجديد
+            is_read: false,
+            sender_email: currentUser.email,
+            sender_name: currentUser.displayName || 'المعلم'
+        });
 
-        await firestore.collection('notifications').add({
-            message: message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            recipient_email: recipientEmail, // هذه هي القيمة التي تسبب المشكلة
-            is_read: false,
-            sender_email: currentUser.email,
-            sender_name: currentUser.displayName || 'المعلم'
-        });
+        msgDiv.style.color = "#1dad87";
+        msgDiv.innerText = "تم إرسال الإشعار بنجاح!";
+        document.getElementById('notificationMessage').value = ''; // Clear message
+        showToast("تم إرسال الإشعار بنجاح!", "#1dad87");
+        setTimeout(() => { msgDiv.innerText = ''; msgDiv.style.color = "#b83b3b"; }, 2000);
+        console.log("تم إرسال الإشعار بنجاح إلى Firestore."); // جديد
 
-        msgDiv.style.color = "#1dad87";
-        msgDiv.innerText = "تم إرسال الإشعار بنجاح!";
-        document.getElementById('notificationMessage').value = ''; // Clear message
-        showToast("تم إرسال الإشعار بنجاح!", "#1dad87");
-        setTimeout(() => { msgDiv.innerText = ''; msgDiv.style.color = "#b83b3b"; }, 2000);
-        console.log("تم إرسال الإشعار بنجاح إلى Firestore."); // جديد
-
-    } catch (error) {
-        msgDiv.innerText = "حدث خطأ أثناء إرسال الإشعار: " + error.message;
-        showToast("خطأ أثناء إرسال الإشعار!", "#e63946");
-        console.error("خطأ أثناء إرسال الإشعار إلى Firestore:", error); // جديد
-    } finally {
-        showLoading(false);
-        console.log("--- sendNotification انتهى ---"); // جديد
-    }
+    } catch (error) {
+        msgDiv.innerText = "حدث خطأ أثناء إرسال الإشعار: " + error.message;
+        showToast("خطأ أثناء إرسال الإشعار!", "#e63946");
+        console.error("خطأ أثناء إرسال الإشعار إلى Firestore:", error); // جديد
+    } finally {
+        showLoading(false);
+        console.log("--- sendNotification انتهى ---"); // جديد
+    }
 }
 
 
-    function logout() {
-      // Unsubscribe from listener before logging out
-      if (teacherSummariesListenerUnsubscribe) {
-        teacherSummariesListenerUnsubscribe();
-        teacherSummariesListenerUnsubscribe = null;
-      }
-      auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
-        console.error("خطأ في تسجيل الخروج:", error);
-      });
-    }
+    function logout() {
+      // Unsubscribe from listener before logging out
+      if (teacherSummariesListenerUnsubscribe) {
+        teacherSummariesListenerUnsubscribe();
+        teacherSummariesListenerUnsubscribe = null;
+      }
+      auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
+        console.error("خطأ في تسجيل الخروج:", error);
+      });
+    }
 
-  </script>
+  </script>
 </body>
 </html>
