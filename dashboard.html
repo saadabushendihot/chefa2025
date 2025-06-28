@@ -911,6 +911,8 @@ tbody tr:last-child td {
     window.lessonsMap = {}; // متغير عام لتخزين معلومات الدروس
     window.allSummaries = []; // متغير عام لتخزين جميع التلاخيص للفلترة
     let currentStudentEmailForSummaries = '';
+    let teacherSummariesListenerUnsubscribe = null; // [NEW] To store unsubscribe function for teacher's real-time listener
+
 
     // جلب العلامة من student_marks حسب summary_id
       function getMarkForSummary(summaryId, studentEmail) {
@@ -1080,6 +1082,13 @@ tbody tr:last-child td {
       const studentDetailsDiv = document.getElementById('selectedStudentDetails');
       const deleteStudentBtn = document.getElementById('deleteStudentBtn');
       hideSummaryDetails(); // Hide details box when new student is selected
+
+      // Unsubscribe from previous listener if exists
+      if (teacherSummariesListenerUnsubscribe) {
+          teacherSummariesListenerUnsubscribe();
+          teacherSummariesListenerUnsubscribe = null;
+      }
+
       if (!studentId) {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
@@ -1121,7 +1130,7 @@ tbody tr:last-child td {
         deleteStudentBtn.style.display = "";
         deleteStudentBtn.dataset.studentId = studentId;
         currentStudentEmailForSummaries = student.email;
-        loadStudentSummaries(student.email);
+        loadStudentSummaries(student.email); // This will set up the listener now
         studentDetailsDiv.style.display = 'block';
       } else {
         studentDetailsDiv.style.display = 'none';
@@ -1401,35 +1410,101 @@ tbody tr:last-child td {
       });
     }
 
-    // تلخيصات الطالب
+    // تلخيصات الطالب (Load with Realtime Listener)
     function loadStudentSummaries(email) {
       showLoading(true);
       currentStudentEmailForSummaries = email;
-      firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
-        window.allSummaries = [];
-        window.studentSummariesMap = {};
-        snap.forEach(doc=>{
-            const s = {...doc.data(), docId: doc.id};
-            window.allSummaries.push(s);
-            window.studentSummariesMap[s.docId] = s;
-        });
 
-        if (!window.allSummaries.length) {
-          document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص.</b>";
-          hideSummaryDetails();
-          showLoading(false);
-          return;
-        }
-        firestore.collection('lessons').get().then(lessonsSnap=>{
-          lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title);
+      // Unsubscribe from previous listener if exists
+      if (teacherSummariesListenerUnsubscribe) {
+        teacherSummariesListenerUnsubscribe();
+        teacherSummariesListenerUnsubscribe = null;
+      }
 
-          filterSummariesTable();
-          showLoading(false);
-        });
-      }).catch(error => {
-        showToast("خطأ في تحميل التلاخيص: " + error.message, "#e63946");
+      // Get lessons first (they don't change often)
+      firestore.collection('lessons').orderBy('id').get().then(function(lessonsSnap) {
+        lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title); // Populate global lessonsMap
+
+        // Now set up a real-time listener for summaries of the CURRENTLY SELECTED student
+        teacherSummariesListenerUnsubscribe = firestore.collection('summaries')
+          .where('student_email', '==', currentStudentEmailForSummaries)
+          .onSnapshot(function(snapshot) {
+            let changes = snapshot.docChanges(); // Get changes since last snapshot
+            let shouldShowToast = false;
+            
+            // Re-fetch all summaries for the selected student to ensure complete data
+            window.allSummaries = [];
+            window.studentSummariesMap = {};
+            snapshot.forEach(doc => {
+              let s = { ...doc.data(), docId: doc.id };
+              window.allSummaries.push(s);
+              window.studentSummariesMap[s.docId] = s;
+
+              // Check for specific changes for toast notification
+              if (changes.some(change => change.type === "modified" && change.doc.id === doc.id)) {
+                  let oldDoc = changes.find(change => change.doc.id === doc.id)?.oldDoc?.data();
+                  if (oldDoc) {
+                      // If student_reply_comment was added/changed/cleared
+                      if (s.student_reply_comment !== oldDoc.student_reply_comment) {
+                          shouldShowToast = true;
+                      }
+                      // If status changed to submitted
+                      if (s.status === 'submitted' && oldDoc.status === 'draft') {
+                        shouldShowToast = true;
+                      }
+                  }
+              }
+            });
+
+            // Fetch marks for all summaries (or just the changed ones)
+            let markPromises = window.allSummaries.map(s => // Use window.allSummaries directly
+                firestore.collection('student_marks')
+                .where('summary_id', '==', s.docId)
+                .where('student_email', '==', currentStudentEmailForSummaries)
+                .limit(1)
+                .get()
+                .then(markSnap => {
+                    if (!markSnap.empty) {
+                        s.mark_from_student_marks = markSnap.docs[0].data().mark;
+                    } else {
+                        s.mark_from_student_marks = null;
+                    }
+                    return s; // Return the updated summary object
+                }).catch(err => {
+                    console.error("Error fetching mark for summary in listener:", s.docId, err);
+                    s.mark_from_student_marks = null;
+                    return s;
+                })
+            );
+
+            Promise.all(markPromises).then(updatedSummariesArray => {
+                // Rebuild window.allSummaries and window.studentSummariesMap from the updated array
+                window.allSummaries = updatedSummariesArray;
+                window.studentSummariesMap = {};
+                updatedSummariesArray.forEach(s => {
+                    window.studentSummariesMap[s.docId] = s;
+                });
+
+                filterSummariesTable(); // Re-render with fresh data and filter
+                if (shouldShowToast) {
+                    showToast(`لديك رد جديد أو تحديث على تلخيص من ${allStudentsData[document.getElementById('studentSelect').value]?.name || 'الطالب'}!`, "#3b5cb8");
+                }
+                showLoading(false);
+            }).catch(err => {
+                showToast("خطأ في تحديث العلامات في الوقت الحقيقي: " + err.message, "#e63946");
+                console.error("Promise.all error in listener:", err);
+                showLoading(false);
+            });
+
+          }, function(error) {
+            showToast("خطأ في الاستماع لتحديثات التلاخيص: " + error.message, "#e63946");
+            console.error("Listener error:", error);
+            showLoading(false);
+          });
+      }).catch(err => {
+        showToast("خطأ في تحميل الدروس للتلاخيص: " + err.message, "#e63946");
         showLoading(false);
-        console.error("Error loading summaries:", error);
+        console.error("Error fetching lessons for summaries:", err);
       });
     }
 
@@ -1461,36 +1536,28 @@ tbody tr:last-child td {
             <th>إعادة التلخيص</th>
           </tr></thead><tbody>`;
 
-        const markPromises = filteredSummaries.map(s =>
-            getMarkForSummary(s.docId, currentStudentEmailForSummaries).then(mark => {
-                s.mark_value = mark;
-                return s;
-            })
-        );
-
-        Promise.all(markPromises).then(summariesWithMarks => {
-            summariesWithMarks.forEach(s => {
-                const isSubmitted = s.status === 'submitted';
-                html += `<tr>
-                    <td>${s.lesson_id}</td>
-                    <td style="cursor:pointer; font-weight:bold; color:#3b5cb8;" onclick="showSummaryDetails('${s.docId}')">
-                        ${window.lessonsMap[s.lesson_id] || s.lesson_id}
-                    </td>
-                    <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-                    <td>${s.mark_value || "—"}</td>
-                    <td>
-                        ${isSubmitted ? `
-                            <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${currentStudentEmailForSummaries}')" title="إعادة التلخيص إلى مسودة">
-                                🔄
-                            </button>
-                        ` : '—'}
-                    </td>
-                </tr>`;
-            });
-            html += "</tbody></table></div>";
-            document.getElementById('summariesTableWrapper').innerHTML = html;
-            hideSummaryDetails();
+        // No need for new markPromises here, marks are already in window.allSummaries
+        filteredSummaries.forEach(s => {
+            const isSubmitted = s.status === 'submitted';
+            html += `<tr>
+                <td>${s.lesson_id}</td>
+                <td style="cursor:pointer; font-weight:bold; color:#3b5cb8;" onclick="showSummaryDetails('${s.docId}')">
+                    ${window.lessonsMap[s.lesson_id] || s.lesson_id}
+                </td>
+                <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
+                <td>${s.mark_from_student_marks || "—"}</td>
+                <td>
+                    ${isSubmitted ? `
+                        <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${currentStudentEmailForSummaries}')" title="إعادة التلخيص إلى مسودة">
+                            🔄
+                        </button>
+                    ` : '—'}
+                </td>
+            </tr>`;
         });
+        html += "</tbody></table></div>";
+        document.getElementById('summariesTableWrapper').innerHTML = html;
+        hideSummaryDetails();
     }
 
 // Function to show and populate the inline summary details box
@@ -1507,9 +1574,9 @@ function showSummaryDetails(docId) {
     document.getElementById('summaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
     document.getElementById('summaryDetailsContent').innerText = summary.summary_text;
     document.getElementById('summaryDetailsComment').value = summary.teacher_comment || '';
-    document.getElementById('summaryDetailsMark').value = summary.mark_value || '';
+    document.getElementById('summaryDetailsMark').value = summary.mark_from_student_marks || ''; // Use mark_from_student_marks
 
-    // [NEW] Populate student reply section
+    // Populate student reply section
     const studentReplySection = document.getElementById('studentReplySection');
     const summaryDetailsStudentReply = document.getElementById('summaryDetailsStudentReply');
     const clearStudentReplyBtn = document.getElementById('clearStudentReplyBtn');
@@ -1547,7 +1614,7 @@ function hideSummaryDetails() {
     document.getElementById('summaryDetailsBox').style.display = 'none';
 }
 
-// [NEW] Function to clear student's reply
+// Function to clear student's reply
 function clearStudentReply(docId) {
     if (!confirm('هل أنت متأكد من مسح رد الطالب؟ هذا الإجراء لا يمكن التراجع عنه.')) {
         return;
@@ -1558,12 +1625,7 @@ function clearStudentReply(docId) {
         student_reply_comment: firebase.firestore.FieldValue.delete()
     }).then(() => {
         showToast('تم مسح رد الطالب بنجاح!', '#1dad87');
-        // Update local data and re-render the details box
-        if (window.studentSummariesMap[docId]) {
-            delete window.studentSummariesMap[docId].student_reply_comment;
-        }
-        showSummaryDetails(docId); // Re-show details to reflect the change
-        showLoading(false);
+        // No need to call loadStudentSummaries here, listener will handle refresh
     }).catch(error => {
         showToast(`حدث خطأ أثناء مسح رد الطالب: ${error.message}`, '#e63946');
         console.error('Error clearing student reply:', error);
@@ -1622,7 +1684,7 @@ function saveSummaryMark(docId) {
             const docRef = querySnapshot.docs[0].ref;
             docRef.update(dataToAdd).then(() => {
               showToast('تم تحديث العلامة بنجاح!', "#1dad87");
-              loadStudentSummaries(studentEmail);
+              // No need to call loadStudentSummaries here, listener will handle refresh
             }).catch((err) => {
               showToast('خطأ أثناء تحديث العلامة:\n' + err.message, "#e63946");
               console.error(err);
@@ -1630,7 +1692,7 @@ function saveSummaryMark(docId) {
           } else {
             firestore.collection('student_marks').add(dataToAdd).then(() => {
               showToast('تم إضافة العلامة!', "#1dad87");
-              loadStudentSummaries(studentEmail);
+              // No need to call loadStudentSummaries here, listener will handle refresh
             }).catch((err) => {
               showToast('خطأ أثناء إضافة العلامة:\n' + err.message, "#e63946");
               console.error(err);
@@ -1659,12 +1721,7 @@ function saveSummaryComment(docId) {
         teacher_comment: comment
     }).then(() => {
         showToast('تم حفظ التعليق بنجاح!', '#1dad87');
-        // Update the local allSummaries array to reflect the change
-        const index = window.allSummaries.findIndex(s => s.docId === docId);
-        if (index > -1) {
-            window.allSummaries[index].teacher_comment = comment;
-            window.studentSummariesMap[docId].teacher_comment = comment;
-        }
+        // No need to call loadStudentSummaries here, listener will handle refresh
     }).catch(err => {
         showToast('خطأ في حفظ التعليق: ' + err.message, '#e63946');
         console.error('Error saving summary comment:', err);
@@ -1674,7 +1731,7 @@ function saveSummaryComment(docId) {
 
 // New function to reset summary status
 window.resetSummary = function(summaryDocId, studentEmail) {
-    if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة والتعليق المرتبطين به.')) {
+    if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة والتعليق ورد الطالب المرتبطين به.')) {
         return;
     }
 
@@ -1683,7 +1740,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
     firestore.collection('summaries').doc(summaryDocId).update({
         status: 'draft',
         teacher_comment: firebase.firestore.FieldValue.delete(),
-        student_reply_comment: firebase.firestore.FieldValue.delete() // [NEW] Clear student reply on reset
+        student_reply_comment: firebase.firestore.FieldValue.delete()
     }).then(() => {
         // Find and delete the corresponding mark in student_marks collection
         return firestore.collection('student_marks')
@@ -1701,7 +1758,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
         return Promise.resolve(); // No mark to delete
     }).then(() => {
         showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', '#1dad87');
-        loadStudentSummaries(studentEmail); // Reload summaries to reflect changes
+        // No need to call loadStudentSummaries here, listener will handle refresh
         hideSummaryDetails();
         showLoading(false);
     }).catch(error => {
@@ -1713,10 +1770,16 @@ window.resetSummary = function(summaryDocId, studentEmail) {
 
 
     function logout() {
+      // Unsubscribe from listener before logging out
+      if (teacherSummariesListenerUnsubscribe) {
+        teacherSummariesListenerUnsubscribe();
+        teacherSummariesListenerUnsubscribe = null;
+      }
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
       });
     }
+
   </script>
 </body>
 </html>
