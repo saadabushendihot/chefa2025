@@ -683,7 +683,7 @@ tbody tr:last-child td {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V22
+  V23
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -1073,7 +1073,7 @@ tbody tr:last-child td {
     window.showSelectedStudentDetails = function(studentId) {
       const studentDetailsDiv = document.getElementById('selectedStudentDetails');
       const deleteStudentBtn = document.getElementById('deleteStudentBtn');
-      hideSummaryDetails(); // [NEW] Hide details box when new student is selected
+      hideSummaryDetails(); // Hide details box when new student is selected
       if (!studentId) {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
@@ -1114,7 +1114,7 @@ tbody tr:last-child td {
         document.getElementById('teacherPDFBtn').style.display = "";
         deleteStudentBtn.style.display = "";
         deleteStudentBtn.dataset.studentId = studentId;
-        currentStudentEmailForSummaries = student.email; // [NEW] Set current student email
+        currentStudentEmailForSummaries = student.email;
         loadStudentSummaries(student.email);
         studentDetailsDiv.style.display = 'block';
       } else {
@@ -1398,7 +1398,7 @@ tbody tr:last-child td {
     // تلخيصات الطالب
     function loadStudentSummaries(email) {
       showLoading(true);
-      currentStudentEmailForSummaries = email; // [NEW] Set current email for future use with save functions
+      currentStudentEmailForSummaries = email;
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
         window.allSummaries = [];
         window.studentSummariesMap = {};
@@ -1410,7 +1410,7 @@ tbody tr:last-child td {
 
         if (!window.allSummaries.length) {
           document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص.</b>";
-          hideSummaryDetails(); // [NEW] Hide details box if no summaries
+          hideSummaryDetails();
           showLoading(false);
           return;
         }
@@ -1429,14 +1429,18 @@ tbody tr:last-child td {
 
     function filterSummariesTable() {
         const filterStatus = document.getElementById('summaryFilterStatus').value;
-        const filteredSummaries = window.allSummaries.filter(s => {
+        let filteredSummaries = window.allSummaries.filter(s => {
             if (filterStatus === 'all') return true;
             return s.status === filterStatus;
         });
 
+        // [MODIFIED] Sort summaries by lesson_id
+        filteredSummaries.sort((a, b) => a.lesson_id - b.lesson_id);
+
+
         if (!filteredSummaries.length) {
             document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص مطابقة للفلتر.</b>";
-            hideSummaryDetails(); // [NEW] Hide details box if no summaries match filter
+            hideSummaryDetails();
             return;
         }
 
@@ -1444,14 +1448,15 @@ tbody tr:last-child td {
         <div class="table-wrapper">
         <table style="width:100%;margin-top:8px;">
           <thead><tr>
-            <th>رقم الدرس</th> <th>الدرس</th>
+            <th>رقم الدرس</th>
+            <th>الدرس</th>
             <th>الحالة</th>
             <th>العلامة</th>
             <th>إعادة التلخيص</th>
           </tr></thead><tbody>`;
 
         const markPromises = filteredSummaries.map(s =>
-            getMarkForSummary(s.docId, currentStudentEmailForSummaries).then(mark => { // Use global email
+            getMarkForSummary(s.docId, currentStudentEmailForSummaries).then(mark => {
                 s.mark_value = mark;
                 return s;
             })
@@ -1461,7 +1466,8 @@ tbody tr:last-child td {
             summariesWithMarks.forEach(s => {
                 const isSubmitted = s.status === 'submitted';
                 html += `<tr>
-                    <td>${s.lesson_id}</td> <td style="cursor:pointer; font-weight:bold; color:#3b5cb8;" onclick="showSummaryDetails('${s.docId}')">
+                    <td>${s.lesson_id}</td>
+                    <td style="cursor:pointer; font-weight:bold; color:#3b5cb8;" onclick="showSummaryDetails('${s.docId}')">
                         ${window.lessonsMap[s.lesson_id] || s.lesson_id}
                     </td>
                     <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
@@ -1477,11 +1483,11 @@ tbody tr:last-child td {
             });
             html += "</tbody></table></div>";
             document.getElementById('summariesTableWrapper').innerHTML = html;
-            hideSummaryDetails(); // [NEW] Hide details box after re-rendering table
+            hideSummaryDetails();
         });
     }
 
-// [NEW] Function to show and populate the inline summary details box
+// Function to show and populate the inline summary details box
 function showSummaryDetails(docId) {
     const summary = window.studentSummariesMap[docId];
     if (!summary) {
@@ -1495,7 +1501,7 @@ function showSummaryDetails(docId) {
     document.getElementById('summaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
     document.getElementById('summaryDetailsContent').innerText = summary.summary_text;
     document.getElementById('summaryDetailsComment').value = summary.teacher_comment || '';
-    document.getElementById('summaryDetailsMark').value = summary.mark_value || ''; // Using mark_value from loaded summaries
+    document.getElementById('summaryDetailsMark').value = summary.mark_value || '';
 
     // Set dataset for save buttons
     document.getElementById('saveSummaryDetailsCommentBtn').dataset.docId = docId;
@@ -1517,7 +1523,7 @@ function showSummaryDetails(docId) {
     summaryDetailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// [NEW] Function to hide the inline summary details box
+// Function to hide the inline summary details box
 function hideSummaryDetails() {
     document.getElementById('summaryDetailsBox').style.display = 'none';
 }
@@ -1525,7 +1531,7 @@ function hideSummaryDetails() {
 
 // حفظ علامة التلخيص
 function saveSummaryMark(docId) {
-  let val = document.getElementById('summaryDetailsMark').value; // [MODIFIED] Get value from details box
+  let val = document.getElementById('summaryDetailsMark').value;
 
   // جلب بيانات التلخيص للتحقق من حالته
   firestore.collection('summaries').doc(docId).get().then(summaryDoc => {
@@ -1544,7 +1550,7 @@ function saveSummaryMark(docId) {
     const studentEmail = document.getElementById('detailEmail').textContent || '';
     const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
 
-    const lessonTitle = window.lessonsMap[summaryData.lesson_id] || summaryData.lesson_id; // Get title from map
+    const lessonTitle = window.lessonsMap[summaryData.lesson_id] || summaryData.lesson_id;
     const statusText = summaryData.status === 'submitted' ? 'تم التسليم' : 'مسودة';
 
     const user = firebase.auth().currentUser;
@@ -1604,7 +1610,7 @@ function saveSummaryMark(docId) {
 
 // دالة لحفظ تعليق المعلم على التلخيص
 function saveSummaryComment(docId) {
-    const comment = document.getElementById('summaryDetailsComment').value.trim(); // [MODIFIED] Get value from details box
+    const comment = document.getElementById('summaryDetailsComment').value.trim();
 
     firestore.collection('summaries').doc(docId).update({
         teacher_comment: comment
@@ -1652,6 +1658,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
     }).then(() => {
         showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', '#1dad87');
         loadStudentSummaries(studentEmail); // Reload summaries to reflect changes
+        hideSummaryDetails(); // [NEW] Hide details box after reset
         showLoading(false);
     }).catch(error => {
         showToast(`حدث خطأ أثناء إعادة تعيين التلخيص: ${error.message}`, '#e63946');
