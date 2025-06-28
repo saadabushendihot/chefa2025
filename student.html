@@ -568,6 +568,7 @@
     auth.onAuthStateChanged(function(user) {
       if (user) {
         currentStudentUid = user.uid; // [NEW] Save user UID
+        console.log("معرف المستخدم الحالي (UID): ", currentStudentUid);
         firestore.collection('users').doc(user.uid).get().then(function(doc) {
           if (doc.exists) {
             if (doc.data().role !== "student") {
