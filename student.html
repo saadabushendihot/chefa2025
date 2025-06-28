@@ -1393,7 +1393,8 @@
     }
 
     // Function to save student reply to teacher's comment (or initiate comment)
-    function saveStudentReply(summaryDocId) {
+    function saveStudentReply(summaryDocId, lessonId) {
+        console.log("--- saveStudentReply بدأ ---"); // Log start
         const replyTextarea = document.getElementById(`studentreply_${summaryDocId}`);
         const replyText = sanitizeText(replyTextarea.value.trim());
 
@@ -1401,8 +1402,13 @@
         const summary = studentSummaries[summaryDocId];
         const lessonTitle = window.lessonsMap[summary.lesson_id];
 
+        console.log("summaryDocId:", summaryDocId); // Log summaryDocId
+        console.log("replyText:", replyText); // Log replyText
+        console.log("lessonTitle (for notification):", lessonTitle); // Log lessonTitle
+
         if (!replyText) {
             showToast("يرجى كتابة الرد أولاً.", "#e63946");
+            console.warn("Reply text is empty."); // Log warning
             return;
         }
 
@@ -1410,6 +1416,7 @@
             student_reply_comment: replyText
         }).then(() => {
             showToast("تم حفظ ردك بنجاح!", "#1dad87");
+            console.log("Reply saved to Firestore successfully."); // Log success
             // NEW: Send notification to teacher for student reply
             sendTeacherNotification(
                 `قام الطالب ${currentStudentName} بالرد على تعليقك في درس "${lessonTitle}".`,
@@ -1417,11 +1424,13 @@
                 summary.lesson_id, // relatedId
                 lessonTitle // relatedName
             );
+            console.log("Teacher notification sent for reply."); // Log notification send
             // No need to call loadStudentData here, listener will handle refresh
         }).catch(error => {
             showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "#e63946");
-            console.error("Error saving student reply:", error);
+            console.error("Error saving student reply to Firestore:", error); // Log error
         });
+        console.log("--- saveStudentReply انتهى ---"); // Log end
     }
 
     // حفظ المسودة
