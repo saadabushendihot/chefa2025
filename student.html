@@ -1400,12 +1400,23 @@
 
         // Get lessonTitle for notification message
         const summary = studentSummaries[summaryDocId];
+        // NEW: Check if summary or lesson_id is undefined before accessing
+        if (!summary) {
+            console.error("Error: Summary object is undefined for summaryDocId:", summaryDocId);
+            showToast("حدث خطأ: بيانات التلخيص غير موجودة. حاول تحديث الصفحة.", "#e63946");
+            return;
+        }
+        if (typeof summary.lesson_id === 'undefined' || summary.lesson_id === null) {
+            console.error("Error: summary.lesson_id is undefined or null for summaryDocId:", summaryDocId, summary);
+            showToast("حدث خطأ: رقم الدرس غير موجود للتلخيص. حاول تحديث الصفحة.", "#e63946");
+            return;
+        }
         const lessonTitle = window.lessonsMap[summary.lesson_id];
 
         console.log("summaryDocId received:", summaryDocId); // Log summaryDocId
         console.log("replyText:", replyText); // Log replyText
-        console.log("Summary object from studentSummaries:", summary); // NEW LOG
-        console.log("summary.lesson_id:", summary.lesson_id); // NEW LOG
+        console.log("Summary object from studentSummaries:", summary); // Log summary object
+        console.log("summary.lesson_id:", summary.lesson_id); // Log lesson_id
         console.log("lessonTitle (for notification):", lessonTitle); // Log lessonTitle
 
 
