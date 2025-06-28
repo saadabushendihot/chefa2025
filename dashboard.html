@@ -55,6 +55,7 @@
       min-height: 100vh;
       padding-top: 70px;
       line-height: 1.6;
+      font-size: 16px; /* Base font size, slightly larger */
     }
 
     /* Navigation Bar */
@@ -364,12 +365,12 @@
     .level-color-6 { background: #e0f8f8 !important; border-color: #c9f0f0;}
     .level-color-7 { background: #ffebeb !important; border-color: #f9d1d1;}
 
-    /* Tables */
+    /* Tables (General) */
     .table-wrapper {
       margin-top: 25px;
       border-radius: 12px;
       box-shadow: var(--shadow-medium);
-      overflow-x: auto;
+      overflow-x: auto; /* Enable horizontal scrolling */
       background: var(--surface-color);
       border: 1px solid var(--border-color);
     }
@@ -378,7 +379,7 @@
       width: 100%;
       border-collapse: separate; /* Use separate for border-radius on cells */
       border-spacing: 0;
-      min-width: 700px;
+      min-width: 700px; /* Ensures table has a minimum width to enable scroll */
     }
 
     th, td {
@@ -415,27 +416,6 @@
     /* Rounded corners for table body last row */
     tbody tr:last-child td:first-child { border-bottom-left-radius: 12px; }
     tbody tr:last-child td:last-child { border-bottom-right-radius: 12px; }
-
-    /* Summary Status Badges */
-    .summary-status {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: bold;
-      display: inline-block;
-      white-space: nowrap;
-      border: 1px solid transparent;
-    }
-    .summary-status.submitted {
-      background-color: #e3f6ed;
-      color: #219e4b;
-      border-color: #b7eecd;
-    }
-    .summary-status.draft {
-      background-color: #fff4e0;
-      color: #b96d0d;
-      border-color: #ffe0b2;
-    }
 
     /* Summary Details Box */
     .summary-details-box {
@@ -518,7 +498,7 @@
         background: var(--danger-dark);
     }
 
-    /* Notification Bell & Panel Styles (NEW for Teacher Dashboard) */
+    /* Notification Bell & Panel Styles */
     .notification-bell {
         position: relative;
         font-size: 1.5rem;
@@ -623,28 +603,36 @@
     .notification-item .mark-read-btn:hover {
         background: var(--secondary-dark);
     }
+    
+    /* Specific styling for Edit Lesson button */
+    .edit-btn {
+        background: #5a7be4; /* A specific blue for edit */
+        color: #fff;
+        padding: 8px 18px; /* Slightly larger padding */
+        border-radius: 6px; /* Slightly more rounded */
+        font-size: 0.95rem; /* Slightly larger font */
+        transition: background 0.2s ease, transform 0.1s ease;
+    }
+    .edit-btn:hover {
+        background: #4361ee; /* Darker blue on hover */
+        transform: translateY(-1px);
+    }
+    .edit-btn:active {
+        transform: translateY(0);
+    }
+
 
     /* Responsive adjustments */
     @media (max-width: 768px) {
-        .main-nav {
-            flex-wrap: wrap;
-            justify-content: center;
-            padding: 10px 15px;
-        }
-        .main-nav .nav-brand,
-        .main-nav .nav-links,
-        .main-nav .nav-actions {
-            flex-basis: 100%;
-            justify-content: center;
-            margin-bottom: 5px;
-            gap: 10px;
-        }
+        body { font-size: 15px; padding-top: 130px; } /* Adjust font and padding for tablets */
+        .main-nav { flex-wrap: wrap; justify-content: center; padding: 10px 15px; }
+        .main-nav .nav-brand, .main-nav .nav-links, .main-nav .nav-actions { flex-basis: 100%; justify-content: center; margin-bottom: 5px; gap: 10px; }
         .main-nav .nav-links { order: 2; }
         .main-nav .nav-brand { order: 1; margin-bottom: 10px; }
         .main-nav .nav-actions { order: 3; margin-bottom: 0; }
         .main-nav .nav-link { font-size: 0.95rem; padding: 6px 10px; }
         .main-nav .center-logo { height: 35px; margin-right: 0; }
-        body { padding-top: 130px; }
+        
         .notification-bell { margin-right: 15px; } /* Adjust spacing */
         .notification-panel {
             width: 95%;
@@ -669,10 +657,21 @@
     }
 
     @media (max-width: 480px) {
+        body { font-size: 14px; padding-top: 110px; } /* Further adjust for smaller phones */
         .main-nav .nav-links { gap: 8px; }
         .main-nav .nav-link { font-size: 0.85rem; padding: 5px 8px; }
-        body { padding-top: 110px; }
         .notification-panel { top: 100px; } /* Further adjust top for smaller screens */
+        h2 { font-size: 1.3rem; }
+        h3 { font-size: 1rem; }
+        h4 { font-size: 1.1rem; }
+        .add-section input, .add-section select, .add-section textarea { font-size: 0.95rem; padding: 8px; }
+        .btn { font-size: 0.9rem; padding: 6px 15px; }
+        th, td { font-size: 0.85rem; padding: 8px 6px; }
+        .level-item label { font-size: 0.9rem; }
+        .summary-details-box { padding: 15px; }
+        .summary-details-box h4 { font-size: 1.2rem; }
+        .summary-details-box .summary-content-display { font-size: 0.9rem; padding: 10px; }
+        .summary-details-box .form-group textarea { height: 70px; }
     }
 
     /* Dark Mode specific overrides */
@@ -747,7 +746,7 @@
 </head>
 <body>
   <div style="background:var(--background-mid);color:var(--light-text-color);padding:7px 0;text-align:center;font-size:0.9rem;border-bottom:1px solid var(--border-color);">
-
+  V20.1 - تصميم جديد
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -768,7 +767,7 @@
   <div id="teacherNotificationPanel" class="notification-panel">
     <h5>إشعارات الطلاب</h5>
     <div id="teacherNotificationsList">
-      <p style="text-align: center; color: #888;">لا توجد إشعارات حالياً.</p>
+      <p style="text-align: center; color: var(--light-text-color);">لا توجد إشعارات حالياً.</p>
     </div>
   </div>
 
@@ -841,7 +840,7 @@
 
       <div class="student-selection-area">
         <label for="studentSelect" style="font-weight:bold; margin-bottom: 10px; display: block; text-align: right;">اختر الطالب:</label>
-        <select id="studentSelect" onchange="showSelectedStudentDetails(this.value)" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #c5c9d2; font-size: 1rem; background: #f7f8fa; color: #23272f;">
+        <select id="studentSelect" onchange="showSelectedStudentDetails(this.value)" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 1rem; background: var(--background-mid); color: var(--text-color);">
           <option value="">-- اختر طالباً لعرض بياناته --</option>
         </select>
       </div>
@@ -1063,9 +1062,16 @@
     // NEW: Teacher Notification UI functions
     function toggleTeacherNotificationPanel() {
         const panel = document.getElementById('teacherNotificationPanel');
+        const bellIcon = document.querySelector('.main-nav .notification-bell');
+
         if (panel.style.display === 'block') {
             panel.style.display = 'none';
         } else {
+            // Position the panel dynamically
+            const bellRect = bellIcon.getBoundingClientRect();
+            panel.style.right = (window.innerWidth - bellRect.right) + 'px';
+            panel.style.top = (bellRect.bottom + 5) + 'px'; // 5px below the bell
+
             panel.style.display = 'block';
             // Mark all currently displayed notifications as read when panel is opened
             const unreadItems = document.querySelectorAll('#teacherNotificationsList .notification-item.unread');
@@ -1075,6 +1081,19 @@
             });
         }
     }
+    
+    // NEW: Handle clicks outside the notification panel to close it
+    document.addEventListener('click', function(event) {
+        const panel = document.getElementById('teacherNotificationPanel');
+        const bellIcon = document.querySelector('.main-nav .notification-bell');
+        const isClickInsidePanel = panel.contains(event.target);
+        const isClickOnBell = bellIcon.contains(event.target);
+
+        if (panel.style.display === 'block' && !isClickInsidePanel && !isClickOnBell) {
+            panel.style.display = 'none';
+        }
+    });
+
 
     function setupTeacherNotificationsListener() {
         if (!teacherLoggedInEmail) {
@@ -1151,9 +1170,9 @@
             } else if (n.notification_type === 'student_reply' && n.sender_name && n.related_name) {
                 messageContent = `قام الطالب ${n.sender_name} بالرد على تعليقك في درس "${n.related_name}".`;
             } else if (n.notification_type === 'mark_update' && n.sender_name && n.related_name) {
-                 messageContent = `قام المعلم ${n.sender_name} بوضع علامة جديدة لدرس "${n.related_name}".`; 
+                 messageContent = `قام المعلم ${n.sender_name} بوضع علامة جديدة لدرس "${n.related_name}".`; // This should be from teacher, but for robustness
             } else if (n.notification_type === 'level_open' && n.sender_name && n.related_name) {
-                 messageContent = `قام المعلم ${n.sender_name} بفتح ${n.related_name} للطالب.`; 
+                 messageContent = `قام المعلم ${n.sender_name} بفتح ${n.related_name} للطالب.`; // This should be from teacher
             } else if (n.sender_name && n.message) { // Generic from student
                 messageContent = `إشعار من الطالب ${n.sender_name}: ${n.message}`;
             }
@@ -1669,7 +1688,7 @@
         }
         setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
       }).catch(function(err){
-        document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
+        document.getElementById('msg').innerText = "حدث خطأ أثناء التحديث: " + err.message;
       });
     };
 
