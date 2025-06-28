@@ -177,96 +177,29 @@
     /* زر الوضع الليلي */
     #nightModeBtn {background:#323946;margin-right:10px;}
 
-    /* NEW: Inline Summary Details Box for Student Page */
-    .student-summary-details-box {
-      background-color: #ffffff;
-      border-radius: 12px;
-      margin: 20px 0 30px 0;
-      padding: 24px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      border: 1px solid #e0e4e8;
-      display: none; /* Hidden by default */
-    }
-    .student-summary-details-box h4 {
-      color: #294169;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #f0f2f5;
-      font-size: 1.15rem;
-    }
-    .student-summary-details-box .summary-content-display {
-      white-space: pre-wrap;
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.05rem;
-      line-height: 1.8;
-      color: #333;
-      max-height: 40vh;
-      overflow-y: auto;
-      direction: rtl;
-      word-break: break-word;
+    /* New styles for teacher comment display */
+    .teacher-comment-display {
+      background: #f0f2f5;
       padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #eef2fa;
-      background: #fdfdfd;
       border-radius: 8px;
+      margin-top: 15px;
+      font-size: 0.98rem;
+      color: #333;
+      border: 1px solid #e0e4e8;
+      line-height: 1.6;
     }
-    .student-summary-details-box .info-row {
-      margin-bottom: 10px;
-      font-size: 1rem;
-      color: #23272f;
-    }
-    .student-summary-details-box .info-row strong {
+    .teacher-comment-display strong {
       color: #294169;
+      display: block;
+      margin-bottom: 5px;
     }
-    .student-summary-details-box .close-box-btn {
-        background: #b83b3b;
-        margin-top: 20px;
-        padding: 8px 30px;
-        display: block; /* Make it a block button */
-        margin-left: auto;
-        margin-right: auto;
-        width: fit-content; /* Fit content to center */
+    .dark-mode .teacher-comment-display {
+      background: #2b3547;
+      border-color: #4a576b;
+      color: #e0e0e0;
     }
-    .student-summary-details-box .close-box-btn:hover {
-        background: #7a2626;
-    }
-    /* Dark Mode for student summary details box */
-    .dark-mode .student-summary-details-box {
-      background: #323946;
-      border: 1px solid #3d4a5c;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
-    .dark-mode .student-summary-details-box h4 {
-        color: #e0e0e0;
-        border-bottom: 1px solid #4a576b;
-    }
-    .dark-mode .student-summary-details-box .summary-content-display {
-        background: #2b3547;
-        border-color: #4a576b;
-        color: #e0e0e0;
-    }
-    .dark-mode .student-summary-details-box .info-row {
-        color: #e0e0e0;
-    }
-    .dark-mode .student-summary-details-box .info-row strong {
-        color: #8cafff;
-    }
-
-    /* Style for clickable lesson title in summary block */
-    .lesson-title-clickable {
-        cursor: pointer;
-        color: #4361ee;
-        text-decoration: underline;
-        transition: color 0.2s;
-    }
-    .lesson-title-clickable:hover {
-        color: #2a4acb;
-    }
-    .dark-mode .lesson-title-clickable {
-        color: #8cafff;
-    }
-    .dark-mode .lesson-title-clickable:hover {
-        color: #6a9aff;
+    .dark-mode .teacher-comment-display strong {
+      color: #8cafff;
     }
   </style>
 </head>
@@ -303,23 +236,6 @@
     </div>
     <div id="lessonsSummariesArea"></div>
 
-    <div id="studentSummaryDetailsBox" class="student-summary-details-box">
-        <h4 id="studentSummaryDetailsTitle">تفاصيل تلخيص الدرس: </h4>
-        <div class="info-row">
-            <strong>حالة التلخيص:</strong> <span id="studentSummaryDetailsStatus"></span>
-        </div>
-        <div class="info-row">
-            <strong>علامتك:</strong> <span id="studentSummaryDetailsMark"></span>
-        </div>
-        <div class="info-row">
-            <strong>تعليق المعلم:</strong> <span id="studentSummaryDetailsComment"></span>
-        </div>
-        <div class="info-row">
-            <strong>نص التلخيص:</strong>
-            <div id="studentSummaryDetailsContent" class="summary-content-display"></div>
-        </div>
-        <button class="btn close-box-btn" onclick="hideStudentSummaryDetails()">إغلاق</button>
-    </div>
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -339,7 +255,7 @@
   <script src="firebase-config.js"></script>
   <script>
     // Firebase Config: تم حذف الكائن من هنا وسيتم جلبه من firebase-config.js
-
+    
     // الوضع الليلي
     function toggleNightMode() {
       document.body.classList.toggle('dark-mode');
@@ -423,7 +339,7 @@
     let randomizedExamQuestions = [];
     let examQuestionsLimit = null;
     let currentExamLevel = null;
-    let studentSummaries = {}; // [NEW] Map to store summaries by lesson_id for quick lookup
+    let studentSummaries = {}; // Map to store summaries by lesson_id for quick lookup
 
     // Firebase init
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } // firebaseConfig يتم جلبه الآن من firebase-config.js
@@ -507,7 +423,6 @@
           document.getElementById('admissionStatusBox').style.display = "none";
           document.getElementById('lessonsSummariesArea').innerHTML = "";
           document.getElementById('levelsExamsTableArea').innerHTML = "";
-          hideStudentSummaryDetails(); // [NEW] Hide details box on student data load
 
           // حالة القبول
           const admissionBox = document.getElementById('admissionStatusBox');
@@ -994,9 +909,8 @@
       }
     }
 
-    // تحميل الدروس والتلاخيص مع عرض العلامة وتاريخ التسليم (مُعدلة)
+    // تحميل الدروس والتلاخيص (مع التعديل الجديد)
     function loadActiveLessonsAndSummaries(activeLevels) {
-      hideStudentSummaryDetails(); // [NEW] Ensure details box is hidden before loading new summaries
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
         return;
@@ -1012,8 +926,7 @@
           }
         });
 
-        // Sort lessons by ID numerically
-        lessons.sort((a, b) => a.id - b.id); // [NEW] Sort lessons
+        lessons.sort((a, b) => a.id - b.id); // Sort lessons by ID numerically
 
         if (lessons.length === 0) {
           document.getElementById('lessonsSummariesArea').innerHTML = "";
@@ -1027,13 +940,13 @@
           .where('lesson_id', 'in', lessonIds)
           .get()
           .then(function(summarySnapshot) {
-            studentSummaries = {}; // [NEW] Clear previous and populate studentSummaries map
+            studentSummaries = {}; // Clear previous and populate studentSummaries map
             let markPromises = [];
 
             summarySnapshot.forEach(function(doc) {
               let s = { ...doc.data(), docId: doc.id }; // Include docId for fetching mark
               studentSummaries[s.docId] = s; // Store summary by its docId for easy lookup
-              studentSummaries[s.lesson_id] = s; // [NEW] Store by lesson_id for convenience
+              studentSummaries[s.lesson_id] = s; // Store by lesson_id for convenience
 
               // If summary is submitted, fetch its mark from student_marks
               if (s.status === 'submitted') {
@@ -1084,55 +997,32 @@
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
-        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft" }; // Lookup by lesson.id
+        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft", teacher_comment: "" }; // Lookup by lesson.id, ensure teacher_comment exists
         let submitted = sum.status === 'submitted';
 
+        // تحديد العلامة للعرض بناءً على حالة التلخيص والعلامة المجلوبة
         let markToDisplay = '—';
         let markBadgeClass = 'no-mark';
 
         if (submitted) {
             if (typeof sum.mark_from_student_marks !== 'undefined' && sum.mark_from_student_marks !== null) {
                 markToDisplay = 'العلامة: ' + sum.mark_from_student_marks;
+                // تحديد الفئة بناءً على قيمة العلامة
                 if (sum.mark_from_student_marks > 0) {
-                    markBadgeClass = 'positive-mark';
+                    markBadgeClass = 'positive-mark'; // أخضر/نجاح
                 } else {
-                    markBadgeClass = 'zero-mark';
+                    markBadgeClass = 'zero-mark'; // أحمر/تحذير
                 }
             }
         }
 
         let time = sum.timestamp ? `<span style="color:#888;font-size:0.97em;">(${(new Date(sum.timestamp)).toLocaleString('ar-EG')})</span>` : "";
 
-        // Determine content for summary text area based on submission status
-        let summaryContentHtml = '';
-        if (submitted) {
-            // For submitted summaries, make title clickable to show details in inline box
-            summaryContentHtml = `
-                <div class="form-group">
-                    <button class="btn" onclick="showStudentSummaryDetails('${sum.docId}')">عرض التفاصيل</button>
-                </div>
-            `;
-        } else {
-            // For drafts, keep the textarea for editing
-            summaryContentHtml = `
-                <div style="margin:12px 0 5px 0;">
-                    <textarea class="summary-text" id="sumtext_${lesson.id}" placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
-                </div>
-                <div class="summary-actions">
-                    <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
-                    <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
-                    <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
-                </div>
-                <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
-            `;
-        }
-
-
         html += `
         <div class="lesson-summary-block">
           <div class="lesson-student-name">اسم الطالب: ${currentStudentName || ""}</div>
           <h4>
-            (${lesson.id}) <span class="${submitted ? 'lesson-title-clickable' : ''}" ${submitted ? `onclick="showStudentSummaryDetails('${sum.docId}')"` : ''}>${lesson.title}</span>
+            (${lesson.id}) ${lesson.title}
             <span class="lesson-mark-badge ${markBadgeClass}">
               ${markToDisplay}
             </span>
@@ -1147,39 +1037,25 @@
             </audio>
             ` : ''}
           </div>
-          ${summaryContentHtml}
+          <div style="margin:12px 0 5px 0;">
+            <textarea class="summary-text" id="sumtext_${lesson.id}" ${submitted ? 'readonly' : ''} placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
+          </div>
+          ${submitted && sum.teacher_comment ? `
+            <div class="teacher-comment-display">
+                <strong>ملاحظة المعلم:</strong> ${sum.teacher_comment}
+            </div>
+          ` : ''}
+          <div class="summary-actions">
+            <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
+            <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
+            <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
+          </div>
+          <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
         </div>
         `;
       });
       document.getElementById('lessonsSummariesArea').innerHTML = html;
     }
-
-    // [NEW] Function to show and populate the student's inline summary details box
-    function showStudentSummaryDetails(docId) {
-        const summary = studentSummaries[docId]; // Get summary by its docId
-        if (!summary) {
-            showToast("تعذر العثور على التلخيص.", "#e63946");
-            return;
-        }
-
-        const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
-        const detailsBox = document.getElementById('studentSummaryDetailsBox');
-
-        document.getElementById('studentSummaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
-        document.getElementById('studentSummaryDetailsStatus').innerText = summary.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة';
-        document.getElementById('studentSummaryDetailsMark').innerText = (typeof summary.mark_from_student_marks !== 'undefined' && summary.mark_from_student_marks !== null) ? summary.mark_from_student_marks : '— لا توجد علامة بعد —';
-        document.getElementById('studentSummaryDetailsComment').innerText = summary.teacher_comment || '— لا يوجد تعليق من المعلم —';
-        document.getElementById('studentSummaryDetailsContent').innerText = summary.summary_text;
-
-        detailsBox.style.display = 'block';
-        detailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    // [NEW] Function to hide the student's inline summary details box
-    function hideStudentSummaryDetails() {
-        document.getElementById('studentSummaryDetailsBox').style.display = 'none';
-    }
-
 
     // حفظ المسودة
     function saveSummary(lessonId) {
