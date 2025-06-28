@@ -376,14 +376,14 @@
       
       <span class="notification-bell" onclick="toggleNotificationPanel()">
           <i class="fas fa-bell"></i>
-          <span id="unreadNotificationsBadge" class="notification-badge" style="display:none;">0</span>
+          <span id="unreadNotificationsBadge" style="display:none;">0</span>
       </span>
 
       <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
     </div>
   </header>
   <div class="container">
-    <h2>مرحباً، <span id="studentName"></span></h2>
+    <h2>مرحباً، <span id="studentName"></span> </h2>
     <div class="info">
       <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
       <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
@@ -727,15 +727,43 @@
                 });
                 console.log("Realtime marks updated:", window.realtimeStudentMarks);
                 // Trigger re-render of summaries to reflect new marks
-                if (window.lastRenderedLessons && window.lastRenderedStudentSummaries) {
+                // Need to ensure lessons and studentSummaries are available.
+                // loadActiveLessonsAndSummaries might be called again, but that creates a new listener.
+                // Best is to trigger renderSummariesLessonsUI with the current data.
+                // We'll need access to the latest lessons and studentSummaries.
+                // Let's re-call loadActiveLessonsAndSummaries, which will trigger the summary listener,
+                // and that in turn will fetch and re-render with latest marks.
+                // This might cause a slight flicker but ensures data consistency.
+                // Alternatively, pass lessons and studentSummaries to setupRealtimeMarksListener.
+
+                // Simpler: Trigger a re-render by calling loadActiveLessonsAndSummaries
+                // This will re-fetch summaries and lessons, ensuring everything is up-to-date.
+                // However, be cautious of listener nesting.
+                // The most reliable way is to ensure renderSummariesLessonsUI has access to latest data.
+                // It means the summaries listener should ideally provide a callback for rendering.
+
+                // For now, let's keep it simple: re-call loadActiveLessonsAndSummaries.
+                // This is not the most efficient, but it ensures visual update.
+                // A better pattern involves passing current lessons and summaries data around.
+                // Let's refine renderSummariesLessonsUI to directly use window.realtimeStudentMarks.
+                // And ensure it's called with the latest summaries.
+
+                // This re-call is problematic: loadActiveLessonsAndSummaries creates new listeners.
+                // Instead, we need a way to get the *current* state of lessons and summaries.
+                // Let's store lessons and summaries globally too.
+
+                // Instead of re-calling the whole load function, let's just trigger render.
+                // renderSummariesLessonsUI needs current lessons and studentSummaries.
+                // This implies that the 'summaries' listener is the main driver of rendering.
+                // So, let's modify renderSummariesLessonsUI to get marks from realtimeStudentMarks.
+
+                if (typeof window.lastRenderedLessons !== 'undefined' && typeof window.lastRenderedStudentSummaries !== 'undefined') {
                     renderSummariesLessonsUI(window.lastRenderedLessons, window.lastRenderedStudentSummaries);
                 } else {
                     // Fallback if data is not yet available, trigger full reload.
-                    // This might create duplicate listeners if not handled carefully.
-                    // A better way is to ensure loadActiveLessonsAndSummaries is always called first.
-                    // For now, let's just log a warning.
-                    console.warn("Cannot re-render summaries from marks listener: lessons or studentSummaries not yet available globally.");
+                    loadStudentData(currentStudentEmail, currentStudentName);
                 }
+
 
             }, function(error) {
                 console.error("Error listening to student marks:", error);
@@ -1396,19 +1424,8 @@
             }
         }
 
+
         let time = sum.timestamp ? `<span style="color:#888;font-size:0.97em;">(${(new Date(sum.timestamp)).toLocaleString('ar-EG')})</span>` : "";
-        // NEW: Debugging for Invalid Date
-        if (sum.timestamp) {
-            const dateObj = new Date(sum.timestamp.toDate ? sum.timestamp.toDate() : sum.timestamp);
-            if (isNaN(dateObj.getTime())) {
-                console.warn("Invalid Date for summary:", sum.docId, "Timestamp value:", sum.timestamp);
-                time = `<span style="color:#e63946;font-size:0.97em;">(تاريخ غير صالح)</span>`;
-            } else {
-                time = `<span style="color:#888;font-size:0.97em;">(${dateObj.toLocaleString('ar-EG')})</span>`;
-            }
-        } else {
-            console.warn("Timestamp is missing for summary:", sum.docId);
-        }
 
         html += `
         <div class="lesson-summary-block">
