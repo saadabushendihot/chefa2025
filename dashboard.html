@@ -683,7 +683,7 @@ tbody tr:last-child td {
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V23
+  V20
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -804,6 +804,11 @@ tbody tr:last-child td {
                 <textarea id="summaryDetailsComment" class="summary-detail-input" placeholder="اكتب تعليقك هنا..."></textarea>
                 <button class="btn" id="saveSummaryDetailsCommentBtn">حفظ التعليق</button>
             </div>
+            <div id="studentReplySection" class="form-group" style="display:none;">
+                <label>رد الطالب:</label>
+                <div id="summaryDetailsStudentReply" class="summary-content-display"></div>
+                <button class="btn delete-btn" id="clearStudentReplyBtn">مسح رد الطالب</button>
+            </div>
             <div class="form-group">
                 <label for="summaryDetailsMark">تعديل العلامة:</label>
                 <input type="number" id="summaryDetailsMark" class="summary-detail-input mark" min="0" max="100" placeholder="العلامة">
@@ -905,7 +910,7 @@ tbody tr:last-child td {
     window.studentSummariesMap = {}; // متغير عام لتخزين التلاخيص
     window.lessonsMap = {}; // متغير عام لتخزين معلومات الدروس
     window.allSummaries = []; // متغير عام لتخزين جميع التلاخيص للفلترة
-    let currentStudentEmailForSummaries = ''; // [NEW] Track current student email for summaries
+    let currentStudentEmailForSummaries = '';
 
     // جلب العلامة من student_marks حسب summary_id
       function getMarkForSummary(summaryId, studentEmail) {
@@ -1023,6 +1028,7 @@ tbody tr:last-child td {
             level: level
           };
           if (voice) lessonObj.voice = voice;
+          else lessonObj.voice = firebase.firestore.FieldValue.delete();
           firestore.collection('lessons').add(lessonObj).then(function(){
             msg.style.color = "#1dad87";
             msg.innerText = "تمت إضافة الدرس بنجاح!";
@@ -1434,7 +1440,7 @@ tbody tr:last-child td {
             return s.status === filterStatus;
         });
 
-        // [MODIFIED] Sort summaries by lesson_id
+        // Sort summaries by lesson_id
         filteredSummaries.sort((a, b) => a.lesson_id - b.lesson_id);
 
 
@@ -1503,19 +1509,32 @@ function showSummaryDetails(docId) {
     document.getElementById('summaryDetailsComment').value = summary.teacher_comment || '';
     document.getElementById('summaryDetailsMark').value = summary.mark_value || '';
 
+    // [NEW] Populate student reply section
+    const studentReplySection = document.getElementById('studentReplySection');
+    const summaryDetailsStudentReply = document.getElementById('summaryDetailsStudentReply');
+    const clearStudentReplyBtn = document.getElementById('clearStudentReplyBtn');
+
+    if (summary.student_reply_comment) {
+        summaryDetailsStudentReply.innerText = summary.student_reply_comment;
+        studentReplySection.style.display = 'block';
+        clearStudentReplyBtn.dataset.docId = docId; // Set docId for clearing
+        clearStudentReplyBtn.onclick = () => clearStudentReply(docId); // Attach event listener
+    } else {
+        studentReplySection.style.display = 'none';
+        summaryDetailsStudentReply.innerText = '';
+    }
+
     // Set dataset for save buttons
     document.getElementById('saveSummaryDetailsCommentBtn').dataset.docId = docId;
     document.getElementById('saveSummaryDetailsMarkBtn').dataset.docId = docId;
 
-    // Add event listeners for save buttons (only once)
+    // Remove existing listeners to prevent duplicates and add new ones
     const saveCommentBtn = document.getElementById('saveSummaryDetailsCommentBtn');
     const saveMarkBtn = document.getElementById('saveSummaryDetailsMarkBtn');
 
-    // Remove existing listeners to prevent duplicates
     saveCommentBtn.onclick = null;
     saveMarkBtn.onclick = null;
 
-    // Add new listeners
     saveCommentBtn.onclick = () => saveSummaryComment(saveCommentBtn.dataset.docId);
     saveMarkBtn.onclick = () => saveSummaryMark(saveMarkBtn.dataset.docId);
 
@@ -1526,6 +1545,30 @@ function showSummaryDetails(docId) {
 // Function to hide the inline summary details box
 function hideSummaryDetails() {
     document.getElementById('summaryDetailsBox').style.display = 'none';
+}
+
+// [NEW] Function to clear student's reply
+function clearStudentReply(docId) {
+    if (!confirm('هل أنت متأكد من مسح رد الطالب؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+        return;
+    }
+
+    showLoading(true);
+    firestore.collection('summaries').doc(docId).update({
+        student_reply_comment: firebase.firestore.FieldValue.delete()
+    }).then(() => {
+        showToast('تم مسح رد الطالب بنجاح!', '#1dad87');
+        // Update local data and re-render the details box
+        if (window.studentSummariesMap[docId]) {
+            delete window.studentSummariesMap[docId].student_reply_comment;
+        }
+        showSummaryDetails(docId); // Re-show details to reflect the change
+        showLoading(false);
+    }).catch(error => {
+        showToast(`حدث خطأ أثناء مسح رد الطالب: ${error.message}`, '#e63946');
+        console.error('Error clearing student reply:', error);
+        showLoading(false);
+    });
 }
 
 
@@ -1639,7 +1682,8 @@ window.resetSummary = function(summaryDocId, studentEmail) {
     // Update summary status to 'draft'
     firestore.collection('summaries').doc(summaryDocId).update({
         status: 'draft',
-        teacher_comment: firebase.firestore.FieldValue.delete()
+        teacher_comment: firebase.firestore.FieldValue.delete(),
+        student_reply_comment: firebase.firestore.FieldValue.delete() // [NEW] Clear student reply on reset
     }).then(() => {
         // Find and delete the corresponding mark in student_marks collection
         return firestore.collection('student_marks')
@@ -1658,7 +1702,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
     }).then(() => {
         showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', '#1dad87');
         loadStudentSummaries(studentEmail); // Reload summaries to reflect changes
-        hideSummaryDetails(); // [NEW] Hide details box after reset
+        hideSummaryDetails();
         showLoading(false);
     }).catch(error => {
         showToast(`حدث خطأ أثناء إعادة تعيين التلخيص: ${error.message}`, '#e63946');
