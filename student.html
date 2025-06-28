@@ -1050,7 +1050,7 @@
           ملاحظة: لكل إجابة صحيحة تختارها تحصل على جزء من العلامة، ولكل إجابة خاطئة تختارها يُخصم نفس الجزء من العلامة. لا يمكن أن تقل علامة السؤال عن الصفر.
           </div>`;
         }
-        let markText = `<span class="question-mark">[العلامة: ${q.mark || 1}]</span>`;
+        let markText = `<span class="question-mark">[العلامة: ${q.mark || 1}]`;
         html += `<div class="question-block">
           <div class="question-title">${i+1}. ${q.question} ${multiNote} ${markText}</div>
           <div class="choices-list">` +
@@ -1377,7 +1377,7 @@
             <div class="reply-area">
                 <label for="studentreply_${sum.docId}">تعليقك/ردك على الدرس:</label>
                 <textarea class="summary-text" id="studentreply_${sum.docId}" placeholder="اكتب ردك هنا...">${sum.student_reply_comment || ''}</textarea>
-                <button class="btn" onclick="saveStudentReply('${sum.docId}', ${lesson.id})">حفظ الرد</button>
+                <button class="btn" onclick="saveStudentReply('${sum.docId}')">حفظ الرد</button>
             </div>
           ` : ''}
           <div class="summary-actions">
@@ -1393,7 +1393,7 @@
     }
 
     // Function to save student reply to teacher's comment (or initiate comment)
-    function saveStudentReply(summaryDocId, lessonId) {
+    function saveStudentReply(summaryDocId) {
         console.log("--- saveStudentReply بدأ ---"); // Log start
         const replyTextarea = document.getElementById(`studentreply_${summaryDocId}`);
         const replyText = sanitizeText(replyTextarea.value.trim());
@@ -1402,9 +1402,12 @@
         const summary = studentSummaries[summaryDocId];
         const lessonTitle = window.lessonsMap[summary.lesson_id];
 
-        console.log("summaryDocId:", summaryDocId); // Log summaryDocId
+        console.log("summaryDocId received:", summaryDocId); // Log summaryDocId
         console.log("replyText:", replyText); // Log replyText
+        console.log("Summary object from studentSummaries:", summary); // NEW LOG
+        console.log("summary.lesson_id:", summary.lesson_id); // NEW LOG
         console.log("lessonTitle (for notification):", lessonTitle); // Log lessonTitle
+
 
         if (!replyText) {
             showToast("يرجى كتابة الرد أولاً.", "#e63946");
