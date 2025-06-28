@@ -1038,7 +1038,8 @@
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
-        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" }; // Lookup by lesson.id, ensure teacher_comment & student_reply_comment exist
+        // Ensure teacher_comment and student_reply_comment are initialized even if null in DB
+        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" };
         let submitted = sum.status === 'submitted';
 
         // تحديد العلامة للعرض بناءً على حالة التلخيص والعلامة المجلوبة
@@ -1085,15 +1086,12 @@
             <div class="teacher-comment-display">
                 <strong>ملاحظة المعلم:</strong> ${sum.teacher_comment}
             </div>
+          ` : ''}
+          ${submitted ? `
             <div class="reply-area">
-                <label for="studentreply_${sum.docId}">ردك على المعلم:</label>
+                <label for="studentreply_${sum.docId}">تعليقك/ردك على الدرس:</label>
                 <textarea id="studentreply_${sum.docId}" placeholder="اكتب ردك هنا...">${sum.student_reply_comment || ''}</textarea>
                 <button class="btn" onclick="saveStudentReply('${sum.docId}')">حفظ الرد</button>
-            </div>
-          ` : ''}
-          ${submitted && sum.student_reply_comment && !sum.teacher_comment ? `
-            <div class="student-reply-display">
-                <strong>ردك السابق:</strong> ${sum.student_reply_comment}
             </div>
           ` : ''}
           <div class="summary-actions">
@@ -1108,7 +1106,7 @@
       document.getElementById('lessonsSummariesArea').innerHTML = html;
     }
 
-    // [NEW] Function to save student reply to teacher's comment
+    // Function to save student reply to teacher's comment (or initiate comment)
     function saveStudentReply(summaryDocId) {
         const replyTextarea = document.getElementById(`studentreply_${summaryDocId}`);
         const replyText = sanitizeText(replyTextarea.value.trim());
@@ -1122,7 +1120,7 @@
             student_reply_comment: replyText
         }).then(() => {
             showToast("تم حفظ ردك بنجاح!", "#1dad87");
-            // Update local data and re-render if necessary
+            // Update local data and re-render to reflect the change
             loadStudentData(currentStudentEmail, currentStudentName);
         }).catch(error => {
             showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "#e63946");
