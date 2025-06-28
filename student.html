@@ -1377,7 +1377,7 @@
             <div class="reply-area">
                 <label for="studentreply_${sum.docId}">تعليقك/ردك على الدرس:</label>
                 <textarea class="summary-text" id="studentreply_${sum.docId}" placeholder="اكتب ردك هنا...">${sum.student_reply_comment || ''}</textarea>
-                <button class="btn" onclick="saveStudentReply('${sum.docId}')">حفظ الرد</button>
+                <button class="btn" onclick="saveStudentReply('${sum.docId}', ${lesson.id})">حفظ الرد</button>
             </div>
           ` : ''}
           <div class="summary-actions">
@@ -1449,24 +1449,39 @@
 
     // حفظ المسودة
     function saveSummary(lessonId) {
+      console.log("--- saveSummary بدأ ---"); // Log start
       const textarea = document.getElementById('sumtext_' + lessonId);
       const msg = document.getElementById('sum_msg_' + lessonId);
       const text = sanitizeText(textarea.value.trim());
       msg.innerText = "";
-      if (!text) { msg.innerText = "يرجى كتابة التلخيص أولاً."; showToast("يرجى كتابة التلخيص!", "#e63946"); return; }
+
+      console.log("lessonId for draft:", lessonId); // NEW LOG
+      console.log("Text for draft:", text); // NEW LOG
       
       let docRef;
       const existingSummary = Object.values(studentSummaries).find(s => s.lesson_id === lessonId);
+      console.log("Existing summary for draft:", existingSummary); // NEW LOG
+
+      if (!text) {
+        msg.innerText = "يرجى كتابة التلخيص أولاً.";
+        showToast("يرجى كتابة التلخيص!", "#e63946");
+        console.warn("Draft text is empty."); // Log warning
+        return;
+      }
+      
       if (existingSummary && existingSummary.docId && !existingSummary.docId.startsWith('new_draft_')) {
           docRef = firestore.collection('summaries').doc(existingSummary.docId);
+          console.log("Existing summary docRef:", docRef.id); // NEW LOG
           // Check if already submitted
           if (existingSummary.status === "submitted") {
               msg.innerText = "تم تسليم التلخيص النهائي ولا يمكن التعديل.";
               showToast("تم تسليم التلخيص النهائي ولا يمكن التعديل.", "#e63946");
+              console.warn("Attempted to save draft for already submitted summary."); // NEW LOG
               return;
           }
       } else {
           docRef = firestore.collection('summaries').doc(); // Create a new doc
+          console.log("New summary docRef (draft):", docRef.id); // NEW LOG
       }
 
       const summaryData = {
@@ -1477,39 +1492,57 @@
           status: "draft",
           timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
       };
+      console.log("Summary data to save (draft):", summaryData); // NEW LOG
 
       docRef.set(summaryData, { merge: true }).then(function(){ // Use set with merge for both new and update
           msg.style.color = "#1dad87";
           msg.innerText = "تم حفظ المسودة.";
           showToast("تم حفظ المسودة.", "#1dad87");
+          console.log("Draft saved to Firestore successfully."); // NEW LOG
           // No need to call loadStudentData, listener will handle refresh
           setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
       }).catch((error)=>{ 
           showToast("خطأ أثناء الحفظ: " + error.message, "#e63946"); 
-          console.error("Error saving draft:", error); 
+          console.error("Error saving draft to Firestore:", error); // NEW LOG
       });
+      console.log("--- saveSummary انتهى ---"); // Log end
     }
 
     // تسليم النهائي
     function submitSummary(lessonId) {
+      console.log("--- submitSummary بدأ ---"); // Log start
       const textarea = document.getElementById('sumtext_' + lessonId);
       const msg = document.getElementById('sum_msg_' + lessonId);
       const text = sanitizeText(textarea.value.trim());
       msg.innerText = "";
-      if (!text) { msg.innerText = "يرجى كتابة التلخيص أولاً."; showToast("يرجى كتابة التلخيص!", "#e63946"); return; }
+
+      console.log("lessonId for submission:", lessonId); // NEW LOG
+      console.log("Text for submission:", text); // NEW LOG
+
+      if (!text) {
+        msg.innerText = "يرجى كتابة التلخيص أولاً.";
+        showToast("يرجى كتابة التلخيص!", "#e63946");
+        console.warn("Submission text is empty."); // NEW LOG
+        return;
+      }
       
       let docRef;
       const existingSummary = Object.values(studentSummaries).find(s => s.lesson_id === lessonId);
+      console.log("Existing summary for submission:", existingSummary); // NEW LOG
+
       if (existingSummary && existingSummary.docId && !existingSummary.docId.startsWith('new_draft_')) {
           docRef = firestore.collection('summaries').doc(existingSummary.docId);
+          console.log("Existing summary docRef:", docRef.id); // NEW LOG
           // Check if already submitted
           if (existingSummary.status === "submitted") {
               msg.innerText = "تم تسليم التلخيص بالفعل.";
               showToast("تم تسليم التلخيص بالفعل.", "#e63946");
+              console.warn("Attempted to submit already submitted summary."); // NEW LOG
               return;
           }
       } else {
           docRef = firestore.collection('summaries').doc(); // Create a new doc
+          console.log("New summary docRef (submission):", docRef.id); // NEW LOG
       }
 
       const summaryData = {
@@ -1517,6 +1550,7 @@
           status: "submitted",
           timestamp: firebase.firestore.FieldValue.serverTimestamp() // Use server timestamp
       };
+      console.log("Summary data to save (submission):", summaryData); // NEW LOG
       
       // For new summaries being submitted
       if (!existingSummary || existingSummary.docId.startsWith('new_draft_')) {
@@ -1526,12 +1560,14 @@
       }
 
       const lessonTitle = window.lessonsMap[lessonId]; // Get lesson title for notification
+      console.log("Lesson title (for notification):", lessonTitle); // NEW LOG
 
       docRef.set(summaryData, { merge: true }).then(function(){
           msg.style.color = "#1dad87";
           msg.innerText = "تم تسليم التلخيص بنجاح.";
           // No need to call loadStudentData, listener will handle refresh
           showToast("تم تسليم التلخيص بنجاح!", "#1dad87");
+          console.log("Summary submitted to Firestore successfully."); // NEW LOG
           // NEW: Send notification to teacher for summary submission
           sendTeacherNotification(
               `قام الطالب ${currentStudentName} بتسليم تلخيص جديد لدرس "${lessonTitle}".`,
@@ -1539,11 +1575,13 @@
               lessonId,
               lessonTitle
           );
+          console.log("Teacher notification sent for submission."); // NEW LOG
           setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
       }).catch((error)=>{ 
           showToast("خطأ أثناء التسليم: " + error.message, "#e63946"); 
-          console.error("Error submitting summary (update):", error); 
+          console.error("Error submitting summary to Firestore:", error); // NEW LOG
       });
+      console.log("--- submitSummary انتهى ---"); // Log end
     }
 
     // تسجيل الخروج
