@@ -843,6 +843,7 @@ tbody tr:last-child td {
   </div>
 
 
+  <script src="firebase-config.js"></script>
   <script>
     // Utility Functions
     function showToast(msg, color = "#3b5cb8") {
@@ -1084,15 +1085,19 @@ tbody tr:last-child td {
         const studentId = document.getElementById('studentSelect').value;
         if (!studentId) return;
 
-        firestore.collection('lectures').doc(studentId).update({
-            accepted: status
-        }).then(() => {
-            allStudentsData[studentId].accepted = status;
-            showToast('تم تحديث حالة القبول بنجاح!', '#1dad87');
-        }).catch(err => {
-            showToast('خطأ في تحديث حالة القبول: ' + err.message, '#e63946');
-            console.error('Error updating admission status:', err);
-        });
+        // --- DISABLED DB WRITE ---
+        showToast("تعديل حالة القبول معطل في هذا الإصدار.", "#ffc107");
+        console.log("DISABLED: Updating admission status for", studentId, "to", status);
+        // firestore.collection('lectures').doc(studentId).update({
+        //     accepted: status
+        // }).then(() => {
+        //     allStudentsData[studentId].accepted = status;
+        //     showToast('تم تحديث حالة القبول بنجاح!', '#1dad87');
+        // }).catch(err => {
+        //     showToast('خطأ في تحديث حالة القبول: ' + err.message, '#e63946');
+        //     console.error('Error updating admission status:', err);
+        // });
+        // --- END DISABLED DB WRITE ---
     };
 
     window.saveTeacherNotes = function() {
@@ -1100,15 +1105,19 @@ tbody tr:last-child td {
         const notes = document.getElementById('detailTeacherNotes').value.trim();
         if (!studentId) return;
 
-        firestore.collection('lectures').doc(studentId).update({
-            teacher_notes: notes
-        }).then(() => {
-            allStudentsData[studentId].teacher_notes = notes;
-            showToast('تم حفظ ملاحظات المعلم!', '#1dad87');
-        }).catch(err => {
-            showToast('خطأ في حفظ الملاحظات: ' + err.message, '#e63946');
-            console.error('Error saving teacher notes:', err);
-        });
+        // --- DISABLED DB WRITE ---
+        showToast("حفظ ملاحظات المعلم معطل في هذا الإصدار.", "#ffc107");
+        console.log("DISABLED: Saving teacher notes for", studentId, ":", notes);
+        // firestore.collection('lectures').doc(studentId).update({
+        //     teacher_notes: notes
+        // }).then(() => {
+        //     allStudentsData[studentId].teacher_notes = notes;
+        //     showToast('تم حفظ ملاحظات المعلم!', '#1dad87');
+        // }).catch(err => {
+        //     showToast('خطأ في حفظ الملاحظات: ' + err.message, '#e63946');
+        //     console.error('Error saving teacher notes:', err);
+        // });
+        // --- END DISABLED DB WRITE ---
     };
 
     window.confirmDeleteStudent = function() {
@@ -1119,11 +1128,17 @@ tbody tr:last-child td {
             return;
         }
         if (confirm(`هل أنت متأكد من حذف الطالب ${studentName}؟ هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناته الأساسية. (ملاحظة: يفضل استخدام Firebase Cloud Functions لحذف جميع البيانات المرتبطة تلقائياً).`)) {
-            deleteStudent(studentId);
+            // --- DISABLED DB WRITE ---
+            showToast("حذف الطالب معطل في هذا الإصدار.", "#ffc107");
+            console.log("DISABLED: Deleting student", studentId);
+            // deleteStudent(studentId); // Call actual delete if re-enabled
+            // --- END DISABLED DB WRITE ---
         }
     };
 
     async function deleteStudent(studentId) {
+        // This function is still here for clarity if re-enabled by confirmDeleteStudent
+        // But confirmDeleteStudent will prevent direct call due to disable.
         showLoading(true);
         try {
             await firestore.collection('lectures').doc(studentId).delete();
@@ -1175,15 +1190,19 @@ tbody tr:last-child td {
     window.toggleExamStatus = function(studentId, examField, currentValue) {
       let updateObj = {};
       updateObj[examField] = !currentValue;
-      firestore.collection('lectures').doc(studentId).update(updateObj).then(function(){
-        allStudentsData[studentId][examField] = !currentValue;
-        showSelectedStudentDetails(studentId);
-        document.getElementById('msg').style.color = '#1dad87';
-        document.getElementById('msg').innerText = 'تم تحديث حالة الامتحان!';
-        setTimeout(()=>{document.getElementById('msg').innerText='';}, 1200);
-      }).catch(function(err){
-        document.getElementById('msg').innerText = "حدث خطأ أثناء تحديث الامتحان: " + err.message;
-      });
+      // --- DISABLED DB WRITE ---
+      showToast("تعديل حالة الامتحان معطل في هذا الإصدار.", "#ffc107");
+      console.log("DISABLED: Updating exam status for", studentId, "field", examField, "to", !currentValue);
+      // firestore.collection('lectures').doc(studentId).update(updateObj).then(function(){
+      //   allStudentsData[studentId][examField] = !currentValue;
+      //   showSelectedStudentDetails(studentId);
+      //   document.getElementById('msg').style.color = '#1dad87';
+      //   document.getElementById('msg').innerText = 'تم تحديث حالة الامتحان!';
+      //   setTimeout(()=>{document.getElementById('msg').innerText='';}, 1200);
+      // }).catch(function(err){
+      //   document.getElementById('msg').innerText = "حدث خطأ أثناء تحديث الامتحان: " + err.message;
+      // });
+      // --- END DISABLED DB WRITE ---
     };
 
     function getLevelNumFromText(levelText) {
@@ -1261,18 +1280,23 @@ tbody tr:last-child td {
 
     window.confirmDeleteLesson = function(docId, lessonTitle) {
         if (confirm(`هل أنت متأكد من حذف الدرس "${lessonTitle}"؟ هذا الإجراء لا يمكن التراجع عنه. (ملاحظة: التلاخيص والعلامات المرتبطة بهذا الدرس لن تُحذف تلقائياً).`)) {
-            deleteLesson(docId);
+            // --- DISABLED DB WRITE ---
+            showToast("حذف الدرس معطل في هذا الإصدار.", "#ffc107");
+            console.log("DISABLED: Deleting lesson", docId);
+            // deleteLesson(docId); // Call actual delete if re-enabled
+            // --- END DISABLED DB WRITE ---
         }
     };
 
     async function deleteLesson(docId) {
+        // This function is still here for clarity if re-enabled by confirmDeleteLesson
         showLoading(true);
         try {
             await firestore.collection('lessons').doc(docId).delete();
-            showToast('تم حذف الدرس بنجاح!', '#1dad87');
+            showToast('تم حذف الدرس بنجاح!', "#1dad87");
             loadLessons();
         } catch (error) {
-            showToast('خطأ في حذف الدرس: ' + error.message, '#e63946');
+            showToast('خطأ في حذف الدرس: ' + error.message, "#e63946");
             console.error('Error deleting lesson:', error);
         } finally {
             showLoading(false);
@@ -1313,15 +1337,19 @@ tbody tr:last-child td {
       };
       if (voice) lessonObj.voice = voice;
       else lessonObj.voice = firebase.firestore.FieldValue.delete();
-      firestore.collection('lessons').doc(docId).update(lessonObj).then(function(){
-        msg.style.color = "#1dad87";
-        msg.innerText = "تم تحديث الدرس بنجاح!";
-        editLessonId = null;
-        loadLessons();
-        setTimeout(()=>{msg.innerText='';}, 1500);
-      }).catch(function(err){
-        msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
-      });
+      // --- DISABLED DB WRITE ---
+      showToast("حفظ الدرس معطل في هذا الإصدار.", "#ffc107");
+      console.log("DISABLED: Saving lesson", docId, lessonObj);
+      // firestore.collection('lessons').doc(docId).update(lessonObj).then(function(){
+      //   msg.style.color = "#1dad87";
+      //   msg.innerText = "تم تحديث الدرس بنجاح!";
+      //   editLessonId = null;
+      //   loadLessons();
+      //   setTimeout(()=>{msg.innerText='';}, 1500);
+      // }).catch(function(err){
+      //   msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
+      // });
+      // --- END DISABLED DB WRITE ---
     }
 
     window.updateLevel = function(checkbox) {
@@ -1339,40 +1367,24 @@ tbody tr:last-child td {
           return;
         }
       }
-      firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
-        document.getElementById('msg').style.color = '#1dad87';
-        document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
-        if (allStudentsData[docId]) {
-            allStudentsData[docId][level] = value;
-            showSelectedStudentDetails(docId);
-        }
-        setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
-      }).catch(function(err){
-        document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
-      });
+      // --- DISABLED DB WRITE ---
+      showToast("تعديل المستوى معطل في هذا الإصدار.", "#ffc107");
+      console.log("DISABLED: Updating level for", docId, "level", level, "to", value);
+      // firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
+      //   document.getElementById('msg').style.color = '#1dad87';
+      //   document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
+      //   if (allStudentsData[docId]) {
+      //       allStudentsData[docId][level] = value;
+      //       showSelectedStudentDetails(docId);
+      //   }
+      //   setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='#b83b3b';}, 1500);
+      // }).catch(function(err){
+      //   document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
+      // });
+      // --- END DISABLED DB WRITE ---
     }
 
-    // --- Summaries Management Functions (Real-time listener) ---
-    // Moved up to ensure functions are defined before being called
-    function getMarkForSummary(summaryId, studentEmail) {
-        return firestore.collection('student_marks')
-          .where('summary_id', '==', summaryId)
-          .where('student_email', '==', studentEmail)
-          .limit(1)
-          .get()
-          .then((querySnapshot) => {
-            if (!querySnapshot.empty) {
-              return querySnapshot.docs[0].data().mark;
-            } else {
-              return "";
-            }
-          })
-          .catch((error) => {
-            console.error('خطأ في جلب العلامة:', error);
-            return "";
-          });
-    }
-
+    // تلخيصات الطالب (Load with Realtime Listener)
     function loadStudentSummaries(email) {
       showLoading(true);
       currentStudentEmailForSummaries = email;
@@ -1569,19 +1581,23 @@ tbody tr:last-child td {
             return;
         }
 
-        showLoading(true);
-        firestore.collection('summaries').doc(docId).update({
-            student_reply_comment: firebase.firestore.FieldValue.delete()
-        }).then(() => {
-            showToast('تم مسح رد الطالب بنجاح!', '#1dad87');
-        }).catch(error => {
-            showToast(`حدث خطأ أثناء مسح رد الطالب: ${error.message}`, '#e63946');
-            console.error('Error clearing student reply:', error);
-            showLoading(false);
-        });
+        // --- DISABLED DB WRITE ---
+        showToast("مسح رد الطالب معطل في هذا الإصدار.", "#ffc107");
+        console.log("DISABLED: Clearing student reply for", docId);
+        // firestore.collection('summaries').doc(docId).update({
+        //     student_reply_comment: firebase.firestore.FieldValue.delete()
+        // }).then(() => {
+        //     showToast('تم مسح رد الطالب بنجاح!', '#1dad87');
+        // }).catch(error => {
+        //     showToast(`خطأ أثناء مسح رد الطالب: ${error.message}`, '#e63946');
+        //     console.error('Error clearing student reply:', error);
+        //     showLoading(false);
+        // });
+        // --- END DISABLED DB WRITE ---
     }
 
-    async function saveMarkAndComment(summaryId, studentEmail, studentName, lessonTitle, existingMarkDocId) {
+
+    function saveMarkAndComment(summaryId, studentEmail, studentName, lessonTitle, existingMarkDocId) {
       const commentText = document.getElementById(`teacherComment_${summaryId}`).value.trim();
       const markInput = document.getElementById(`markInput_${summaryId}`).value;
       const mark = markInput ? parseFloat(markInput) : null;
@@ -1591,76 +1607,57 @@ tbody tr:last-child td {
         return;
       }
 
-      showLoading(true); // Using general spinner for now.
-
-      try {
-        await firestore.collection('summaries').doc(summaryId).update({
-          teacher_comment: commentText
-        });
-
-        if (mark !== null) {
-          const markData = {
-            summary_id: summaryId,
-            student_email: studentEmail,
-            student_name: studentName,
-            lesson_title: lessonTitle,
-            mark: mark,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-          };
-
-          if (existingMarkDocId && existingMarkDocId !== 'null') {
-            await firestore.collection('student_marks').doc(existingMarkDocId).update(markData);
-          } else {
-            const newMarkRef = firestore.collection('student_marks').doc();
-            await newMarkRef.set(markData);
-          }
-        }
-        
-        const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
-        let studentUid = null;
-        if (!userDoc.empty) {
-            studentUid = userDoc.docs[0].id;
-        }
-
-        if (studentUid) {
-            let notificationMessage = '';
-            if (commentText && mark !== null) {
-                 notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" (علامة ${mark}) وأضاف ملاحظة.`;
-            } else if (commentText) {
-                notificationMessage = `قام المعلم بإضافة ملاحظة على تلخيصك لدرس "${lessonTitle}".`;
-            } else if (mark !== null) {
-                notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" وحصلت على علامة ${mark}.`;
-            }
-
-            if (notificationMessage) {
-                await sendNotificationToUser(studentUid, notificationMessage);
-            }
-        }
-
-        showToast("تم حفظ العلامة والملاحظة بنجاح!", "#1dad87");
-      } catch (error) {
-        showToast("خطأ في حفظ العلامة أو الملاحظة: " + error.message, "#e63946");
-        console.error("Error saving mark and comment:", error);
-      } finally {
-        showLoading(false);
-      }
+      // --- DISABLED DB WRITE ---
+      showToast("حفظ العلامة/التعليق معطل في هذا الإصدار.", "#ffc107");
+      console.log("DISABLED: Saving mark and comment for", summaryId, ". Comment:", commentText, "Mark:", mark);
+      // try {
+      //   await firestore.collection('summaries').doc(summaryId).update({
+      //     teacher_comment: commentText
+      //   });
+      //   if (mark !== null) {
+      //     const markData = {
+      //       summary_id: summaryId,
+      //       student_email: studentEmail,
+      //       student_name: studentName,
+      //       lesson_title: lessonTitle,
+      //       mark: mark,
+      //       timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      //     };
+      //     if (existingMarkDocId && existingMarkDocId !== 'null') {
+      //       await firestore.collection('student_marks').doc(existingMarkDocId).update(markData);
+      //     } else {
+      //       const newMarkRef = firestore.collection('student_marks').doc();
+      //       await newMarkRef.set(markData);
+      //     }
+      //   }
+      //   const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
+      //   let studentUid = null;
+      //   if (!userDoc.empty) {
+      //       studentUid = userDoc.docs[0].id;
+      //   }
+      //   if (studentUid) {
+      //       let notificationMessage = '';
+      //       if (commentText && mark !== null) {
+      //            notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" (علامة ${mark}) وأضاف ملاحظة.`;
+      //       } else if (commentText) {
+      //           notificationMessage = `قام المعلم بإضافة ملاحظة على تلخيصك لدرس "${lessonTitle}".`;
+      //       } else if (mark !== null) {
+      //           notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" وحصلت على علامة ${mark}.`;
+      //       }
+      //       if (notificationMessage) {
+      //           await sendNotificationToUser(studentUid, notificationMessage);
+      //       }
+      //   }
+      //   showToast("تم حفظ العلامة والملاحظة بنجاح!", "#1dad87");
+      // } catch (error) {
+      //   showToast("خطأ في حفظ العلامة أو الملاحظة: " + error.message, "#e63946");
+      //   console.error("Error saving mark and comment:", error);
+      // } finally {
+      //   showLoading(false);
+      // }
+      // --- END DISABLED DB WRITE ---
     }
 
-    // Function to send a notification to a specific user (student or teacher)
-    async function sendNotificationToUser(userId, message) {
-        try {
-            await firestore.collection('notifications').add({
-                userId: userId,
-                message: message,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                isRead: false
-            });
-            console.log("Notification sent to user:", userId);
-        } catch (error) {
-            console.error("Error sending notification:", error);
-            showToast("خطأ في إرسال الإشعار: " + error.message, "#e63946");
-        }
-    }
 
     // Exam Results Management (Real-time listener)
     function loadAllExamResultsRealtime() {
@@ -1752,25 +1749,24 @@ tbody tr:last-child td {
     async function markExamReviewed(examResultId, reviewedStatus) {
       showLoading(true);
       try {
-        await firestore.collection('exam_results').doc(examResultId).update({
-          teacher_reviewed: reviewedStatus
-        });
-
-        const examResultDoc = await firestore.collection('exam_results').doc(examResultId).get();
-        const studentEmail = examResultDoc.data().student_email;
-        const level = examResultDoc.data().level;
-        const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
-        let studentUid = null;
-        if (!userDoc.empty) {
-            studentUid = userDoc.docs[0].id;
-        }
-
-        if (studentUid) {
-            const message = reviewedStatus ? `قام المعلم بمراجعة اختبارك للمستوى ${level}.` : `تم تغيير حالة مراجعة اختبارك للمستوى ${level}.`;
-            await sendNotificationToUser(studentUid, message);
-        }
-
-        showToast("تم تحديث حالة المراجعة بنجاح!", "#1dad87");
+        // --- DISABLED DB WRITE ---
+        showToast("تعديل مراجعة الاختبار معطل في هذا الإصدار.", "#ffc107");
+        console.log("DISABLED: Marking exam reviewed for", examResultId, "to", reviewedStatus);
+        // await firestore.collection('exam_results').doc(examResultId).update({
+        //   teacher_reviewed: reviewedStatus
+        // });
+        // const examResultDoc = await firestore.collection('exam_results').doc(examResultId).get();
+        // const studentEmail = examResultDoc.data().student_email;
+        // const level = examResultDoc.data().level;
+        // const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
+        // let studentUid = null;
+        // if (!userDoc.empty) { studentUid = userDoc.docs[0].id; }
+        // if (studentUid) {
+        //     const message = reviewedStatus ? `قام المعلم بمراجعة اختبارك للمستوى ${level}.` : `تم تغيير حالة مراجعة اختبارك للمستوى ${level}.`;
+        //     await sendNotificationToUser(studentUid, message);
+        // }
+        // showToast("تم تحديث حالة المراجعة بنجاح!", "#1dad87");
+        // --- END DISABLED DB WRITE ---
       } catch (error) {
         showToast("خطأ في تحديث حالة المراجعة: " + error.message, "#e63946");
         console.error("Error marking exam reviewed:", error);
@@ -1782,26 +1778,25 @@ tbody tr:last-child td {
     async function approveExamResult(examResultId, approvedStatus) {
       showLoading(true);
       try {
-        await firestore.collection('exam_results').doc(examResultId).update({
-          approved: approvedStatus,
-          teacher_reviewed: true // Mark as reviewed if approved/rejected
-        });
-
-        const examResultDoc = await firestore.collection('exam_results').doc(examResultId).get();
-        const studentEmail = examResultDoc.data().student_email;
-        const level = examResultDoc.data().level;
-        const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
-        let studentUid = null;
-        if (!userDoc.empty) {
-            studentUid = userDoc.docs[0].id;
-        }
-
-        if (studentUid) {
-            const message = approvedStatus ? `تم اعتماد نتيجة اختبارك للمستوى ${level}.` : `تم رفض نتيجة اختبارك للمستوى ${level}.`;
-            await sendNotificationToUser(studentUid, message);
-        }
-
-        showToast("تم تحديث حالة الاعتماد بنجاح!", "#1dad87");
+        // --- DISABLED DB WRITE ---
+        showToast("اعتماد/رفض نتيجة الاختبار معطل في هذا الإصدار.", "#ffc107");
+        console.log("DISABLED: Approving exam result for", examResultId, "to", approvedStatus);
+        // await firestore.collection('exam_results').doc(examResultId).update({
+        //   approved: approvedStatus,
+        //   teacher_reviewed: true // Mark as reviewed if approved/rejected
+        // });
+        // const examResultDoc = await firestore.collection('exam_results').doc(examResultId).get();
+        // const studentEmail = examResultDoc.data().student_email;
+        // const level = examResultDoc.data().level;
+        // const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
+        // let studentUid = null;
+        // if (!userDoc.empty) { studentUid = userDoc.docs[0].id; }
+        // if (studentUid) {
+        //     const message = approvedStatus ? `تم اعتماد نتيجة اختبارك للمستوى ${level}.` : `تم رفض نتيجة اختبارك للمستوى ${level}.`;
+        //     await sendNotificationToUser(studentUid, message);
+        // }
+        // showToast("تم تحديث حالة الاعتماد بنجاح!", "#1dad87");
+        // --- END DISABLED DB WRITE ---
       } catch (error) {
         showToast("خطأ في تحديث حالة الاعتماد: " + error.message, "#e63946");
         console.error("Error approving exam result:", error);
