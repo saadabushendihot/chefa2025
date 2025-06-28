@@ -342,7 +342,7 @@ tbody tr:last-child td {
     .save-btn:hover {background:#156c59;}
     .cancel-btn {background:#b83b3b; color:#fff;}
     .cancel-btn:hover {background:#7a2626;}
-    #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
+    #msg, #addStudentMsg, #addLessonMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
     @media (max-width: 900px){
       .container {padding:8px;}
       h2 {font-size:1rem;}
@@ -911,7 +911,7 @@ tbody tr:last-child td {
     window.lessonsMap = {}; // متغير عام لتخزين معلومات الدروس
     window.allSummaries = []; // متغير عام لتخزين جميع التلاخيص للفلترة
     let currentStudentEmailForSummaries = '';
-    let teacherSummariesListenerUnsubscribe = null; // [NEW] To store unsubscribe function for teacher's real-time listener
+    let teacherSummariesListenerUnsubscribe = null; // To store unsubscribe function for teacher's real-time listener
 
 
     // جلب العلامة من student_marks حسب summary_id
@@ -1444,20 +1444,16 @@ tbody tr:last-child td {
               if (changes.some(change => change.type === "modified" && change.doc.id === doc.id)) {
                   let oldDoc = changes.find(change => change.doc.id === doc.id)?.oldDoc?.data();
                   if (oldDoc) {
-                      // If student_reply_comment was added/changed/cleared
-                      if (s.student_reply_comment !== oldDoc.student_reply_comment) {
+                      // If student_reply_comment was added/changed OR status changed to submitted
+                      if (s.student_reply_comment !== oldDoc.student_reply_comment || (s.status === 'submitted' && oldDoc.status === 'draft')) {
                           shouldShowToast = true;
-                      }
-                      // If status changed to submitted
-                      if (s.status === 'submitted' && oldDoc.status === 'draft') {
-                        shouldShowToast = true;
                       }
                   }
               }
             });
 
             // Fetch marks for all summaries (or just the changed ones)
-            let markPromises = window.allSummaries.map(s => // Use window.allSummaries directly
+            let markPromises = window.allSummaries.map(s =>
                 firestore.collection('student_marks')
                 .where('summary_id', '==', s.docId)
                 .where('student_email', '==', currentStudentEmailForSummaries)
@@ -1574,7 +1570,7 @@ function showSummaryDetails(docId) {
     document.getElementById('summaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
     document.getElementById('summaryDetailsContent').innerText = summary.summary_text;
     document.getElementById('summaryDetailsComment').value = summary.teacher_comment || '';
-    document.getElementById('summaryDetailsMark').value = summary.mark_from_student_marks || ''; // Use mark_from_student_marks
+    document.getElementById('summaryDetailsMark').value = summary.mark_from_student_marks || '';
 
     // Populate student reply section
     const studentReplySection = document.getElementById('studentReplySection');
