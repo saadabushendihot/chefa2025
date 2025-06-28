@@ -128,41 +128,41 @@
 
     /* تحسينات تصميم مربع التلخيص */
     .lesson-summary-block {
-      background: #ffffff; /* خلفية بيضاء لتباين أفضل */
-      border-radius: 12px; /* حواف دائرية أكثر */
-      margin: 20px 0 30px 0; /* هوامش لتباعد أفضل */
-      padding: 24px; /* مسافات داخلية أكبر للمحتوى */
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* ظل أكثر بروزًا ونعومة */
-      border: 1px solid #e0e4e8; /* حدود خفيفة */
-      transition: all 0.3s ease; /* انتقال سلس لتأثير التمرير */
+      background: #ffffff;
+      border-radius: 12px;
+      margin: 20px 0 30px 0;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e0e4e8;
+      transition: all 0.3s ease;
     }
     .lesson-summary-block:hover {
-        transform: translateY(-5px); /* رفع طفيف عند التمرير */
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12); /* ظل معزز عند التمرير */
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
     }
 
     /* تحسين عنوان الدرس داخل مربع التلخيص */
     .lesson-summary-block h4 {
-        margin-bottom: 15px; /* مسافة أكبر أسفل العنوان */
-        padding-bottom: 10px; /* تباعد أسفل العنوان */
-        border-bottom: 1px solid #f0f2f5; /* خط فاصل رفيع أسفل العنوان */
-        color: #294169; /* لون أزرق داكن للعنوان */
-        font-size: 1.15rem; /* حجم خط أكبر قليلاً */
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f2f5;
+        color: #294169;
+        font-size: 1.15rem;
     }
 
     /* تعديلات الوضع الليلي لمربع التلخيص المحسن */
     .dark-mode .lesson-summary-block {
-      background: #323946; /* خلفية داكنة */
-      border: 1px solid #3d4a5c; /* حدود داكنة */
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* ظل داكن */
+      background: #323946;
+      border: 1px solid #3d4a5c;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
     .dark-mode .lesson-summary-block:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
     .dark-mode .lesson-summary-block h4 {
-        color: #e0e0e0; /* لون أفتح للعنوان في الوضع الليلي */
-        border-bottom: 1px solid #4a576b; /* خط فاصل في الوضع الليلي */
+        color: #e0e0e0;
+        border-bottom: 1px solid #4a576b;
     }
 
     textarea.summary-text {
@@ -176,6 +176,98 @@
     #supportBtn {background:#007b8f;margin-right:10px;}
     /* زر الوضع الليلي */
     #nightModeBtn {background:#323946;margin-right:10px;}
+
+    /* NEW: Inline Summary Details Box for Student Page */
+    .student-summary-details-box {
+      background-color: #ffffff;
+      border-radius: 12px;
+      margin: 20px 0 30px 0;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      border: 1px solid #e0e4e8;
+      display: none; /* Hidden by default */
+    }
+    .student-summary-details-box h4 {
+      color: #294169;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 1.15rem;
+    }
+    .student-summary-details-box .summary-content-display {
+      white-space: pre-wrap;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #333;
+      max-height: 40vh;
+      overflow-y: auto;
+      direction: rtl;
+      word-break: break-word;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #eef2fa;
+      background: #fdfdfd;
+      border-radius: 8px;
+    }
+    .student-summary-details-box .info-row {
+      margin-bottom: 10px;
+      font-size: 1rem;
+      color: #23272f;
+    }
+    .student-summary-details-box .info-row strong {
+      color: #294169;
+    }
+    .student-summary-details-box .close-box-btn {
+        background: #b83b3b;
+        margin-top: 20px;
+        padding: 8px 30px;
+        display: block; /* Make it a block button */
+        margin-left: auto;
+        margin-right: auto;
+        width: fit-content; /* Fit content to center */
+    }
+    .student-summary-details-box .close-box-btn:hover {
+        background: #7a2626;
+    }
+    /* Dark Mode for student summary details box */
+    .dark-mode .student-summary-details-box {
+      background: #323946;
+      border: 1px solid #3d4a5c;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    .dark-mode .student-summary-details-box h4 {
+        color: #e0e0e0;
+        border-bottom: 1px solid #4a576b;
+    }
+    .dark-mode .student-summary-details-box .summary-content-display {
+        background: #2b3547;
+        border-color: #4a576b;
+        color: #e0e0e0;
+    }
+    .dark-mode .student-summary-details-box .info-row {
+        color: #e0e0e0;
+    }
+    .dark-mode .student-summary-details-box .info-row strong {
+        color: #8cafff;
+    }
+
+    /* Style for clickable lesson title in summary block */
+    .lesson-title-clickable {
+        cursor: pointer;
+        color: #4361ee;
+        text-decoration: underline;
+        transition: color 0.2s;
+    }
+    .lesson-title-clickable:hover {
+        color: #2a4acb;
+    }
+    .dark-mode .lesson-title-clickable {
+        color: #8cafff;
+    }
+    .dark-mode .lesson-title-clickable:hover {
+        color: #6a9aff;
+    }
   </style>
 </head>
 <body>
@@ -210,6 +302,24 @@
       <button class="btn" id="downloadReportBtn" onclick="downloadReport()">تحميل تقرير الدرجات PDF</button>
     </div>
     <div id="lessonsSummariesArea"></div>
+
+    <div id="studentSummaryDetailsBox" class="student-summary-details-box">
+        <h4 id="studentSummaryDetailsTitle">تفاصيل تلخيص الدرس: </h4>
+        <div class="info-row">
+            <strong>حالة التلخيص:</strong> <span id="studentSummaryDetailsStatus"></span>
+        </div>
+        <div class="info-row">
+            <strong>علامتك:</strong> <span id="studentSummaryDetailsMark"></span>
+        </div>
+        <div class="info-row">
+            <strong>تعليق المعلم:</strong> <span id="studentSummaryDetailsComment"></span>
+        </div>
+        <div class="info-row">
+            <strong>نص التلخيص:</strong>
+            <div id="studentSummaryDetailsContent" class="summary-content-display"></div>
+        </div>
+        <button class="btn close-box-btn" onclick="hideStudentSummaryDetails()">إغلاق</button>
+    </div>
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -229,7 +339,7 @@
   <script src="firebase-config.js"></script>
   <script>
     // Firebase Config: تم حذف الكائن من هنا وسيتم جلبه من firebase-config.js
-    
+
     // الوضع الليلي
     function toggleNightMode() {
       document.body.classList.toggle('dark-mode');
@@ -313,6 +423,7 @@
     let randomizedExamQuestions = [];
     let examQuestionsLimit = null;
     let currentExamLevel = null;
+    let studentSummaries = {}; // [NEW] Map to store summaries by lesson_id for quick lookup
 
     // Firebase init
     if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } // firebaseConfig يتم جلبه الآن من firebase-config.js
@@ -396,6 +507,7 @@
           document.getElementById('admissionStatusBox').style.display = "none";
           document.getElementById('lessonsSummariesArea').innerHTML = "";
           document.getElementById('levelsExamsTableArea').innerHTML = "";
+          hideStudentSummaryDetails(); // [NEW] Hide details box on student data load
 
           // حالة القبول
           const admissionBox = document.getElementById('admissionStatusBox');
@@ -884,6 +996,7 @@
 
     // تحميل الدروس والتلاخيص مع عرض العلامة وتاريخ التسليم (مُعدلة)
     function loadActiveLessonsAndSummaries(activeLevels) {
+      hideStudentSummaryDetails(); // [NEW] Ensure details box is hidden before loading new summaries
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
         return;
@@ -899,6 +1012,9 @@
           }
         });
 
+        // Sort lessons by ID numerically
+        lessons.sort((a, b) => a.id - b.id); // [NEW] Sort lessons
+
         if (lessons.length === 0) {
           document.getElementById('lessonsSummariesArea').innerHTML = "";
           showLoading(false);
@@ -911,42 +1027,40 @@
           .where('lesson_id', 'in', lessonIds)
           .get()
           .then(function(summarySnapshot) {
-            let summariesMap = {};
+            studentSummaries = {}; // [NEW] Clear previous and populate studentSummaries map
             let markPromises = [];
 
             summarySnapshot.forEach(function(doc) {
               let s = { ...doc.data(), docId: doc.id }; // Include docId for fetching mark
-              summariesMap[s.lesson_id] = s;
+              studentSummaries[s.docId] = s; // Store summary by its docId for easy lookup
+              studentSummaries[s.lesson_id] = s; // [NEW] Store by lesson_id for convenience
 
               // If summary is submitted, fetch its mark from student_marks
-              // If not submitted (draft), mark_from_student_marks remains null or undefined,
-              // and the render function will display '-'
               if (s.status === 'submitted') {
                 markPromises.push(
                   firestore.collection('student_marks')
-                  .where('summary_id', '==', s.docId) // Use summary's docId to link
-                  .where('student_email', '==', currentStudentEmail) // Important: filter by current student
+                  .where('summary_id', '==', s.docId)
+                  .where('student_email', '==', currentStudentEmail)
                   .limit(1)
                   .get()
                   .then(markSnap => {
                     if (!markSnap.empty) {
                       s.mark_from_student_marks = markSnap.docs[0].data().mark;
                     } else {
-                      s.mark_from_student_marks = null; // No mark found for submitted summary
+                      s.mark_from_student_marks = null;
                     }
                   }).catch(err => {
                     console.error("Error fetching mark for summary:", s.docId, err);
-                    s.mark_from_student_marks = null; // Handle error gracefully
+                    s.mark_from_student_marks = null;
                   })
                 );
               } else {
-                s.mark_from_student_marks = null; // Mark should be null for drafts
+                s.mark_from_student_marks = null;
               }
             });
 
-            // Wait for all mark fetching promises to resolve before rendering
             Promise.all(markPromises).then(() => {
-              renderSummariesLessonsUI(lessons, summariesMap);
+              renderSummariesLessonsUI(lessons, studentSummaries); // Pass studentSummaries map
               showLoading(false);
             }).catch(err => {
               showToast("خطأ في تحميل العلامات", "#e63946");
@@ -970,33 +1084,55 @@
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
-        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft" };
+        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft" }; // Lookup by lesson.id
         let submitted = sum.status === 'submitted';
 
-        // تحديد العلامة للعرض بناءً على حالة التلخيص والعلامة المجلوبة
         let markToDisplay = '—';
-        let markBadgeClass = 'no-mark'; // الافتراضي للعلامة الفارغة أو للمسودة
+        let markBadgeClass = 'no-mark';
 
-        if (sum.status === 'submitted') {
-            // إذا كان التلخيص "تم التسليم"، حاول عرض العلامة المجلوبة
+        if (submitted) {
             if (typeof sum.mark_from_student_marks !== 'undefined' && sum.mark_from_student_marks !== null) {
                 markToDisplay = 'العلامة: ' + sum.mark_from_student_marks;
-                // تحديد الفئة بناءً على قيمة العلامة
                 if (sum.mark_from_student_marks > 0) {
-                    markBadgeClass = 'positive-mark'; // أخضر/نجاح
+                    markBadgeClass = 'positive-mark';
                 } else {
-                    markBadgeClass = 'zero-mark'; // أحمر/تحذير
+                    markBadgeClass = 'zero-mark';
                 }
             }
         }
 
         let time = sum.timestamp ? `<span style="color:#888;font-size:0.97em;">(${(new Date(sum.timestamp)).toLocaleString('ar-EG')})</span>` : "";
 
+        // Determine content for summary text area based on submission status
+        let summaryContentHtml = '';
+        if (submitted) {
+            // For submitted summaries, make title clickable to show details in inline box
+            summaryContentHtml = `
+                <div class="form-group">
+                    <button class="btn" onclick="showStudentSummaryDetails('${sum.docId}')">عرض التفاصيل</button>
+                </div>
+            `;
+        } else {
+            // For drafts, keep the textarea for editing
+            summaryContentHtml = `
+                <div style="margin:12px 0 5px 0;">
+                    <textarea class="summary-text" id="sumtext_${lesson.id}" placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
+                </div>
+                <div class="summary-actions">
+                    <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
+                    <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
+                    <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
+                </div>
+                <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
+            `;
+        }
+
+
         html += `
         <div class="lesson-summary-block">
           <div class="lesson-student-name">اسم الطالب: ${currentStudentName || ""}</div>
           <h4>
-            (${lesson.id}) ${lesson.title}
+            (${lesson.id}) <span class="${submitted ? 'lesson-title-clickable' : ''}" ${submitted ? `onclick="showStudentSummaryDetails('${sum.docId}')"` : ''}>${lesson.title}</span>
             <span class="lesson-mark-badge ${markBadgeClass}">
               ${markToDisplay}
             </span>
@@ -1011,20 +1147,39 @@
             </audio>
             ` : ''}
           </div>
-          <div style="margin:12px 0 5px 0;">
-            <textarea class="summary-text" id="sumtext_${lesson.id}" ${submitted ? 'readonly' : ''} placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
-          </div>
-          <div class="summary-actions">
-            <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
-            <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
-            <button class="btn submit" onclick="submitSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>تسليم نهائي</button>
-          </div>
-          <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
+          ${summaryContentHtml}
         </div>
         `;
       });
       document.getElementById('lessonsSummariesArea').innerHTML = html;
     }
+
+    // [NEW] Function to show and populate the student's inline summary details box
+    function showStudentSummaryDetails(docId) {
+        const summary = studentSummaries[docId]; // Get summary by its docId
+        if (!summary) {
+            showToast("تعذر العثور على التلخيص.", "#e63946");
+            return;
+        }
+
+        const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
+        const detailsBox = document.getElementById('studentSummaryDetailsBox');
+
+        document.getElementById('studentSummaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
+        document.getElementById('studentSummaryDetailsStatus').innerText = summary.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة';
+        document.getElementById('studentSummaryDetailsMark').innerText = (typeof summary.mark_from_student_marks !== 'undefined' && summary.mark_from_student_marks !== null) ? summary.mark_from_student_marks : '— لا توجد علامة بعد —';
+        document.getElementById('studentSummaryDetailsComment').innerText = summary.teacher_comment || '— لا يوجد تعليق من المعلم —';
+        document.getElementById('studentSummaryDetailsContent').innerText = summary.summary_text;
+
+        detailsBox.style.display = 'block';
+        detailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // [NEW] Function to hide the student's inline summary details box
+    function hideStudentSummaryDetails() {
+        document.getElementById('studentSummaryDetailsBox').style.display = 'none';
+    }
+
 
     // حفظ المسودة
     function saveSummary(lessonId) {
