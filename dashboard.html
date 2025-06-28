@@ -18,7 +18,6 @@
         min-height: 100vh;
         padding-top: 70px; /* لتجنب اختباء المحتوى خلف شريط التنقل الثابت */
     }
-    /* تم استبدال header بتصميم الـ main-nav */
     .main-nav {
       background: #3b5cb8;
       color: #fff;
@@ -28,11 +27,11 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      position: fixed; /* تثبيت شريط التنقل */
+      position: fixed;
       top: 0;
       width: 100%;
-      z-index: 100; /* لضمان ظهوره فوق العناصر الأخرى */
-      box-sizing: border-box; /* لضمان احتساب البادينج ضمن العرض */
+      z-index: 100;
+      box-sizing: border-box;
     }
 
     .main-nav .nav-brand {
@@ -41,17 +40,17 @@
     }
 
     .main-nav .center-logo {
-        height: 40px; /* حجم الشعار */
+        height: 40px;
         vertical-align: middle;
-        margin-right: 15px; /* مسافة بين الشعار والروابط/العنوان */
+        margin-right: 15px;
     }
 
     .main-nav .nav-links {
         display: flex;
         align-items: center;
-        gap: 25px; /* تباعد بين الروابط */
-        flex-grow: 1; /* لجعل الروابط تتوزع في المنتصف */
-        justify-content: center; /* لمحاذاة الروابط في المنتصف */
+        gap: 25px;
+        flex-grow: 1;
+        justify-content: center;
     }
 
     .main-nav .nav-link {
@@ -61,12 +60,12 @@
         font-size: 1.05rem;
         transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
         border-radius: 5px;
-        white-space: nowrap; /* منع التفاف النص */
+        white-space: nowrap;
     }
 
     .main-nav .nav-link:hover,
     .main-nav .nav-link.active {
-        background-color: #26407a; /* لون الخلفية عند التمرير أو للرابط النشط */
+        background-color: #26407a;
         color: #fff;
     }
 
@@ -164,7 +163,7 @@
     .add-section input:focus, .add-section select:focus, .add-section textarea:focus { border-color: #3b5cb8; outline: none;}
     .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
     /* تحسينات عامة على الجداول */
-.table-wrapper { /* New wrapper for horizontal scroll */
+.table-wrapper {
     overflow-x: auto;
     width: 100%;
     margin-top: 20px;
@@ -176,39 +175,38 @@
 
 table {
   width: 100%;
-  border-collapse: collapse; /* لدمج حدود الخلايا */
-  min-width: 700px; /* Ensure table is wide enough for small screens to scroll */
-  /* Remove direct background, border-radius, overflow, box-shadow here */
+  border-collapse: collapse;
+  min-width: 700px;
 }
 
 /* ترويسة الجدول */
 th {
-  background: #4361ee; /* لون أزرق جذاب */
-  color: #ffffff; /* نص أبيض */
-  padding: 15px 10px; /* تباعد أكبر للخلايا */
+  background: #4361ee;
+  color: #ffffff;
+  padding: 15px 10px;
   text-align: center;
-  font-size: 1.05rem; /* حجم خط أكبر قليلاً */
-  font-weight: 700; /* خط سميك */
-  letter-spacing: 0.5px; /* تباعد بين الحروف */
-  text-transform: uppercase; /* تحويل النص إلى حروف كبيرة (اختياري، قد لا يناسب العربية) */
-  white-space: nowrap; /* Prevent header text from wrapping */
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* خلايا البيانات */
 td {
-  padding: 12px 8px; /* تباعد أكبر للخلايا */
-  border-bottom: 1px solid #eef2fa; /* خط فاصل أفتح وأكثر نعومة */
+  padding: 12px 8px;
+  border-bottom: 1px solid #eef2fa;
   text-align: center;
   font-size: 0.98rem;
-  color: #333d4b; /* لون نص داكن قليلاً */
-  vertical-align: middle; /* محاذاة عمودية للمنتصف */
-  white-space: nowrap; /* Prevent text from wrapping by default */
+  color: #333d4b;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
 /* تأثير عند تمرير المؤشر على الصفوف */
 tbody tr:hover {
-  background-color: #f7f9fc; /* تغيير لون الخلفية عند التمرير */
-  cursor: pointer; /* تغيير شكل المؤشر */
+  background-color: #f7f9fc;
+  cursor: pointer;
 }
 
 /* إزالة الحد السفلي لآخر صف */
@@ -216,19 +214,18 @@ tbody tr:last-child td {
   border-bottom: none;
 }
 
-/* تحسينات خاصة بخلية نص التلخيص */
-.summary-text-cell { /* Changed from td[style*="max-width:180px"] */
-  text-align: right; /* محاذاة النص إلى اليمين */
-  line-height: 1.6; /* تباعد بين السطور لتحسين القراءة */
-  white-space: normal; /* Allow text to wrap within the cell */
-  max-width: 250px; /* Set a max-width for readability */
-  word-break: break-word; /* Break long words */
+/* تحسينات خاصة بخلية نص التلخيص (لم تعد تستخدم بهذه الطريقة) */
+.summary-text-cell {
+  text-align: right;
+  line-height: 1.6;
+  white-space: normal;
+  max-width: 250px;
+  word-break: break-word;
 }
 
-
-/* تحسين أزرار الإجراءات داخل الجدول */
+/* أزرار الإجراءات داخل الجدول (التي قد تنتقل للصندوق المخفي) */
 .btn[onclick^="saveSummaryMark"], .btn[onclick^="saveSummaryComment"] {
-  background-color: #1dad87; /* لون أخضر جذاب للحفظ */
+  background-color: #1dad87;
   color: #fff;
   border: none;
   padding: 6px 14px;
@@ -238,20 +235,20 @@ tbody tr:last-child td {
   transition: background-color 0.2s ease-in-out;
 }
 .btn[onclick^="saveSummaryMark"]:hover, .btn[onclick^="saveSummaryComment"]:hover {
-  background-color: #159b79; /* لون أخضر أغمق عند التمرير */
+  background-color: #159b79;
 }
 
-/* تحسين حقل إدخال العلامة والتعليق */
-input[id^="markinp_"], textarea[id^="commentinp_"] {
+/* حقل إدخال العلامة والتعليق (داخل الصندوق المخفي الآن) */
+.summary-detail-input {
   padding: 5px 8px;
   border: 1px solid #c5c9d2;
   border-radius: 5px;
   font-size: 0.95rem;
   text-align: right;
-  width: 90%; /* أو حسب الحاجة */
-  margin-bottom: 5px; /* مسافة بين الحقل والزر */
+  width: 90%;
+  margin-bottom: 5px;
 }
-input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
+.summary-detail-input.mark { width: 70px; text-align: center; margin-left: 5px;}
 
 /* تحسينات لحالة التلخيص */
 .summary-status {
@@ -273,9 +270,8 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
   border: 1px solid #ffe0b2;
 }
 
-/* New style for reset summary button */
 .btn.reset-summary {
-    background: #dc3545; /* Red color for reset/warning */
+    background: #dc3545;
     padding: 5px 10px;
     font-size: 0.85rem;
     margin-right: 5px;
@@ -284,11 +280,10 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
 .btn.reset-summary:hover {
     background: #c82333;
 }
-/* Optional: style for a text icon if not using Font Awesome */
 .reset-icon {
     cursor: pointer;
     font-size: 1.2rem;
-    color: #dc3545; /* Red color */
+    color: #dc3545;
     vertical-align: middle;
     margin-right: 5px;
     transition: transform 0.2s ease-in-out;
@@ -297,17 +292,16 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
     transform: rotate(15deg);
 }
 
-
 /* تنسيق خاص بالعنوان "تلخيصات الطالب" */
 #summariesTableWrapper h4 {
     color: #294169;
-    margin-top: 30px; /* مسافة علوية أكبر */
+    margin-top: 30px;
     margin-bottom: 15px;
-    font-size: 1.25rem; /* حجم خط أكبر */
+    font-size: 1.25rem;
     font-weight: 700;
     text-align: right;
-    border-bottom: 2px solid #eef2fa; /* خط سفلي خفيف */
-    padding-bottom: 8px; /* تباعد تحت الخط */
+    border-bottom: 2px solid #eef2fa;
+    padding-bottom: 8px;
 }
     .student-selection-area { margin-bottom: 20px;}
     #selectedStudentDetails {
@@ -351,10 +345,8 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
     #msg, #addStudentMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
     @media (max-width: 900px){
       .container {padding:8px;}
-      /* th, td {font-size: 0.91rem;} */ /* Let table's own media query handle this */
       h2 {font-size:1rem;}
       .students-area, .lessons-area, .add-section {padding:10px 4px;}
-      /* header {font-size:1rem; padding:10px;} */ /* Handled by main-nav media queries */
       .add-section {max-width: 99vw;}
       .levels-grid { grid-template-columns: 1fr;}
     }
@@ -364,182 +356,124 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
     .toast.show { visibility: visible; opacity: 1; }
     .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
 
-    /* Summary Viewer Modal Styles */
-    #summaryViewerModal {
-      display: none; /* Hidden by default */
-      position: fixed; /* Stay in place */
-      z-index: 1000; /* Sit on top */
-      left: 0;
-      top: 0;
-      width: 100%; /* Full width */
-      height: 100%; /* Full height */
-      overflow: auto; /* Enable scroll if needed */
-      background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
-      padding-top: 60px; /* Location of the box */
-    }
-
-    #summaryViewerModal > div {
+    /* New style for inline summary details box */
+    .summary-details-box {
       background-color: #fefefe;
-      margin: 5% auto; /* 5% from the top and centered */
-      padding: 30px;
-      border: 1px solid #888;
-      width: 80%; /* Could be more or less, depending on screen size */
-      max-width: 800px; /* Max width for larger screens */
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #e0e4e8;
       border-radius: 12px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-      position: relative; /* Needed for close button positioning */
-      text-align: right; /* RTL text alignment */
-      box-sizing: border-box; /* هام: لضمان أن التبطين لا يزيد العرض الكلي */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      position: relative;
+      text-align: right;
+      box-sizing: border-box;
+      display: none; /* Hidden by default */
+      animation: fadein 0.3s; /* Reuse fadein animation */
     }
-
-    #summaryViewerModal .close-btn {
-      color: #aaa;
-      position: absolute; /* Absolute positioning within the modal content */
-      top: 15px; /* تعديل الموضع العلوي */
-      right: 15px; /* وضع الزر في الزاوية العلوية اليمنى (للمحتوى الذي يظهر من اليمين لليسار) */
-      font-size: 32px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    #summaryViewerModal .close-btn:hover,
-    #summaryViewerModal .close-btn:focus {
-      color: #000;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    #summaryViewerModal h3 {
+    .summary-details-box h4 {
       color: #2260af;
       margin-top:0;
-      margin-bottom: 20px;
-      font-size: 1.4rem;
+      margin-bottom: 15px;
+      font-size: 1.25rem;
       border-bottom: 1px solid #eee;
       padding-bottom: 10px;
     }
-
-    #summaryViewerModal #summaryViewerContent {
-      white-space: pre-wrap; /* Preserve whitespace and line breaks */
+    .summary-details-box .summary-content-display {
+      white-space: pre-wrap;
       font-family: 'Tajawal', sans-serif;
-      font-size: 1.1rem;
+      font-size: 1.05rem;
       line-height: 1.8;
       color: #333;
-      max-height: 60vh; /* Max height with scroll */
+      max-height: 40vh;
       overflow-y: auto;
-      direction: rtl; /* Ensure text direction for content */
-      word-break: break-word; /* لمنع اقتصاص الكلمات الطويلة */
+      direction: rtl;
+      word-break: break-word;
+      padding: 10px 0;
+      margin-bottom: 15px;
+      border: 1px solid #eef2fa;
+      background: #fdfdfd;
+      padding: 10px;
+      border-radius: 8px;
     }
-
-    #summaryViewerModal .modal-footer-btn {
-        margin-top: 25px;
-        text-align: center;
+    .summary-details-box .form-group {
+        margin-bottom: 15px;
     }
-    #summaryViewerModal .modal-footer-btn .btn {
+    .summary-details-box .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #2e4061;
+    }
+    .summary-details-box .form-group textarea {
+        width: 100%;
+        height: 80px;
+        resize: vertical;
+        padding: 8px;
+        border: 1px solid #c5c9d2;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+    .summary-details-box .form-group .btn {
+        margin-top: 10px;
+        padding: 6px 18px;
+        font-size: 0.95rem;
+    }
+    .summary-details-box .close-box-btn {
+        background: #b83b3b;
+        margin-top: 20px;
         padding: 8px 30px;
     }
-
-    /* Dark mode for Summary Viewer Modal */
-    .dark-mode #summaryViewerModal > div {
+    .summary-details-box .close-box-btn:hover {
+        background: #7a2626;
+    }
+    /* Dark Mode for summary details box */
+    .dark-mode .summary-details-box {
       background-color: #323946;
       border: 1px solid #4a576b;
-      color: #e0e0e0; /* Lighter text for dark mode */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-    .dark-mode #summaryViewerModal .close-btn {
-      color: #bbb;
-    }
-    .dark-mode #summaryViewerModal .close-btn:hover,
-    .dark-mode #summaryViewerModal .close-btn:focus {
-      color: #fff;
-    }
-    .dark-mode #summaryViewerModal h3 {
-      color: #8cafff; /* Lighter blue for heading */
+    .dark-mode .summary-details-box h4 {
+      color: #8cafff;
       border-bottom: 1px solid #4a576b;
     }
-    .dark-mode #summaryViewerModal #summaryViewerContent {
-      color: #e0e0e0; /* Lighter text */
+    .dark-mode .summary-details-box .summary-content-display {
+      background: #2b3547;
+      border-color: #4a576b;
+      color: #e0e0e0;
     }
-
-    /* Media Queries for Small Screens/Mobile Devices - Summary Modal Responsiveness */
-    @media (max-width: 768px) {
-      #summaryViewerModal > div {
-        width: 95%; /* Make it wider on small screens */
-        margin: 10% auto; /* More margin from top on smaller screens */
-        padding: 15px; /* Reduce padding for less wasted space */
-      }
-
-      #summaryViewerModal .close-btn {
-        font-size: 28px; /* Slightly smaller close button */
-        top: 10px;
-        right: 10px; /* Closer to edge on smaller screens */
-      }
-
-      #summaryViewerModal h3 {
-        font-size: 1.2rem; /* Smaller heading */
-        margin-bottom: 15px;
-        padding-bottom: 8px;
-      }
-
-      #summaryViewerModal #summaryViewerContent {
-        font-size: 1rem; /* Smaller text size for content */
-        line-height: 1.6;
-        max-height: 70vh; /* Allow more vertical space for content */
-      }
-
-      #summaryViewerModal .modal-footer-btn .btn {
-        padding: 6px 20px; /* Smaller button padding */
-        font-size: 0.95rem;
-      }
+    .dark-mode .summary-details-box .form-group label {
+        color: #e0e0e0;
     }
-
-    @media (max-width: 480px) { /* Even smaller screens (Full-screen modal) */
-        #summaryViewerModal {
-            padding-top: 0; /* إزالة المسافة العلوية لملء الشاشة */
-        }
-        #summaryViewerModal > div {
-            width: 100%; /* عرض كامل الشاشة */
-            height: 100%; /* ارتفاع كامل الشاشة */
-            margin: 0; /* إزالة الهوامش */
-            border-radius: 0; /* إزالة الحواف الدائرية */
-            padding: 10px; /* تبطين أقل */
-            box-shadow: none; /* إزالة الظلال */
-            border: none; /* إزالة الحدود */
-        }
-        #summaryViewerModal .close-btn {
-            font-size: 24px;
-            top: 10px; /* ضبط الموضع العلوي */
-            right: 10px; /* ضبط الموضع الأيمن */
-            z-index: 1001; /* التأكد من ظهوره فوق المحتوى */
-        }
-        #summaryViewerModal h3 {
-            font-size: 1.1rem;
-            padding-top: 20px; /* مسافة علوية لعنوان المودال */
-            margin-bottom: 10px; /* ضبط هامش سفلي */
-        }
-        #summaryViewerModal #summaryViewerContent {
-            font-size: 0.95rem;
-            max-height: calc(100vh - 120px); /* ضبط الارتفاع الأقصى للمحتوى بناءً على ارتفاع الشاشة مطروحاً منه ارتفاع الرأس والتذييل */
-            padding-bottom: 10px; /* تباعد سفلي للمحتوى */
-        }
-        #summaryViewerModal .modal-footer-btn {
-            margin-top: 10px; /* ضبط هامش التذييل */
-        }
+    .dark-mode .summary-details-box .form-group textarea {
+        background: #23272f;
+        border-color: #4a576b;
+        color: #e0e0e0;
+    }
+    .dark-mode .summary-details-box .summary-detail-input {
+      background: #23272f;
+      border-color: #4a576b;
+      color: #e0e0e0;
+    }
+    .dark-mode .summary-details-box .summary-detail-input:focus {
+        border-color: #8cafff;
     }
 
     /* Professional Navigation Bar Styles */
     .main-nav {
-      background: #3b5cb8; /* لون خلفية أزرق داكن */
+      background: #3b5cb8;
       color: #fff;
       padding: 10px 30px;
       font-size: 1.4rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* ظل أكثر احترافية */
-      position: fixed; /* تثبيت شريط التنقل */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      position: fixed;
       top: 0;
       width: 100%;
-      z-index: 100; /* لضمان ظهوره فوق العناصر الأخرى */
-      box-sizing: border-box; /* لضمان احتساب البادينج ضمن العرض */
+      z-index: 100;
+      box-sizing: border-box;
     }
 
     .main-nav .nav-brand {
@@ -548,17 +482,17 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
     }
 
     .main-nav .center-logo {
-        height: 40px; /* حجم الشعار */
+        height: 40px;
         vertical-align: middle;
-        margin-right: 15px; /* مسافة بين الشعار والروابط/العنوان */
+        margin-right: 15px;
     }
 
     .main-nav .nav-links {
         display: flex;
         align-items: center;
-        gap: 25px; /* تباعد بين الروابط */
-        flex-grow: 1; /* لجعل الروابط تتوزع في المنتصف */
-        justify-content: center; /* لمحاذاة الروابط في المنتصف */
+        gap: 25px;
+        flex-grow: 1;
+        justify-content: center;
     }
 
     .main-nav .nav-link {
@@ -568,13 +502,13 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         font-size: 1.05rem;
         transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
         border-radius: 5px;
-        white-space: nowrap; /* منع التفاف النص */
+        white-space: nowrap;
     }
 
     .main-nav .nav-link:hover,
     .main-nav .nav-link.active {
-        background-color: #26407a; /* لون الخلفية عند التمرير أو للرابط النشط */
-        border-radius: 7px; /* حواف دائرية أنعم عند التفاعل */
+        background-color: #26407a;
+        border-radius: 7px;
     }
 
     .main-nav .nav-actions {
@@ -585,63 +519,71 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
 
     /* Dark Mode for Navigation Bar */
     .dark-mode .main-nav {
-        background: #222f3e; /* خلفية أغمق للوضع الليلي */
+        background: #222f3e;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
     }
     .dark-mode .main-nav .nav-link:hover,
     .dark-mode .main-nav .nav-link.active {
-        background-color: #1a2430; /* خلفية أغمق للروابط في الوضع الليلي */
+        background-color: #1a2430;
     }
 
     /* Responsive adjustments for the main navigation */
     @media (max-width: 768px) {
         .main-nav {
-            flex-wrap: wrap; /* السماح بالتفاف العناصر */
-            justify-content: center; /* توسيط العناصر عند التفافها */
+            flex-wrap: wrap;
+            justify-content: center;
             padding: 10px 15px;
         }
         .main-nav .nav-brand,
         .main-nav .nav-links,
         .main-nav .nav-actions {
-            flex-basis: 100%; /* جعل كل قسم يأخذ عرض كامل عند التفاف */
-            justify-content: center; /* توسيط المحتوى داخل الأقسام */
-            margin-bottom: 5px; /* مسافة بين الصفوف المتراصة */
-            gap: 10px; /* تباعد أقل بين الروابط */
+            flex-basis: 100%;
+            justify-content: center;
+            margin-bottom: 5px;
+            gap: 10px;
         }
         .main-nav .nav-links {
-            order: 2; /* وضع الروابط في المنتصف في ترتيب التفاف */
+            order: 2;
         }
         .main-nav .nav-brand {
-            order: 1; /* الشعار أولاً */
+            order: 1;
             margin-bottom: 10px;
         }
         .main-nav .nav-actions {
-            order: 3; /* الأزرار أخيراً */
+            order: 3;
             margin-bottom: 0;
         }
         .main-nav .nav-link {
-            font-size: 0.95rem; /* حجم خط أصغر للروابط */
+            font-size: 0.95rem;
             padding: 6px 10px;
         }
         .main-nav .center-logo {
-            height: 35px; /* حجم أصغر للشعار */
-            margin-right: 0; /* إزالة المسافة الجانبية */
+            height: 35px;
+            margin-right: 0;
         }
         body {
-            padding-top: 130px; /* ضبط المسافة العلوية لتناسب ارتفاع شريط التنقل المتراص */
+            padding-top: 130px;
         }
     }
 
     @media (max-width: 480px) {
         .main-nav .nav-links {
-            gap: 10px; /* تباعد أقل للروابط على شاشات أضيق */
+            gap: 10px;
         }
         .main-nav .nav-link {
-            font-size: 0.9rem; /* حجم خط أصغر */
+            font-size: 0.9rem;
             padding: 5px 8px;
         }
         body {
-            padding-top: 120px; /* ضبط المسافة العلوية لضمان عدم اختباء المحتوى */
+            padding-top: 120px;
+        }
+        /* Make summary-details-box responsive */
+        .summary-details-box {
+            width: 100%;
+            margin: 10px auto;
+            padding: 10px;
+            border-radius: 0;
+            box-shadow: none;
         }
     }
 
@@ -741,7 +683,7 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
 </head>
 <body>
   <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V21
+  V22
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -850,6 +792,27 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             </select>
         </div>
         <div id="summariesTableWrapper"></div>
+
+        <div id="summaryDetailsBox" class="summary-details-box">
+            <h4 id="summaryDetailsTitle"></h4>
+            <div class="form-group">
+                <label>نص التلخيص:</label>
+                <div id="summaryDetailsContent" class="summary-content-display"></div>
+            </div>
+            <div class="form-group">
+                <label for="summaryDetailsComment">تعليق المعلم:</label>
+                <textarea id="summaryDetailsComment" class="summary-detail-input" placeholder="اكتب تعليقك هنا..."></textarea>
+                <button class="btn" id="saveSummaryDetailsCommentBtn">حفظ التعليق</button>
+            </div>
+            <div class="form-group">
+                <label for="summaryDetailsMark">تعديل العلامة:</label>
+                <input type="number" id="summaryDetailsMark" class="summary-detail-input mark" min="0" max="100" placeholder="العلامة">
+                <button class="btn" id="saveSummaryDetailsMarkBtn">حفظ العلامة</button>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn close-box-btn" onclick="hideSummaryDetails()">إغلاق</button>
+            </div>
+        </div>
       </div>
     </div>
 
@@ -865,23 +828,13 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             <th>الصوت</th>
             <th>المستوى</th>
             <th>تعديل</th>
-            <th>حذف</th> </tr>
+            <th>حذف</th>
+          </tr>
         </thead>
         <tbody id="lessonsList"></tbody>
       </table>
     </div>
   </div>
-
-<div id="summaryViewerModal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6);">
-  <div style="background-color: #fefefe; margin: 5% auto; padding: 30px; border: 1px solid #888; width: 80%; max-width: 800px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); position: relative; text-align: right;">
-    <span class="close-btn" onclick="closeSummaryViewer()">&times;</span>
-    <h3 id="summaryViewerTitle" style="color:#2260af; margin-top:0;">تلخيص الدرس: </h3>
-    <div id="summaryViewerContent" style="white-space: pre-wrap; font-family: 'Tajawal', sans-serif; font-size: 1.1rem; line-height: 1.8; color: #333; max-height: 60vh; overflow-y: auto; direction: rtl;"></div>
-    <div class="modal-footer-btn">
-        <button class="btn" onclick="closeSummaryViewer()">إغلاق</button>
-    </div>
-  </div>
-</div>
 
 
   <script>
@@ -951,7 +904,8 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
     var allStudentsData = {};
     window.studentSummariesMap = {}; // متغير عام لتخزين التلاخيص
     window.lessonsMap = {}; // متغير عام لتخزين معلومات الدروس
-    window.allSummaries = []; // [NEW] متغير عام لتخزين جميع التلاخيص للفلترة
+    window.allSummaries = []; // متغير عام لتخزين جميع التلاخيص للفلترة
+    let currentStudentEmailForSummaries = ''; // [NEW] Track current student email for summaries
 
     // جلب العلامة من student_marks حسب summary_id
       function getMarkForSummary(summaryId, studentEmail) {
@@ -972,13 +926,6 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             return "";
           });
       }
-
-    // [NEW] جلب تعليق المعلم من summaries حسب summary_id
-    function getTeacherCommentForSummary(summaryId) {
-        const summary = window.studentSummariesMap[summaryId];
-        return summary ? summary.teacher_comment || "" : "";
-    }
-
 
     auth.onAuthStateChanged(function(user) {
       if (user) {
@@ -1027,8 +974,8 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             role: "student",
             diagnosis_exam: false,
             oral_exam: false,
-            accepted: "pending", // [NEW] افتراضيًا "قيد المراجعة"
-            teacher_notes: "",   // [NEW] ملاحظات المعلم
+            accepted: "pending",
+            teacher_notes: "",
             ...levelsObj,
             ...examsObj
           }).then(function(){
@@ -1125,11 +1072,12 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
 
     window.showSelectedStudentDetails = function(studentId) {
       const studentDetailsDiv = document.getElementById('selectedStudentDetails');
-      const deleteStudentBtn = document.getElementById('deleteStudentBtn'); // [NEW]
+      const deleteStudentBtn = document.getElementById('deleteStudentBtn');
+      hideSummaryDetails(); // [NEW] Hide details box when new student is selected
       if (!studentId) {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
-        deleteStudentBtn.style.display = "none"; // [NEW]
+        deleteStudentBtn.style.display = "none";
         return;
       }
       const student = allStudentsData[studentId];
@@ -1138,7 +1086,6 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         document.getElementById('detailEmail').textContent = student.email || 'غير معروف';
         document.getElementById('detailCourseNumber').textContent = student.course_number || 'غير معروف';
 
-        // [NEW] عرض وتحديث حالة القبول وملاحظات المعلم
         document.getElementById('detailAcceptedStatus').value = student.accepted || "pending";
         document.getElementById('detailTeacherNotes').value = student.teacher_notes || "";
 
@@ -1165,20 +1112,20 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         }
         renderExamsTable(studentId, student);
         document.getElementById('teacherPDFBtn').style.display = "";
-        deleteStudentBtn.style.display = ""; // [NEW] إظهار زر حذف الطالب
-        deleteStudentBtn.dataset.studentId = studentId; // [NEW] حفظ الـ ID لحذف الطالب
+        deleteStudentBtn.style.display = "";
+        deleteStudentBtn.dataset.studentId = studentId;
+        currentStudentEmailForSummaries = student.email; // [NEW] Set current student email
         loadStudentSummaries(student.email);
         studentDetailsDiv.style.display = 'block';
       } else {
         studentDetailsDiv.style.display = 'none';
         document.getElementById('teacherPDFBtn').style.display = "none";
-        deleteStudentBtn.style.display = "none"; // [NEW]
+        deleteStudentBtn.style.display = "none";
         document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
         setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
       }
     };
 
-    // [NEW] دالة لتحديث حالة قبول الطالب
     window.updateStudentAdmission = function(status) {
         const studentId = document.getElementById('studentSelect').value;
         if (!studentId) return;
@@ -1186,7 +1133,7 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         firestore.collection('lectures').doc(studentId).update({
             accepted: status
         }).then(() => {
-            allStudentsData[studentId].accepted = status; // Update local data
+            allStudentsData[studentId].accepted = status;
             showToast('تم تحديث حالة القبول بنجاح!', '#1dad87');
         }).catch(err => {
             showToast('خطأ في تحديث حالة القبول: ' + err.message, '#e63946');
@@ -1194,7 +1141,6 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         });
     };
 
-    // [NEW] دالة لحفظ ملاحظات المعلم
     window.saveTeacherNotes = function() {
         const studentId = document.getElementById('studentSelect').value;
         const notes = document.getElementById('detailTeacherNotes').value.trim();
@@ -1203,7 +1149,7 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         firestore.collection('lectures').doc(studentId).update({
             teacher_notes: notes
         }).then(() => {
-            allStudentsData[studentId].teacher_notes = notes; // Update local data
+            allStudentsData[studentId].teacher_notes = notes;
             showToast('تم حفظ ملاحظات المعلم!', '#1dad87');
         }).catch(err => {
             showToast('خطأ في حفظ الملاحظات: ' + err.message, '#e63946');
@@ -1211,7 +1157,6 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
         });
     };
 
-    // [NEW] دالة لتأكيد وحذف الطالب
     window.confirmDeleteStudent = function() {
         const studentId = document.getElementById('studentSelect').value;
         const studentName = document.getElementById('detailName').textContent;
@@ -1219,20 +1164,17 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             showToast('الرجاء اختيار طالب أولاً للحذف.', '#e63946');
             return;
         }
-        if (confirm(`هل أنت متأكد من حذف الطالب ${studentName}؟ هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناته الأساسية. (ملاحظة: قد تحتاج لحذف البيانات المرتبطة يدوياً من جداول أخرى أو عبر Cloud Functions).`)) {
+        if (confirm(`هل أنت متأكد من حذف الطالب ${studentName}؟ هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناته الأساسية. (ملاحظة: يفضل استخدام Firebase Cloud Functions لحذف جميع البيانات المرتبطة تلقائياً).`)) {
             deleteStudent(studentId);
         }
     };
 
-    // [NEW] دالة لحذف الطالب
     async function deleteStudent(studentId) {
         showLoading(true);
         try {
             await firestore.collection('lectures').doc(studentId).delete();
-            // هنا يجب أن يتم حذف البيانات المرتبطة (summaries, student_marks, exam_results)
-            // يفضل استخدام Cloud Functions لضمان الحذف المتكامل والآمن
             showToast('تم حذف الطالب بنجاح!', '#1dad87');
-            loadStudents(); // إعادة تحميل قائمة الطلاب
+            loadStudents();
         } catch (error) {
             showToast('خطأ في حذف الطالب: ' + error.message, '#e63946');
             console.error('Error deleting student:', error);
@@ -1348,7 +1290,8 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
                   <button class="edit-btn" onclick="editLesson('${doc.id}')">تعديل</button>
                 </td>
                 <td>
-                    <button class="btn delete-btn" onclick="confirmDeleteLesson('${doc.id}', '${data.title}')">حذف</button> </td>
+                    <button class="btn delete-btn" onclick="confirmDeleteLesson('${doc.id}', '${data.title}')">حذف</button>
+                </td>
               </tr>`;
           }
         });
@@ -1359,20 +1302,18 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
       });
     }
 
-    // [NEW] دالة لتأكيد وحذف الدرس
     window.confirmDeleteLesson = function(docId, lessonTitle) {
         if (confirm(`هل أنت متأكد من حذف الدرس "${lessonTitle}"؟ هذا الإجراء لا يمكن التراجع عنه. (ملاحظة: التلاخيص والعلامات المرتبطة بهذا الدرس لن تُحذف تلقائياً).`)) {
             deleteLesson(docId);
         }
     };
 
-    // [NEW] دالة لحذف الدرس
     async function deleteLesson(docId) {
         showLoading(true);
         try {
             await firestore.collection('lessons').doc(docId).delete();
             showToast('تم حذف الدرس بنجاح!', '#1dad87');
-            loadLessons(); // إعادة تحميل قائمة الدروس
+            loadLessons();
         } catch (error) {
             showToast('خطأ في حذف الدرس: ' + error.message, '#e63946');
             console.error('Error deleting lesson:', error);
@@ -1457,35 +1398,35 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
     // تلخيصات الطالب
     function loadStudentSummaries(email) {
       showLoading(true);
+      currentStudentEmailForSummaries = email; // [NEW] Set current email for future use with save functions
       firestore.collection('summaries').where('student_email','==',email).get().then(snap=>{
-        window.allSummaries = []; // [NEW] Clear previous and store all summaries
-        window.studentSummariesMap = {}; // Clear previous and initialize
+        window.allSummaries = [];
+        window.studentSummariesMap = {};
         snap.forEach(doc=>{
             const s = {...doc.data(), docId: doc.id};
-            window.allSummaries.push(s); // [NEW] Store all summaries
-            window.studentSummariesMap[s.docId] = s; // Store by docId for easy lookup
+            window.allSummaries.push(s);
+            window.studentSummariesMap[s.docId] = s;
         });
 
-        if (!window.allSummaries.length) { // Use allSummaries for initial check
+        if (!window.allSummaries.length) {
           document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص.</b>";
+          hideSummaryDetails(); // [NEW] Hide details box if no summaries
           showLoading(false);
           return;
         }
-        // جلب عناوين الدروس
         firestore.collection('lessons').get().then(lessonsSnap=>{
-          lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title); // Populate global lessonsMap
+          lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title);
 
-          filterSummariesTable(); // [NEW] Call filter function after loading all summaries and lessons
+          filterSummariesTable();
           showLoading(false);
         });
-      }).catch(error => { // Added catch for initial fetch
+      }).catch(error => {
         showToast("خطأ في تحميل التلاخيص: " + error.message, "#e63946");
         showLoading(false);
         console.error("Error loading summaries:", error);
       });
     }
 
-    // [NEW] دالة لفلترة وعرض التلاخيص
     function filterSummariesTable() {
         const filterStatus = document.getElementById('summaryFilterStatus').value;
         const filteredSummaries = window.allSummaries.filter(s => {
@@ -1495,23 +1436,23 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
 
         if (!filteredSummaries.length) {
             document.getElementById('summariesTableWrapper').innerHTML = "<b>لا توجد تلاخيص مطابقة للفلتر.</b>";
+            hideSummaryDetails(); // [NEW] Hide details box if no summaries match filter
             return;
         }
 
         let html = `
-        <div class="table-wrapper"> <table style="width:100%;margin-top:8px;">
+        <div class="table-wrapper">
+        <table style="width:100%;margin-top:8px;">
           <thead><tr>
-            <th>الدرس</th>
+            <th>رقم الدرس</th> <th>الدرس</th>
             <th>الحالة</th>
             <th>العلامة</th>
-            <th>تعليق المعلم</th> <th>تعديل العلامة</th>
-            <th>عرض التلخيص</th>
             <th>إعادة التلخيص</th>
           </tr></thead><tbody>`;
 
         const markPromises = filteredSummaries.map(s =>
-            getMarkForSummary(s.docId, s.student_email).then(mark => {
-                s.mark_value = mark; // Store mark on summary object for rendering
+            getMarkForSummary(s.docId, currentStudentEmailForSummaries).then(mark => { // Use global email
+                s.mark_value = mark;
                 return s;
             })
         );
@@ -1520,23 +1461,14 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             summariesWithMarks.forEach(s => {
                 const isSubmitted = s.status === 'submitted';
                 html += `<tr>
-                    <td>${window.lessonsMap[s.lesson_id]||s.lesson_id}</td>
+                    <td>${s.lesson_id}</td> <td style="cursor:pointer; font-weight:bold; color:#3b5cb8;" onclick="showSummaryDetails('${s.docId}')">
+                        ${window.lessonsMap[s.lesson_id] || s.lesson_id}
+                    </td>
                     <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-                    <td id="markval_${s.docId}">${s.mark_value || "—"}</td>
-                    <td>
-                        <textarea id="commentinp_${s.docId}" placeholder="تعليق..." style="width:90%;height:40px;resize:vertical;">${s.teacher_comment || ''}</textarea>
-                        <button class="btn" style="padding:4px 12px;font-size:0.95rem; margin-top:5px;" onclick="saveSummaryComment('${s.docId}')">حفظ التعليق</button>
-                    </td>
-                    <td>
-                        <input style="width:60px;text-align:center;" id="markinp_${s.docId}" type="number" value="${s.mark_value || ''}" min="0" max="100">
-                        <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
-                    </td>
-                    <td>
-                        <button class="btn" style="padding:4px 12px;font-size:0.95rem;" onclick="viewSummaryText('${s.docId}')">عرض</button>
-                    </td>
+                    <td>${s.mark_value || "—"}</td>
                     <td>
                         ${isSubmitted ? `
-                            <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${s.student_email}')" title="إعادة التلخيص إلى مسودة">
+                            <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${currentStudentEmailForSummaries}')" title="إعادة التلخيص إلى مسودة">
                                 🔄
                             </button>
                         ` : '—'}
@@ -1545,12 +1477,55 @@ input[id^="markinp_"] { width: 70px; text-align: center; margin-left: 5px;}
             });
             html += "</tbody></table></div>";
             document.getElementById('summariesTableWrapper').innerHTML = html;
+            hideSummaryDetails(); // [NEW] Hide details box after re-rendering table
         });
     }
 
+// [NEW] Function to show and populate the inline summary details box
+function showSummaryDetails(docId) {
+    const summary = window.studentSummariesMap[docId];
+    if (!summary) {
+        showToast("تعذر العثور على التلخيص.", "#e63946");
+        return;
+    }
+
+    const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
+    const summaryDetailsBox = document.getElementById('summaryDetailsBox');
+
+    document.getElementById('summaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
+    document.getElementById('summaryDetailsContent').innerText = summary.summary_text;
+    document.getElementById('summaryDetailsComment').value = summary.teacher_comment || '';
+    document.getElementById('summaryDetailsMark').value = summary.mark_value || ''; // Using mark_value from loaded summaries
+
+    // Set dataset for save buttons
+    document.getElementById('saveSummaryDetailsCommentBtn').dataset.docId = docId;
+    document.getElementById('saveSummaryDetailsMarkBtn').dataset.docId = docId;
+
+    // Add event listeners for save buttons (only once)
+    const saveCommentBtn = document.getElementById('saveSummaryDetailsCommentBtn');
+    const saveMarkBtn = document.getElementById('saveSummaryDetailsMarkBtn');
+
+    // Remove existing listeners to prevent duplicates
+    saveCommentBtn.onclick = null;
+    saveMarkBtn.onclick = null;
+
+    // Add new listeners
+    saveCommentBtn.onclick = () => saveSummaryComment(saveCommentBtn.dataset.docId);
+    saveMarkBtn.onclick = () => saveSummaryMark(saveMarkBtn.dataset.docId);
+
+    summaryDetailsBox.style.display = 'block';
+    summaryDetailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// [NEW] Function to hide the inline summary details box
+function hideSummaryDetails() {
+    document.getElementById('summaryDetailsBox').style.display = 'none';
+}
+
+
 // حفظ علامة التلخيص
 function saveSummaryMark(docId) {
-  let val = document.getElementById('markinp_' + docId).value;
+  let val = document.getElementById('summaryDetailsMark').value; // [MODIFIED] Get value from details box
 
   // جلب بيانات التلخيص للتحقق من حالته
   firestore.collection('summaries').doc(docId).get().then(summaryDoc => {
@@ -1562,25 +1537,16 @@ function saveSummaryMark(docId) {
     const summaryData = summaryDoc.data();
     if (summaryData.status === "draft") {
       showToast("لا يمكن وضع علامة لتلخيص في حالة المسودة. يجب تسليمه أولاً.", "#e63946");
-      // يمكنك أيضاً تحديث عرض العلامة في الجدول لتعكس عدم الحفظ
-      document.getElementById('markval_' + docId).innerText = "غير مسموح";
-      document.getElementById('markinp_' + docId).value = ""; // مسح القيمة المدخلة
       return;
     }
 
-    // استخراج بيانات الطالب من الشاشة (الكود الأصلي)
     const studentName = document.getElementById('detailName').textContent || '';
     const studentEmail = document.getElementById('detailEmail').textContent || '';
     const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
 
-    // استخراج بيانات الدرس من صف الجدول (الكود الأصلي)
-    const row = document.getElementById('markinp_' + docId).closest('tr');
-    // ملاحظة: تم تعديل هذا الجزء ليتناسب مع الترتيب الجديد للأعمدة في الجدول
-    const lessonTitle = row.cells[0].textContent || ''; // الدرس هو العمود الأول
-    const statusText = row.cells[1].textContent || ''; // الحالة هي العمود الثاني
+    const lessonTitle = window.lessonsMap[summaryData.lesson_id] || summaryData.lesson_id; // Get title from map
+    const statusText = summaryData.status === 'submitted' ? 'تم التسليم' : 'مسودة';
 
-
-    // جلب بيانات المعلم من الحساب الحالي (Kود الأصلي)
     const user = firebase.auth().currentUser;
     if (!user) {
       showToast("لم يتم التعرف على المستخدم الحالي! يرجى إعادة تسجيل الدخول.", "#e63946");
@@ -1588,43 +1554,34 @@ function saveSummaryMark(docId) {
     }
 
     firestore.collection('users').doc(user.uid).get().then(userDoc => {
-      // teacherName, teacherEmail, teacherRole are not strictly needed for student_marks but are good for logging if needed
-      // const teacherName = user.displayName || '';
-      // const teacherEmail = user.email || '';
-      // const teacherRole = userDoc.exists ? (userDoc.data().role || '') : '';
-
-      // البيانات المراد إضافتها/تحديثها (الكود الأصلي)
       const dataToAdd = {
         summary_id: docId,
         student_name: studentName,
         student_email: studentEmail,
         course_number: courseNumber,
         lesson_title: lessonTitle,
-        status: statusText, // سيبقى هذا كما هو، لكننا تأكدنا من حالة التسليم أعلاه
+        status: statusText,
         mark: Number(val)
       };
 
-      // إضافة البيانات إلى جدول student_marks فقط (الكود الأصلي)
       firestore.collection('student_marks')
         .where('student_email', '==', studentEmail)
         .where('summary_id', '==', docId)
         .limit(1)
         .get().then(querySnapshot => {
           if (!querySnapshot.empty) {
-            // يوجد سجل سابق، حدثه
             const docRef = querySnapshot.docs[0].ref;
             docRef.update(dataToAdd).then(() => {
               showToast('تم تحديث العلامة بنجاح!', "#1dad87");
-              loadStudentSummaries(studentEmail); // أعد تحميل الجدول
+              loadStudentSummaries(studentEmail);
             }).catch((err) => {
               showToast('خطأ أثناء تحديث العلامة:\n' + err.message, "#e63946");
               console.error(err);
             });
           } else {
-            // لا يوجد سجل، أضف جديد
             firestore.collection('student_marks').add(dataToAdd).then(() => {
               showToast('تم إضافة العلامة!', "#1dad87");
-              loadStudentSummaries(studentEmail); // أعد تحميل الجدول
+              loadStudentSummaries(studentEmail);
             }).catch((err) => {
               showToast('خطأ أثناء إضافة العلامة:\n' + err.message, "#e63946");
               console.error(err);
@@ -1645,9 +1602,9 @@ function saveSummaryMark(docId) {
   });
 }
 
-// [NEW] دالة لحفظ تعليق المعلم على التلخيص
+// دالة لحفظ تعليق المعلم على التلخيص
 function saveSummaryComment(docId) {
-    const comment = document.getElementById('commentinp_' + docId).value.trim();
+    const comment = document.getElementById('summaryDetailsComment').value.trim(); // [MODIFIED] Get value from details box
 
     firestore.collection('summaries').doc(docId).update({
         teacher_comment: comment
@@ -1668,7 +1625,7 @@ function saveSummaryComment(docId) {
 
 // New function to reset summary status
 window.resetSummary = function(summaryDocId, studentEmail) {
-    if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة المرتبطة به.')) {
+    if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة والتعليق المرتبطين به.')) {
         return;
     }
 
@@ -1676,7 +1633,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
     // Update summary status to 'draft'
     firestore.collection('summaries').doc(summaryDocId).update({
         status: 'draft',
-        teacher_comment: firebase.firestore.FieldValue.delete() // [NEW] حذف تعليق المعلم عند إعادة التعيين
+        teacher_comment: firebase.firestore.FieldValue.delete()
     }).then(() => {
         // Find and delete the corresponding mark in student_marks collection
         return firestore.collection('student_marks')
@@ -1708,24 +1665,6 @@ window.resetSummary = function(summaryDocId, studentEmail) {
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
       });
-    }
-
-    // Functions for Summary Viewer Modal
-    function viewSummaryText(docId) {
-        const summary = window.studentSummariesMap[docId];
-        if (summary) {
-            // Use window.lessonsMap to get the lesson title
-            const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
-            document.getElementById('summaryViewerTitle').innerText = 'تلخيص الدرس: ' + lessonTitle;
-            document.getElementById('summaryViewerContent').innerText = summary.summary_text;
-            document.getElementById('summaryViewerModal').style.display = 'block';
-        } else {
-            showToast("تعذر العثور على التلخيص.", "#e63946");
-        }
-    }
-
-    function closeSummaryViewer() {
-        document.getElementById('summaryViewerModal').style.display = 'none';
     }
   </script>
 </body>
