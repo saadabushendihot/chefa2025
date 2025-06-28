@@ -912,6 +912,7 @@ tbody tr:last-child td {
     window.allSummaries = []; // متغير عام لتخزين جميع التلاخيص للفلترة
     let currentStudentEmailForSummaries = '';
     let teacherSummariesListenerUnsubscribe = null; // To store unsubscribe function for teacher's real-time listener
+    let currentlyOpenSummaryDocId = null; // [NEW] To track if a summary details box is open
 
 
     // جلب العلامة من student_marks حسب summary_id
@@ -1482,6 +1483,12 @@ tbody tr:last-child td {
                 });
 
                 filterSummariesTable(); // Re-render with fresh data and filter
+
+                // [MODIFIED] Check if the currently open summary box corresponds to an updated summary
+                if (currentlyOpenSummaryDocId && window.studentSummariesMap[currentlyOpenSummaryDocId]) {
+                    showSummaryDetails(currentlyOpenSummaryDocId); // Re-open and update content
+                }
+
                 if (shouldShowToast) {
                     showToast(`لديك رد جديد أو تحديث على تلخيص من ${allStudentsData[document.getElementById('studentSelect').value]?.name || 'الطالب'}!`, "#3b5cb8");
                 }
@@ -1553,7 +1560,8 @@ tbody tr:last-child td {
         });
         html += "</tbody></table></div>";
         document.getElementById('summariesTableWrapper').innerHTML = html;
-        hideSummaryDetails();
+        // Do NOT call hideSummaryDetails() here, as it might close an intentionally open box.
+        // The check and re-opening logic is now in the listener's callback itself.
     }
 
 // Function to show and populate the inline summary details box
@@ -1603,11 +1611,16 @@ function showSummaryDetails(docId) {
 
     summaryDetailsBox.style.display = 'block';
     summaryDetailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // [NEW] Set currently open summary ID
+    currentlyOpenSummaryDocId = docId;
 }
 
 // Function to hide the inline summary details box
 function hideSummaryDetails() {
     document.getElementById('summaryDetailsBox').style.display = 'none';
+    // [NEW] Clear currently open summary ID
+    currentlyOpenSummaryDocId = null;
 }
 
 // Function to clear student's reply
