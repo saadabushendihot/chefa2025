@@ -11,465 +11,62 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
+    /* Global Styles & Variables (Professional & Modern Theme) */
+    :root {
+      --primary-color: #4361ee;
+      --primary-dark: #2a41a6;
+      --secondary-color: #00b074; /* A fresh green for accents */
+      --secondary-dark: #008c5c;
+      --text-color: #2e3a47;
+      --light-text-color: #556270;
+      --background-light: #f8fafc;
+      --background-mid: #f0f2f5;
+      --surface-color: #ffffff;
+      --border-color: #e0e4e8;
+      --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.08);
+      --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.12);
+      --danger-color: #e63946;
+      --danger-dark: #c02b41;
+    }
+
+    /* Dark Mode Variables */
+    .dark-mode {
+      --primary-color: #5a7be4;
+      --primary-dark: #3b5cb8;
+      --secondary-color: #1dad87;
+      --secondary-dark: #159b79;
+      --text-color: #e0e0e0;
+      --light-text-color: #b0b0b0;
+      --background-light: #23272f;
+      --background-mid: #2b3547;
+      --surface-color: #323946;
+      --border-color: #4a576b;
+      --shadow-light: 0 2px 10px rgba(0, 0, 0, 0.4);
+      --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.6);
+      --danger-color: #c02b41;
+      --danger-dark: #a40b2b;
+    }
+
     body {
-        font-family: Tajawal, Arial, sans-serif;
-        margin: 0;
-        background: #f5f7fa;
-        color: #23272f;
-        min-height: 100vh;
-        padding-top: 70px; /* لتجنب اختباء المحتوى خلف شريط التنقل الثابت */
+      font-family: 'Tajawal', Arial, sans-serif;
+      margin: 0;
+      background: var(--background-light);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding-top: 70px;
+      line-height: 1.6;
     }
+
+    /* Navigation Bar */
     .main-nav {
-      background: #3b5cb8;
+      background: var(--primary-color);
       color: #fff;
       padding: 10px 30px;
       font-size: 1.4rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      position: fixed; /* تثبيت شريط التنقل */
-      top: 0;
-      width: 100%;
-      z-index: 100; /* لضمان ظهوره فوق العناصر الأخرى */
-      box-sizing: border-box; /* لضمان احتساب البادينج ضمن العرض */
-    }
-
-    .main-nav .nav-brand {
-        display: flex;
-        align-items: center;
-    }
-
-    .main-nav .center-logo {
-        height: 40px; /* حجم الشعار */
-        vertical-align: middle;
-        margin-right: 15px; /* مسافة بين الشعار والروابط/العنوان */
-    }
-
-    .main-nav .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 25px; /* تباعد بين الروابط */
-        flex-grow: 1; /* لجعل الروابط تتوزع في المنتصف */
-        justify-content: center; /* لمحاذاة الروابط في المنتصف */
-    }
-
-    .main-nav .nav-link {
-        color: #fff;
-        text-decoration: none;
-        padding: 8px 15px;
-        font-size: 1.05rem;
-        transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
-        border-radius: 5px;
-        white-space: nowrap; /* منع التفاف النص */
-    }
-
-    .main-nav .nav-link:hover,
-    .main-nav .nav-link.active {
-        background-color: #26407a; /* لون الخلفية عند التمرير أو للرابط النشط */
-        color: #fff;
-    }
-
-    .main-nav .nav-actions {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-    }
-
-    .container { max-width: 1100px; margin: 32px auto 24px auto; padding: 0 8px;}
-    h2 { color: #294169; margin-top: 0; margin-bottom: 18px; font-size: 1.22rem; letter-spacing: 0.5px; font-weight: 700;}
-    .btn {
-      background: #3b5cb8;
-      color: #fff;
-      border: none;
-      padding: 7px 20px;
-      border-radius: 7px;
-      font-size: 1rem;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s;
-    }
-    .btn:hover { background: #26407a; }
-    .signout { background: #b83b3b;}
-    .signout:hover { background: #7a2626;}
-    .delete-btn {background: #dc3545;}
-    .delete-btn:hover {background: #c82333;}
-    .students-area, .lessons-area {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px #00000009;
-      margin-bottom: 22px;
-      padding: 18px 14px;
-    }
-    .add-section-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 7px;
-      margin-bottom: 6px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .add-section-toggle .toggle-icon {
-      background: #3b5cb8;
-      color: #fff;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.35rem;
-      margin-left: 8px;
-      transition: background 0.2s;
-    }
-    .add-section-toggle .toggle-icon:hover { background: #26407a; }
-    .add-section {
-      background: #fff;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px #00000009;
-      padding: 18px 14px;
-      margin-bottom: 18px;
-      max-width: 500px;
-      margin-right: auto;
-      margin-left: auto;
-      display: none;
-      animation: fadein 0.3s;
-    }
-    @keyframes fadein {
-      from { opacity: 0; transform: translateY(-20px);}
-      to { opacity: 1; transform: translateY(0);}
-    }
-    .add-section h3 {
-      color: #294169;
-      margin-top: 0;
-      margin-bottom: 18px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      letter-spacing: 0.5px;
-      text-align: center;
-    }
-    .add-section form { display: flex; flex-direction: column; gap: 14px;}
-    .add-section label { font-size: 1rem; color: #2e4061; margin-bottom: 4px; margin-right: 2px; font-weight: 500;}
-    .add-section input, .add-section select, .add-section textarea {
-      padding: 9px;
-      border: 1px solid #c5c9d2;
-      border-radius: 6px;
-      font-size: 1rem;
-      background: #f7f8fa;
-      color: #23272f;
-      transition: border 0.15s;
-      margin-bottom: 6px;
-    }
-    .add-section input:focus, .add-section select:focus, .add-section textarea:focus { border-color: #3b5cb8; outline: none;}
-    .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
-    /* تحسينات عامة على الجداول */
-.table-wrapper {
-    overflow-x: auto;
-    width: 100%;
-    margin-top: 20px;
-    margin-bottom: 25px;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    background: #ffffff;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 700px;
-}
-
-/* ترويسة الجدول */
-th {
-  background: #4361ee;
-  color: #ffffff;
-  padding: 15px 10px;
-  text-align: center;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-/* خلايا البيانات */
-td {
-  padding: 12px 8px;
-  border-bottom: 1px solid #eef2fa;
-  text-align: center;
-  font-size: 0.98rem;
-  color: #333d4b;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-/* تأثير عند تمرير المؤشر على الصفوف */
-tbody tr:hover {
-  background-color: #f7f9fc;
-  cursor: pointer;
-}
-
-/* إزالة الحد السفلي لآخر صف */
-tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* تحسينات خاصة بخلية نص التلخيص (لم تعد تستخدم بهذه الطريقة) */
-.summary-text-cell {
-  text-align: right;
-  line-height: 1.6;
-  white-space: normal;
-  max-width: 250px;
-  word-break: break-word;
-}
-
-/* أزرار الإجراءات داخل الجدول (التي قد تنتقل للصندوق المخفي) */
-.btn[onclick^="saveSummaryMark"], .btn[onclick^="saveSummaryComment"] {
-  background-color: #1dad87;
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease-in-out;
-}
-.btn[onclick^="saveSummaryMark"]:hover, .btn[onclick^="saveSummaryComment"]:hover {
-  background-color: #159b79;
-}
-
-/* حقل إدخال العلامة والتعليق (داخل الصندوق المخفي الآن) */
-.summary-detail-input {
-  padding: 5px 8px;
-  border: 1px solid #c5c9d2;
-  border-radius: 5px;
-  font-size: 0.95rem;
-  text-align: right;
-  width: 90%;
-  margin-bottom: 5px;
-}
-.summary-detail-input.mark { width: 70px; text-align: center; margin-left: 5px;}
-
-/* تحسينات لحالة التلخيص */
-.summary-status {
-  padding: 4px 10px;
-  border-radius: 15px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  display: inline-block;
-  white-space: nowrap;
-}
-.summary-status.submitted {
-  background-color: #e3f6ed;
-  color: #219e4b;
-  border: 1px solid #b7eecd;
-}
-.summary-status.draft {
-  background-color: #fff4e0;
-  color: #b96d0d;
-  border: 1px solid #ffe0b2;
-}
-
-.btn.reset-summary {
-    background: #dc3545;
-    padding: 5px 10px;
-    font-size: 0.85rem;
-    margin-right: 5px;
-    vertical-align: middle;
-}
-.btn.reset-summary:hover {
-    background: #c82333;
-}
-.reset-icon {
-    cursor: pointer;
-    font-size: 1.2rem;
-    color: #dc3545;
-    vertical-align: middle;
-    margin-right: 5px;
-    transition: transform 0.2s ease-in-out;
-}
-.reset-icon:hover {
-    transform: rotate(15deg);
-}
-
-/* تنسيق خاص بالعنوان "تلخيصات الطالب" */
-#summariesTableWrapper h4 {
-    color: #294169;
-    margin-top: 30px;
-    margin-bottom: 15px;
-    font-size: 1.25rem;
-    font-weight: 700;
-    text-align: right;
-    border-bottom: 2px solid #eef2fa;
-    padding-bottom: 8px;
-}
-    .student-selection-area { margin-bottom: 20px;}
-    #selectedStudentDetails {
-      background: #f9fbfd;
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid #e0e4e8;
-      display: none;
-    }
-    #selectedStudentDetails h3 { color: #294169; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold; text-align: right;}
-    #selectedStudentDetails p { margin-bottom: 8px; font-size: 1rem; color: #23272f; text-align: right;}
-    #selectedStudentDetails p strong { color: #294169;}
-    #selectedStudentDetails h4 { color: #294169; margin-top: 20px; margin-bottom: 10px; font-size: 1.05rem; font-weight: bold; text-align: right;}
-    .levels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;}
-    .level-item { display: flex; align-items: center; background: #f2f5fc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7ea; cursor: pointer; user-select: none;}
-    .level-item input[type="checkbox"] { margin-left: 8px; width: 20px; height: 20px; cursor: pointer;}
-    .level-item label { font-size: 0.95rem; color: #294169; font-weight: 500; flex-grow: 1; cursor: pointer;}
-    .level-color-1 { background: #e7f2fa !important; }
-    .level-color-2 { background: #f8e7fa !important; }
-    .level-color-3 { background: #e7faf0 !important; }
-    .level-color-4 { background: #f9f6e7 !important; }
-    .level-color-5 { background: #f3e7fa !important; }
-    .level-color-6 { background: #e7faee !important; }
-    .level-color-7 { background: #fae7e7 !important; }
-    .edit-btn, .save-btn, .cancel-btn {
-      padding: 4px 14px;
-      border-radius: 5px;
-      border: none;
-      margin: 0 2px;
-      cursor: pointer;
-      font-family: inherit;
-      font-size: 0.98rem;
-      transition: background 0.2s;
-    }
-    .edit-btn {background:#5a7be4; color:#fff;}
-    .edit-btn:hover {background:#294169;}
-    .save-btn {background:#1dad87; color:#fff;}
-    .save-btn:hover {background:#156c59;}
-    .cancel-btn {background:#b83b3b; color:#fff;}
-    .cancel-btn:hover {background:#7a2626;}
-    #msg, #addStudentMsg, #addLessonMsg, #addNotificationMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
-    @media (max-width: 900px){
-      .container {padding:8px;}
-      h2 {font-size:1rem;}
-      .students-area, .lessons-area, .add-section {padding:10px 4px;}
-      .add-section {max-width: 99vw;}
-      .levels-grid { grid-template-columns: 1fr;}
-    }
-    .spinner { border: 4px solid #eee; border-top: 4px solid #3b5cb8; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 30px auto; display: none;}
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-    .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
-    .toast.show { visibility: visible; opacity: 1; }
-    .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
-
-    /* New style for inline summary details box */
-    .summary-details-box {
-      background-color: #fefefe;
-      margin: 20px auto;
-      padding: 20px;
-      border: 1px solid #e0e4e8;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-      position: relative;
-      text-align: right;
-      box-sizing: border-box;
-      display: none; /* Hidden by default */
-      animation: fadein 0.3s; /* Reuse fadein animation */
-    }
-    .summary-details-box h4 {
-      color: #2260af;
-      margin-top:0;
-      margin-bottom: 15px;
-      font-size: 1.25rem;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
-    }
-    .summary-details-box .summary-content-display {
-      white-space: pre-wrap;
-      font-family: 'Tajawal', sans-serif;
-      font-size: 1.05rem;
-      line-height: 1.8;
-      color: #333;
-      max-height: 40vh;
-      overflow-y: auto;
-      direction: rtl;
-      word-break: break-word;
-      padding: 10px 0;
-      margin-bottom: 15px;
-      border: 1px solid #eef2fa;
-      background: #fdfdfd;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .summary-details-box .form-group {
-        margin-bottom: 15px;
-    }
-    .summary-details-box .form-group label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #2e4061;
-    }
-    .summary-details-box .form-group textarea {
-        width: 100%;
-        height: 80px;
-        resize: vertical;
-        padding: 8px;
-        border: 1px solid #c5c9d2;
-        border-radius: 6px;
-        font-size: 1rem;
-        box-sizing: border-box;
-    }
-    .summary-details-box .form-group .btn {
-        margin-top: 10px;
-        padding: 6px 18px;
-        font-size: 0.95rem;
-    }
-    .summary-details-box .close-box-btn {
-        background: #b83b3b;
-        margin-top: 20px;
-        padding: 8px 30px;
-    }
-    .summary-details-box .close-box-btn:hover {
-        background: #7a2626;
-    }
-    /* Dark Mode for summary details box */
-    .dark-mode .summary-details-box {
-      background-color: #323946;
-      border: 1px solid #4a576b;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    .dark-mode .summary-details-box h4 {
-      color: #8cafff;
-      border-bottom: 1px solid #4a576b;
-    }
-    .dark-mode .summary-details-box .summary-content-display {
-      background: #2b3547;
-      border-color: #4a576b;
-      color: #e0e0e0;
-    }
-    .dark-mode .summary-details-box .form-group label {
-        color: #e0e0e0;
-    }
-    .dark-mode .summary-details-box .form-group textarea {
-        background: #23272f;
-        border-color: #4a576b;
-        color: #e0e0e0;
-    }
-    .dark-mode .summary-details-box .summary-detail-input {
-      background: #23272f;
-      border-color: #4a576b;
-      color: #e0e0e0;
-    }
-    .dark-mode .summary-details-box .summary-detail-input:focus {
-        border-color: #8cafff;
-    }
-
-    /* Professional Navigation Bar Styles */
-    .main-nav {
-      background: #3b5cb8;
-      color: #fff;
-      padding: 10px 30px;
-      font-size: 1.4rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--shadow-light);
       position: fixed;
       top: 0;
       width: 100%;
@@ -478,57 +75,556 @@ tbody tr:last-child td {
     }
 
     .main-nav .nav-brand {
-        display: flex;
-        align-items: center;
+      display: flex;
+      align-items: center;
     }
 
     .main-nav .center-logo {
-        height: 40px;
-        vertical-align: middle;
-        margin-right: 15px;
+      height: 40px;
+      vertical-align: middle;
+      margin-right: 15px;
     }
 
     .main-nav .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 25px;
-        flex-grow: 1;
-        justify-content: center;
+      display: flex;
+      align-items: center;
+      gap: 25px;
+      flex-grow: 1;
+      justify-content: center;
     }
 
     .main-nav .nav-link {
-        color: #fff;
-        text-decoration: none;
-        padding: 8px 15px;
-        font-size: 1.05rem;
-        transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
-        border-radius: 5px;
-        white-space: nowrap;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 15px;
+      font-size: 1.05rem;
+      transition: background-color 0.3s ease, border-radius 0.3s ease;
+      border-radius: 5px;
+      white-space: nowrap;
     }
 
     .main-nav .nav-link:hover,
     .main-nav .nav-link.active {
-        background-color: #26407a;
-        border-radius: 7px;
+      background-color: var(--primary-dark);
+      border-radius: 7px;
     }
 
     .main-nav .nav-actions {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative; /* For notification panel positioning */
     }
 
-    /* Dark Mode for Navigation Bar */
-    .dark-mode .main-nav {
-        background: #222f3e;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
-    }
-    .dark-mode .main-nav .nav-link:hover,
-    .dark-mode .main-nav .nav-link.active {
-        background-color: #1a2430;
+    /* General Layout */
+    .container {
+      max-width: 1100px;
+      margin: 32px auto 24px auto;
+      padding: 0 15px;
     }
 
-    /* Responsive adjustments for the main navigation */
+    h2 {
+      color: var(--primary-color);
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    h3 {
+      color: var(--text-color);
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    h4 {
+      color: var(--primary-color);
+      margin-top: 25px;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      text-align: right;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s ease, transform 0.1s ease;
+      font-weight: 500;
+    }
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+    .btn:disabled {
+      background: #cccccc;
+      cursor: not-allowed;
+      opacity: 0.8;
+    }
+
+    .signout { background: var(--danger-color);}
+    .signout:hover { background: var(--danger-dark);}
+    .delete-btn {background: var(--danger-color);}
+    .delete-btn:hover {background: var(--danger-dark);}
+
+    /* Sections */
+    .students-area, .lessons-area, .add-section {
+      background: var(--surface-color);
+      border-radius: 12px;
+      box-shadow: var(--shadow-light);
+      margin-bottom: 25px;
+      padding: 25px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Toggle Sections */
+    .add-section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-bottom: 15px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: bold;
+      color: var(--primary-color);
+      font-size: 1.1rem;
+      transition: color 0.2s ease;
+    }
+    .add-section-toggle:hover {
+      color: var(--primary-dark);
+    }
+    .add-section-toggle .toggle-icon {
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      transition: background 0.2s ease;
+    }
+    .add-section-toggle .toggle-icon:hover { background: var(--primary-dark); }
+
+    .add-section {
+      max-width: 600px;
+      margin-right: auto;
+      margin-left: auto;
+      display: none;
+      animation: fadein 0.3s ease-out;
+      border: 1px solid var(--border-color);
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .add-section form { display: flex; flex-direction: column; gap: 15px;}
+    .add-section label { font-size: 1rem; color: var(--text-color); margin-bottom: 5px; font-weight: 500;}
+    .add-section input, .add-section select, .add-section textarea {
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--background-mid);
+      color: var(--text-color);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .add-section input:focus, .add-section select:focus, .add-section textarea:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    .add-section .btn { margin-top: 15px; padding: 12px 0; font-size: 1.1rem; }
+
+    /* Search Box */
+    .search-box {
+      width: 100%;
+      max-width: 400px;
+      margin: 15px 0 25px 0;
+      padding: 12px 18px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--background-mid);
+      color: var(--text-color);
+      box-sizing: border-box; /* Ensure padding doesn't increase width */
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .search-box:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    /* Student Details */
+    #selectedStudentDetails {
+      background: var(--surface-color);
+      padding: 25px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-top: 25px;
+      display: none;
+      box-shadow: var(--shadow-light);
+    }
+    #selectedStudentDetails h3 {
+      color: var(--primary-color);
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-align: right;
+    }
+    #selectedStudentDetails p { margin-bottom: 10px; font-size: 1rem; color: var(--text-color); text-align: right;}
+    #selectedStudentDetails p strong { color: var(--primary-dark);}
+    #selectedStudentDetails textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: var(--background-mid);
+      color: var(--text-color);
+      resize: vertical;
+      margin-top: 5px;
+      box-sizing: border-box;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    #selectedStudentDetails textarea:focus {
+      border-color: var(--primary-color);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    #selectedStudentDetails .btn {
+      margin-top: 10px;
+      padding: 8px 20px;
+      font-size: 0.95rem;
+    }
+
+    /* Levels Grid */
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .level-item {
+      display: flex;
+      align-items: center;
+      background: var(--background-mid);
+      padding: 12px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .level-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .level-item input[type="checkbox"] {
+      margin-left: 10px;
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      accent-color: var(--primary-color); /* Style checkbox itself */
+    }
+    .level-item label {
+      font-size: 0.98rem;
+      color: var(--text-color);
+      font-weight: 500;
+      flex-grow: 1;
+      cursor: pointer;
+    }
+
+    /* Level-specific colors (enhance with modern hues) */
+    .level-color-1 { background: #eef7ff !important; border-color: #cce3f9;}
+    .level-color-2 { background: #fff2ee !important; border-color: #f9d8c9;}
+    .level-color-3 { background: #eafaea !important; border-color: #d1f1d1;}
+    .level-color-4 { background: #fffbe6 !important; border-color: #f9efc8;}
+    .level-color-5 { background: #f7eaff !important; border-color: #e5c9f9;}
+    .level-color-6 { background: #e0f8f8 !important; border-color: #c9f0f0;}
+    .level-color-7 { background: #ffebeb !important; border-color: #f9d1d1;}
+
+    /* Tables */
+    .table-wrapper {
+      margin-top: 25px;
+      border-radius: 12px;
+      box-shadow: var(--shadow-medium);
+      overflow-x: auto;
+      background: var(--surface-color);
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate; /* Use separate for border-radius on cells */
+      border-spacing: 0;
+      min-width: 700px;
+    }
+
+    th, td {
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 0.95rem;
+      border-bottom: 1px solid var(--border-color);
+      white-space: nowrap;
+      vertical-align: middle;
+    }
+
+    th {
+      background: var(--primary-color);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0; /* Sticky header */
+      z-index: 1; /* Ensure header stays above scrolled content */
+    }
+    /* Rounded corners for table header */
+    th:first-child { border-top-left-radius: 12px; }
+    th:last-child { border-top-right-radius: 12px; }
+
+    tbody tr:hover {
+      background-color: var(--background-mid);
+      cursor: pointer;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+    /* Rounded corners for table body last row */
+    tbody tr:last-child td:first-child { border-bottom-left-radius: 12px; }
+    tbody tr:last-child td:last-child { border-bottom-right-radius: 12px; }
+
+    /* Summary Status Badges */
+    .summary-status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: bold;
+      display: inline-block;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+    .summary-status.submitted {
+      background-color: #e3f6ed;
+      color: #219e4b;
+      border-color: #b7eecd;
+    }
+    .summary-status.draft {
+      background-color: #fff4e0;
+      color: #b96d0d;
+      border-color: #ffe0b2;
+    }
+
+    /* Summary Details Box */
+    .summary-details-box {
+      background-color: var(--surface-color);
+      margin: 30px auto;
+      padding: 30px;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: var(--shadow-medium);
+      text-align: right;
+      box-sizing: border-box;
+      display: none;
+      animation: fadein 0.3s ease-out;
+    }
+    .summary-details-box h4 {
+      color: var(--primary-dark);
+      margin-top:0;
+      margin-bottom: 20px;
+      font-size: 1.4rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .summary-details-box .summary-content-display {
+      white-space: pre-wrap;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1rem;
+      line-height: 1.8;
+      color: var(--text-color);
+      max-height: 45vh;
+      overflow-y: auto;
+      direction: rtl;
+      word-break: break-word;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+      background: var(--background-mid);
+      border-radius: 10px;
+    }
+    .summary-details-box .form-group {
+        margin-bottom: 20px;
+    }
+    .summary-details-box .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: var(--text-color);
+        font-size: 1rem;
+    }
+    .summary-details-box .form-group textarea,
+    .summary-details-box .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        background: var(--background-mid);
+        color: var(--text-color);
+        box-sizing: border-box;
+        resize: vertical;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .summary-details-box .form-group input:focus,
+    .summary-details-box .form-group textarea:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+    .summary-details-box .form-group textarea { height: 90px; }
+    .summary-details-box .form-group .btn {
+        margin-top: 10px;
+        padding: 8px 20px;
+        font-size: 0.95rem;
+    }
+    .summary-details-box .close-box-btn {
+        background: var(--danger-color);
+        margin-top: 25px;
+        padding: 10px 40px;
+    }
+    .summary-details-box .close-box-btn:hover {
+        background: var(--danger-dark);
+    }
+
+    /* Notification Bell & Panel Styles (NEW for Teacher Dashboard) */
+    .notification-bell {
+        position: relative;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #fff;
+        margin-right: 25px; /* Space from logout button */
+        transition: transform 0.2s ease;
+    }
+    .notification-bell:hover {
+        transform: scale(1.1);
+    }
+    .notification-badge {
+        position: absolute;
+        top: -8px;
+        right: -12px;
+        background-color: var(--danger-color); /* Red for unread count */
+        color: white;
+        border-radius: 50%;
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        line-height: 1;
+        min-width: 15px;
+        text-align: center;
+        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        z-index: 101; /* Above bell */
+    }
+    .notification-panel {
+        display: none; /* Hidden by default */
+        position: absolute;
+        top: 60px; /* Adjust based on header height */
+        right: 15px; /* Aligned with right edge of nav */
+        width: 350px;
+        max-height: 450px;
+        overflow-y: auto;
+        background-color: var(--surface-color);
+        border-radius: 12px;
+        box-shadow: var(--shadow-medium);
+        z-index: 1000;
+        padding: 20px;
+        text-align: right;
+        border: 1px solid var(--border-color);
+        box-sizing: border-box;
+        animation: slideInFromTop 0.3s ease-out;
+    }
+    @keyframes slideInFromTop {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .notification-panel h5 {
+        margin-top: 0;
+        margin-bottom: 18px;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        text-align: right;
+    }
+    .notification-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--background-mid);
+        font-size: 0.95rem;
+        color: var(--text-color);
+        line-height: 1.5;
+        position: relative;
+    }
+    .notification-item:last-child {
+        border-bottom: none;
+    }
+    .notification-item.unread {
+        background-color: var(--background-mid); /* Light background for unread */
+        font-weight: bold;
+        padding: 12px;
+        margin: 0 -20px; /* Extend background to panel edges */
+        border-radius: 5px;
+    }
+    .notification-item .sender-info {
+        font-size: 0.9em;
+        color: var(--light-text-color);
+        margin-top: 5px;
+        display: block;
+    }
+    .notification-item .timestamp {
+        font-size: 0.8em;
+        color: var(--light-text-color);
+        margin-top: 5px;
+        display: block;
+        text-align: left; /* Align timestamp to the left */
+    }
+    .notification-item .mark-read-btn {
+        background: var(--secondary-color);
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        margin-top: 10px;
+        display: inline-block;
+        transition: background 0.2s ease;
+    }
+    .notification-item .mark-read-btn:hover {
+        background: var(--secondary-dark);
+    }
+
+    /* Responsive adjustments */
     @media (max-width: 768px) {
         .main-nav {
             flex-wrap: wrap;
@@ -543,148 +639,115 @@ tbody tr:last-child td {
             margin-bottom: 5px;
             gap: 10px;
         }
-        .main-nav .nav-links {
-            order: 2;
+        .main-nav .nav-links { order: 2; }
+        .main-nav .nav-brand { order: 1; margin-bottom: 10px; }
+        .main-nav .nav-actions { order: 3; margin-bottom: 0; }
+        .main-nav .nav-link { font-size: 0.95rem; padding: 6px 10px; }
+        .main-nav .center-logo { height: 35px; margin-right: 0; }
+        body { padding-top: 130px; }
+        .notification-bell { margin-right: 15px; } /* Adjust spacing */
+        .notification-panel {
+            width: 95%;
+            left: 2.5%;
+            right: 2.5%;
+            top: 120px; /* Adjust top position for responsive nav */
         }
-        .main-nav .nav-brand {
-            order: 1;
-            margin-bottom: 10px;
+        .notification-item.unread {
+          padding: 12px 8px; /* Reduce horizontal padding */
+          margin: 0 -12px; /* Adjust margin to fit panel */
         }
-        .main-nav .nav-actions {
-            order: 3;
-            margin-bottom: 0;
-        }
-        .main-nav .nav-link {
-            font-size: 0.95rem;
-            padding: 6px 10px;
-        }
-        .main-nav .center-logo {
-            height: 35px;
-            margin-right: 0;
-        }
-        body {
-            padding-top: 130px;
-        }
+        .container { padding: 0 10px; }
+        h2 { font-size: 1.4rem; }
+        h3 { font-size: 1.1rem; }
+        h4 { font-size: 1.2rem; }
+        .add-section, .students-area, .lessons-area, #selectedStudentDetails { padding: 15px; }
+        .add-section input, .add-section select, .add-section textarea { padding: 10px; }
+        .btn { padding: 8px 18px; }
+        th, td { padding: 10px 8px; font-size: 0.9rem; }
+        .levels-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+        .level-item { padding: 10px; }
     }
 
     @media (max-width: 480px) {
-        .main-nav .nav-links {
-            gap: 10px;
-        }
-        .main-nav .nav-link {
-            font-size: 0.9rem;
-            padding: 5px 8px;
-        }
-        body {
-            padding-top: 120px;
-        }
-        /* Make summary-details-box responsive */
-        .summary-details-box {
-            width: 100%;
-            margin: 10px auto;
-            padding: 10px;
-            border-radius: 0;
-            box-shadow: none;
-        }
+        .main-nav .nav-links { gap: 8px; }
+        .main-nav .nav-link { font-size: 0.85rem; padding: 5px 8px; }
+        body { padding-top: 110px; }
+        .notification-panel { top: 100px; } /* Further adjust top for smaller screens */
     }
 
-    /* Dark Mode for general elements */
-    .dark-mode {
-        background: #23272f;
-        color: #e0e0e0;
+    /* Dark Mode specific overrides */
+    .dark-mode .main-nav { background: var(--background-mid); box-shadow: var(--shadow-medium); }
+    .dark-mode .main-nav .nav-link:hover, .dark-mode .main-nav .nav-link.active { background-color: var(--surface-color); }
+    .dark-mode .add-section-toggle .toggle-icon { background: var(--primary-dark); }
+    .dark-mode .add-section-toggle .toggle-icon:hover { background: var(--primary-dark); }
+    .dark-mode .container, .dark-mode .students-area, .dark-mode .lessons-area, .dark-mode .add-section, .dark-mode #selectedStudentDetails, .dark-mode .table-wrapper {
+      background: var(--surface-color);
+      color: var(--text-color);
+      box-shadow: var(--shadow-light);
+      border-color: var(--border-color);
     }
-    .dark-mode .container,
-    .dark-mode .students-area,
-    .dark-mode .lessons-area,
-    .dark-mode .add-section,
-    .dark-mode #selectedStudentDetails,
-    .dark-mode .table-wrapper {
-        background: #323946;
-        color: #e0e0e0;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode #selectedStudentDetails p strong { color: var(--primary-color); }
+    .dark-mode .btn { background: var(--primary-dark); color: #fff; }
+    .dark-mode .btn:hover { background: var(--primary-color); }
+    .dark-mode .signout, .dark-mode .delete-btn { background: var(--danger-dark); }
+    .dark-mode .signout:hover, .dark-mode .delete-btn:hover { background: var(--danger-color); }
+    .dark-mode input, .dark-mode select, .dark-mode textarea {
+      background: var(--background-light);
+      border-color: var(--border-color);
+      color: var(--text-color);
     }
-    .dark-mode h2,
-    .dark-mode h3,
-    .dark-mode h4,
-    .dark-mode #selectedStudentDetails p strong {
-        color: #8cafff;
+    .dark-mode input:focus, .dark-mode select:focus, .dark-mode textarea:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(90, 123, 228, 0.2); /* Adjust shadow for dark mode primary color */
     }
-    .dark-mode .btn {
-        background: #4a576b;
-        color: #fff;
+    .dark-mode th { background: var(--primary-dark); color: #fff; }
+    .dark-mode td { border-bottom-color: var(--border-color); color: var(--text-color); }
+    .dark-mode tbody tr:hover { background-color: var(--background-mid); }
+    .dark-mode .summary-status.submitted { background-color: var(--secondary-dark); color: #fff; border-color: var(--secondary-dark); }
+    .dark-mode .summary-status.draft { background-color: #a36f00; color: #fff; border-color: #8c5d00; } /* Darker yellow/orange */
+    .dark-mode .toast { background-color: var(--background-mid); color: var(--text-color); }
+    .dark-mode .level-item { background: var(--background-mid) !important; border-color: var(--border-color); }
+    .dark-mode .level-item label { color: var(--text-color); }
+    .dark-mode .edit-btn { background: var(--primary-dark); }
+    .dark-mode .edit-btn:hover { background: var(--primary-color); }
+    .dark-mode .save-btn { background: var(--secondary-dark); }
+    .dark-mode .save-btn:hover { background: var(--secondary-color); }
+    .dark-mode .cancel-btn { background: var(--danger-dark); }
+    .dark-mode .cancel-btn:hover { background: var(--danger-color); }
+
+    /* Dark Mode for notification panel */
+    .dark-mode .notification-panel {
+      background-color: var(--surface-color);
+      border-color: var(--border-color);
+      box-shadow: var(--shadow-medium);
     }
-    .dark-mode .btn:hover {
-        background: #5a6b7e;
+    .dark-mode .notification-panel h5 {
+      color: var(--primary-color);
+      border-bottom-color: var(--border-color);
     }
-    .dark-mode .signout,
-    .dark-mode .delete-btn {
-        background: #a40b2b;
+    .dark-mode .notification-item {
+      color: var(--text-color);
+      border-bottom-color: var(--background-mid);
     }
-    .dark-mode .signout:hover,
-    .dark-mode .delete-btn:hover {
-        background: #c02b41;
+    .dark-mode .notification-item.unread {
+      background-color: var(--background-mid);
     }
-    .dark-mode .add-section-toggle .toggle-icon {
-        background: #4a576b;
+    .dark-mode .notification-item .sender-info,
+    .dark-mode .notification-item .timestamp {
+        color: var(--light-text-color);
     }
-    .dark-mode .add-section-toggle .toggle-icon:hover {
-        background: #5a6b7e;
+    .dark-mode .notification-item .mark-read-btn {
+        background: var(--secondary-dark);
     }
-    .dark-mode input,
-    .dark-mode select,
-    .dark-mode textarea {
-        background: #2b3547;
-        border-color: #4a576b;
-        color: #e0e0e0;
+    .dark-mode .notification-item .mark-read-btn:hover {
+        background: var(--secondary-color);
     }
-    .dark-mode input:focus,
-    .dark-mode select:focus,
-    .dark-mode textarea:focus {
-        border-color: #8cafff;
-    }
-    .dark-mode th {
-        background: #2b3547;
-        color: #fff;
-    }
-    .dark-mode td {
-        border-bottom-color: #4a576b;
-        color: #e0e0e0;
-    }
-    .dark-mode tbody tr:hover {
-        background-color: #3a455a;
-    }
-    .dark-mode .summary-status.submitted {
-        background-color: #1a6b3d;
-        color: #e3f6ed;
-        border-color: #159b79;
-    }
-    .dark-mode .summary-status.draft {
-        background-color: #7a460b;
-        color: #fff4e0;
-        border-color: #b96d0d;
-    }
-    .dark-mode .toast {
-        background-color: #222f3e;
-        color: #fff;
-    }
-    .dark-mode .level-item {
-        background: #2b3547 !important;
-        border-color: #4a576b;
-    }
-    .dark-mode .level-item label {
-        color: #e0e0e0;
-    }
-    .dark-mode .edit-btn { background:#4a576b; }
-    .dark-mode .edit-btn:hover { background:#5a6b7e; }
-    .dark-mode .save-btn { background:#1a6b3d; }
-    .dark-mode .save-btn:hover { background:#159b79; }
-    .dark-mode .cancel-btn { background:#a40b2b; }
-    .dark-mode .cancel-btn:hover { background:#c02b41; }
+
   </style>
 </head>
 <body>
-  <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
-  V20
+  <div style="background:var(--background-mid);color:var(--light-text-color);padding:7px 0;text-align:center;font-size:0.9rem;border-bottom:1px solid var(--border-color);">
+  V20.1 - تصميم جديد
 </div>
   <nav class="main-nav">
     <div class="nav-brand">
@@ -715,7 +778,7 @@ tbody tr:last-child td {
     <div id="toast" class="toast"></div>
     <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
       <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
-      <span style="font-weight:bold;">إضافة طالب جديد</span>
+      <span>إضافة طالب جديد</span>
     </div>
     <div class="add-section" id="addStudentSection">
       <h3>إضافة طالب جديد</h3>
@@ -733,7 +796,7 @@ tbody tr:last-child td {
 
     <div class="add-section-toggle" onclick="toggleSection('addLessonSection')">
       <span class="toggle-icon" id="addLessonToggleIcon">➕</span>
-      <span style="font-weight:bold;">إضافة درس جديد</span>
+      <span>إضافة درس جديد</span>
     </div>
     <div class="add-section" id="addLessonSection">
       <h3>إضافة درس جديد</h3>
@@ -755,7 +818,7 @@ tbody tr:last-child td {
 
     <div class="add-section-toggle" onclick="toggleSection('sendNotificationSection')">
       <span class="toggle-icon" id="sendNotificationToggleIcon">🔔</span>
-      <span style="font-weight:bold;">إرسال إشعار جديد</span>
+      <span>إرسال إشعار جديد</span>
     </div>
     <div class="add-section" id="sendNotificationSection">
       <h3>إرسال إشعار جديد</h3>
@@ -787,7 +850,7 @@ tbody tr:last-child td {
         <button class="btn delete-btn" id="deleteStudentBtn" onclick="confirmDeleteStudent()" style="display:none; margin-right:10px;">حذف الطالب</button>
       </div>
 
-      <div id="selectedStudentDetails" style="background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; margin-top: 20px; display: none;">
+      <div id="selectedStudentDetails" style="background: var(--surface-color); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); margin-top: 25px; display: none; box-shadow: var(--shadow-light);">
         <h3>تفاصيل الطالب المحدد:</h3>
         <p><strong>الاسم:</strong> <span id="detailName"></span></p>
         <p><strong>البريد الإلكتروني:</strong> <span id="detailEmail"></span></p>
@@ -795,7 +858,7 @@ tbody tr:last-child td {
 
         <p>
             <strong>حالة القبول:</strong>
-            <select id="detailAcceptedStatus" onchange="updateStudentAdmission(this.value)" style="padding: 5px 8px; border: 1px solid #c5c9d2; border-radius: 5px; font-size: 0.95rem; margin-right: 10px;">
+            <select id="detailAcceptedStatus" onchange="updateStudentAdmission(this.value)" style="padding: 5px 8px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 0.95rem; margin-right: 10px; background: var(--background-mid); color: var(--text-color);">
                 <option value="pending">قيد المراجعة</option>
                 <option value="accepted">مقبول</option>
                 <option value="rejected">مرفوض</option>
@@ -803,8 +866,8 @@ tbody tr:last-child td {
         </p>
         <p style="margin-top: 15px;">
             <strong>ملاحظات المعلم:</strong>
-            <textarea id="detailTeacherNotes" onblur="saveTeacherNotes()" style="width: 98%; height: 80px; padding: 8px; border: 1px solid #c5c9d2; border-radius: 6px; font-size: 1rem; resize: vertical; margin-top: 5px;"></textarea>
-            <button class="btn" onclick="saveTeacherNotes()" style="padding: 5px 15px; font-size: 0.9rem; margin-top: 5px;">حفظ الملاحظات</button>
+            <textarea id="detailTeacherNotes" onblur="saveTeacherNotes()" style="width: 100%; height: 100px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 1rem; resize: vertical; margin-top: 5px; box-sizing: border-box; background: var(--background-mid); color: var(--text-color);"></textarea>
+            <button class="btn" onclick="saveTeacherNotes()" style="padding: 8px 20px; font-size: 0.95rem; margin-top: 10px;">حفظ الملاحظات</button>
         </p>
 
 
@@ -814,11 +877,11 @@ tbody tr:last-child td {
         <div id="examsTableWrapper"></div>
         <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
         <div style="margin-bottom: 15px; text-align: right;">
-            <label for="summaryFilterStatus" style="font-weight:bold; margin-left: 10px;">تصفية حسب الحالة:</label>
-            <select id="summaryFilterStatus" onchange="filterSummariesTable()" style="padding: 5px 8px; border-radius: 5px; border: 1px solid #c5c9d2;">
+            <label for="summaryFilterStatus" style="font-weight:bold; margin-left: 10px; color: var(--text-color);">تصفية حسب الحالة:</label>
+            <select id="summaryFilterStatus" onchange="filterSummariesTable()" style="padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-color); background: var(--background-mid); color: var(--text-color);">
                 <option value="all">الكل</option>
                 <option value="submitted">تم التسليم</option>
-                <option value="all">مسودة</option>
+                <option value="draft">مسودة</option>
             </select>
         </div>
         <div id="summariesTableWrapper"></div>
@@ -826,21 +889,21 @@ tbody tr:last-child td {
         <div id="summaryDetailsBox" class="summary-details-box">
             <h4 id="summaryDetailsTitle"></h4>
             <div class="form-group">
-                <label>نص التلخيص:</label>
+                <label style="color: var(--text-color);">نص التلخيص:</label>
                 <div id="summaryDetailsContent" class="summary-content-display"></div>
             </div>
             <div class="form-group">
-                <label for="summaryDetailsComment">تعليق المعلم:</label>
+                <label for="summaryDetailsComment" style="color: var(--text-color);">تعليق المعلم:</label>
                 <textarea id="summaryDetailsComment" class="summary-detail-input" placeholder="اكتب تعليقك هنا..."></textarea>
                 <button class="btn" id="saveSummaryDetailsCommentBtn">حفظ التعليق</button>
             </div>
             <div id="studentReplySection" class="form-group" style="display:none;">
-                <label>رد الطالب:</label>
+                <label style="color: var(--text-color);">رد الطالب:</label>
                 <div id="summaryDetailsStudentReply" class="summary-content-display"></div>
                 <button class="btn delete-btn" id="clearStudentReplyBtn">مسح رد الطالب</button>
             </div>
             <div class="form-group">
-                <label for="summaryDetailsMark">تعديل العلامة:</label>
+                <label for="summaryDetailsMark" style="color: var(--text-color);">تعديل العلامة:</label>
                 <input type="number" id="summaryDetailsMark" class="summary-detail-input mark" min="0" max="100" placeholder="العلامة">
                 <button class="btn" id="saveSummaryDetailsMarkBtn">حفظ العلامة</button>
             </div>
@@ -874,7 +937,7 @@ tbody tr:last-child td {
 
   <script>
     // Toast & Loading
-    function showToast(msg, color="#3b5cb8") {
+    function showToast(msg, color="var(--primary-color)") {
       const toast = document.getElementById("toast");
       toast.innerText = msg;
       toast.style.background = color;
@@ -1025,7 +1088,7 @@ tbody tr:last-child td {
 
         // Listener for notifications addressed to the teacher's email or 'all'
         teacherNotificationsListenerUnsubscribe = firestore.collection('notifications')
-            .where('recipient_email', 'in', [teacherLoggedInEmail, 'all'])
+            .where('recipient_email', 'in', [teacherLoggedInEmail, 'all', 'saad.abushendi@gmail.com']) // Added hardcoded admin email for flexibility if teacher's actual email differs
             .orderBy('timestamp', 'desc')
             .onSnapshot(function(snapshot) {
                 teacherNotificationsData = []; // Clear and repopulate
@@ -1056,30 +1119,49 @@ tbody tr:last-child td {
         }
 
         if (notifications.length === 0) {
-            notificationsListDiv.innerHTML = '<p style="text-align: center; color: #888;">لا توجد إشعارات حالياً.</p>';
+            notificationsListDiv.innerHTML = '<p style="text-align: center; color: var(--light-text-color);">لا توجد إشعارات حالياً.</p>';
             return;
         }
 
         let html = '';
         notifications.forEach(n => {
-            const timestamp = n.timestamp ? new Date(n.timestamp.toDate()).toLocaleString('ar-EG') : '';
-            // Construct message for student-sent notifications
-            let messageContent = n.message;
+            let timestampText = '';
+            if (n.timestamp && n.timestamp.toDate) {
+                try {
+                    timestampText = new Date(n.timestamp.toDate()).toLocaleString('ar-EG');
+                } catch (e) {
+                    console.error("Error parsing notification timestamp:", n.id, n.timestamp, e);
+                    timestampText = '(تاريخ غير صالح)';
+                }
+            } else if (n.timestamp) { // If it's a non-Firestore timestamp object
+                try {
+                    timestampText = new Date(n.timestamp).toLocaleString('ar-EG');
+                } catch (e) {
+                    console.error("Error parsing notification timestamp (non-Firestore obj):", n.id, n.timestamp, e);
+                    timestampText = '(تاريخ غير صالح)';
+                }
+            } else {
+                timestampText = '(لا يوجد تاريخ)';
+            }
+            
+            // Construct message based on notification_type and available data
+            let messageContent = n.message; // Default to generic message
             if (n.notification_type === 'summary_submitted' && n.sender_name && n.related_name) {
                 messageContent = `قام الطالب ${n.sender_name} بتسليم تلخيص جديد لدرس "${n.related_name}".`;
             } else if (n.notification_type === 'student_reply' && n.sender_name && n.related_name) {
                 messageContent = `قام الطالب ${n.sender_name} بالرد على تعليقك في درس "${n.related_name}".`;
             } else if (n.notification_type === 'mark_update' && n.sender_name && n.related_name) {
-                 messageContent = `قام المعلم ${n.sender_name} بوضع علامة جديدة لدرس "${n.related_name}".`; // This should be from teacher, but for robustness
+                 messageContent = `قام المعلم ${n.sender_name} بوضع علامة جديدة لدرس "${n.related_name}".`; 
             } else if (n.notification_type === 'level_open' && n.sender_name && n.related_name) {
-                 messageContent = `قام المعلم ${n.sender_name} بفتح ${n.related_name} للطالب.`; // This should be from teacher
+                 messageContent = `قام المعلم ${n.sender_name} بفتح ${n.related_name} للطالب.`; 
+            } else if (n.sender_name && n.message) { // Generic from student
+                messageContent = `إشعار من الطالب ${n.sender_name}: ${n.message}`;
             }
-
 
             html += `
                 <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
-                    <p style="margin: 0;">${messageContent}</p>
-                    <span class="timestamp">${timestamp}</span>
+                    <p style="margin: 0; word-wrap: break-word;">${messageContent}</p>
+                    <span class="timestamp">${timestampText}</span>
                     ${!n.is_read ? `<button class="mark-read-btn" onclick="markTeacherNotificationAsRead('${n.id}')">قراءة</button>` : ''}
                 </div>
             `;
@@ -2094,6 +2176,10 @@ async function sendNotification(e) {
         teacherSummariesListenerUnsubscribe();
         teacherSummariesListenerUnsubscribe = null;
       }
+      if (teacherNotificationsListenerUnsubscribe) { // NEW: Unsubscribe teacher notifications listener
+          teacherNotificationsListenerUnsubscribe();
+          teacherNotificationsListenerUnsubscribe = null;
+      }
       auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
         console.error("خطأ في تسجيل الخروج:", error);
       });
