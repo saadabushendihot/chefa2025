@@ -178,7 +178,7 @@
     #nightModeBtn {background:#323946;margin-right:10px;}
 
     /* New styles for teacher comment display */
-    .teacher-comment-display {
+    .teacher-comment-display, .student-reply-display { /* Combined styles */
       background: #f0f2f5;
       padding: 10px;
       border-radius: 8px;
@@ -187,20 +187,61 @@
       color: #333;
       border: 1px solid #e0e4e8;
       line-height: 1.6;
+      word-break: break-word; /* Ensure long words break */
     }
-    .teacher-comment-display strong {
+    .teacher-comment-display strong, .student-reply-display strong {
       color: #294169;
       display: block;
       margin-bottom: 5px;
     }
-    .dark-mode .teacher-comment-display {
+    .dark-mode .teacher-comment-display, .dark-mode .student-reply-display {
       background: #2b3547;
       border-color: #4a576b;
       color: #e0e0e0;
     }
-    .dark-mode .teacher-comment-display strong {
+    .dark-mode .teacher-comment-display strong, .dark-mode .student-reply-display strong {
       color: #8cafff;
     }
+
+    /* Style for reply textarea */
+    .reply-area {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px dashed #e0e4e8;
+    }
+    .reply-area label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+        color: #294169;
+    }
+    .reply-area textarea {
+        width: 98%;
+        height: 60px;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #b7c0d6;
+        resize: vertical;
+        font-size: 1rem;
+        box-sizing: border-box;
+        background: #fff;
+        font-family: 'Cairo','Tajawal',Arial,sans-serif;
+        color: #1b2a39;
+    }
+    .reply-area .btn {
+        margin-top: 8px;
+        padding: 6px 15px;
+        font-size: 0.95rem;
+    }
+    .dark-mode .reply-area label {
+        color: #e0e0e0;
+    }
+    .dark-mode .reply-area textarea {
+        background: #2b3547;
+        border-color: #4a576b;
+        color: #e0e0e0;
+    }
+
   </style>
 </head>
 <body>
@@ -997,7 +1038,7 @@
     function renderSummariesLessonsUI(lessons, summariesMap) {
       let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
       lessons.forEach(function(lesson){
-        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft", teacher_comment: "" }; // Lookup by lesson.id, ensure teacher_comment exists
+        let sum = summariesMap[lesson.id] || { summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" }; // Lookup by lesson.id, ensure teacher_comment & student_reply_comment exist
         let submitted = sum.status === 'submitted';
 
         // تحديد العلامة للعرض بناءً على حالة التلخيص والعلامة المجلوبة
@@ -1044,6 +1085,16 @@
             <div class="teacher-comment-display">
                 <strong>ملاحظة المعلم:</strong> ${sum.teacher_comment}
             </div>
+            <div class="reply-area">
+                <label for="studentreply_${sum.docId}">ردك على المعلم:</label>
+                <textarea id="studentreply_${sum.docId}" placeholder="اكتب ردك هنا...">${sum.student_reply_comment || ''}</textarea>
+                <button class="btn" onclick="saveStudentReply('${sum.docId}')">حفظ الرد</button>
+            </div>
+          ` : ''}
+          ${submitted && sum.student_reply_comment && !sum.teacher_comment ? `
+            <div class="student-reply-display">
+                <strong>ردك السابق:</strong> ${sum.student_reply_comment}
+            </div>
           ` : ''}
           <div class="summary-actions">
             <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
@@ -1055,6 +1106,28 @@
         `;
       });
       document.getElementById('lessonsSummariesArea').innerHTML = html;
+    }
+
+    // [NEW] Function to save student reply to teacher's comment
+    function saveStudentReply(summaryDocId) {
+        const replyTextarea = document.getElementById(`studentreply_${summaryDocId}`);
+        const replyText = sanitizeText(replyTextarea.value.trim());
+
+        if (!replyText) {
+            showToast("يرجى كتابة الرد أولاً.", "#e63946");
+            return;
+        }
+
+        firestore.collection('summaries').doc(summaryDocId).update({
+            student_reply_comment: replyText
+        }).then(() => {
+            showToast("تم حفظ ردك بنجاح!", "#1dad87");
+            // Update local data and re-render if necessary
+            loadStudentData(currentStudentEmail, currentStudentName);
+        }).catch(error => {
+            showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "#e63946");
+            console.error("Error saving student reply:", error);
+        });
     }
 
     // حفظ المسودة
