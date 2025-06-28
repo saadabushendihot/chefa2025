@@ -605,15 +605,19 @@
     }
 
     function setupNotificationsListener() {
-        if (!currentStudentUid) return;
+        if (!currentStudentEmail) { // Ensure currentStudentEmail is loaded
+            console.warn("currentStudentEmail not yet available for notifications listener.");
+            return;
+        }
 
         // Unsubscribe from previous listener if exists
         if (notificationsListenerUnsubscribe) {
             notificationsListenerUnsubscribe();
         }
 
+        // Corrected query to filter by recipient_email or 'all'
         notificationsListenerUnsubscribe = firestore.collection('notifications')
-            .where('userId', '==', currentStudentUid)
+            .where('recipient_email', 'in', [currentStudentEmail, 'all'])
             .orderBy('timestamp', 'desc')
             .onSnapshot(function(snapshot) {
                 let notifications = [];
@@ -621,7 +625,7 @@
                 snapshot.forEach(doc => {
                     const notification = { ...doc.data(), id: doc.id };
                     notifications.push(notification);
-                    if (!notification.isRead) {
+                    if (!notification.is_read) { // Use is_read as per Firestore document
                         unreadCount++;
                     }
                 });
@@ -652,10 +656,10 @@
         notifications.forEach(n => {
             const timestamp = n.timestamp ? new Date(n.timestamp.toDate()).toLocaleString('ar-EG') : '';
             html += `
-                <div class="notification-item ${n.isRead ? '' : 'unread'}" data-id="${n.id}">
+                <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
                     ${n.message}
                     <span class="timestamp">${timestamp}</span>
-                    ${!n.isRead ? `<button class="mark-read-btn" onclick="markNotificationAsRead('${n.id}')">قراءة</button>` : ''}
+                    ${!n.is_read ? `<button class="mark-read-btn" onclick="markNotificationAsRead('${n.id}')">قراءة</button>` : ''}
                 </div>
             `;
         });
@@ -664,7 +668,7 @@
 
     function markNotificationAsRead(notificationId) {
         firestore.collection('notifications').doc(notificationId).update({
-            isRead: true
+            is_read: true // Use is_read as per Firestore document
         }).catch(error => {
             console.error("Error marking notification as read:", error);
             showToast("خطأ في تحديث حالة الإشعار: " + error.message, "#e63946");
