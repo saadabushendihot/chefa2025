@@ -10,6 +10,7 @@
   <script src="firebase-config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <style>
     /* Material Design Variables */
     :root {
@@ -45,7 +46,7 @@
       --background: #121212;
       --surface: #1e1e1e;
       --error: #cf6679;
-      --on-primary: #000000;
+      --on-primary: #ffffff; /* Corrected to white for dark mode visibility */
       --on-secondary: #000000;
       --on-background: #ffffff;
       --on-surface: #ffffff;
@@ -58,7 +59,7 @@
 
     /* Base Styles */
     body {
-      font-family: 'Tajawal', 'Roboto', sans-serif;
+      font-family: 'Tajawal', 'Cairo', Arial, sans-serif; /* Changed font to Cairo */
       margin: 0;
       background-color: var(--background);
       color: var(--text-primary);
@@ -291,6 +292,10 @@
       background-position: right 8px center;
       background-size: 24px;
       padding-right: 32px;
+    }
+    /* Dark mode select arrow */
+    .dark-mode .form-select {
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
     }
 
     textarea.form-control {
@@ -1121,8 +1126,8 @@
             panel.style.display = 'none';
         } else {
             // Position the panel dynamically
-            // (Removed panel.style.right = (window.innerWidth - bellRect.right) + 'px'; as CSS handles it)
-            panel.style.top = (bellRect.bottom + 5) + 'px'; // 5px below the bell
+            panel.style.top = (bellIcon.getBoundingClientRect().bottom + 5) + 'px'; // 5px below the bell
+            // CSS handles right/left positioning: `right: 16px; left: auto;` or `left: 16px; right: 16px;` for mobile.
 
             panel.style.display = 'block';
             // Mark all currently displayed notifications as read when panel is opened
@@ -1669,7 +1674,8 @@
             await firestore.collection('lessons').doc(docId).delete();
             showToast('تم حذف الدرس بنجاح!', 'var(--secondary-color)');
             loadLessons();
-        } catch (error) {
+        } <<<<<<< Updated upstream
+catch (error) {
             showToast('خطأ في حذف الدرس: ' + error.message, 'var(--error)');
             console.error('Error deleting lesson:', error);
         } finally {
@@ -1719,7 +1725,7 @@
         loadLessons();
         setTimeout(()=>{msg.innerText='';}, 1500);
       }).catch(function(err){
-        msg.innerText = "خطأ أثناء التحديث: " + err.message;
+        msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
       });
     }
 
