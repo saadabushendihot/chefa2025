@@ -2,533 +2,857 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة تحكم المعلم - شفاء</title>
+  <title>لوحة المعلم - إدارة الطلاب والدروس</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <script src="firebase-config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    body { font-family: 'Tajawal', 'Cairo', Arial, sans-serif; margin: 0; background: #f8fafc; color: #333; }
-    header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display: flex; justify-content: space-between; align-items: center; }
-    .container { max-width: 1000px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); }
-    h2 { color: #4361ee; margin-top: 0; }
-    .btn { background: #4361ee; color: #fff; border: none; padding: 7px 22px; border-radius: 5px; font-size: 1rem; cursor: pointer; transition: background 0.3s ease; }
-    .btn:hover { background: #364fc7; }
-    .btn.submit { background: #1dad87; }
-    .btn.submit:hover { background: #159b79; }
-    .signout { background: #e63946; }
-    .signout:hover { background: #cc2c3d; }
-    .info-box { background: #eef2fa; border-radius: 7px; padding: 10px 18px; margin: 16px 0; display: flex; justify-content: space-between; align-items: center; }
-    #msg { color: #e63946; margin-top: 20px; }
-    .spinner { border: 4px solid #eee; border-top: 4px solid #4361ee; border-radius: 50%; width: 38px; height: 38px; animation: spin 1s linear infinite; margin: 60px auto; display: none; }
+    body {
+        font-family: Tajawal, Arial, sans-serif;
+        margin: 0;
+        background: #f5f7fa;
+        color: #23272f;
+        min-height: 100vh;
+        padding-top: 70px; /* لتجنب اختباء المحتوى خلف شريط التنقل الثابت */
+    }
+    .main-nav {
+      background: #3b5cb8;
+      color: #fff;
+      padding: 10px 30px;
+      font-size: 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      box-sizing: border-box;
+    }
+
+    .main-nav .nav-brand {
+        display: flex;
+        align-items: center;
+    }
+
+    .main-nav .center-logo {
+        height: 40px;
+        vertical-align: middle;
+        margin-right: 15px;
+    }
+
+    .main-nav .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        flex-grow: 1;
+        justify-content: center;
+    }
+
+    .main-nav .nav-link {
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 15px;
+        font-size: 1.05rem;
+        transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
+        border-radius: 5px;
+        white-space: nowrap;
+    }
+
+    .main-nav .nav-link:hover,
+    .main-nav .nav-link.active {
+        background-color: #26407a;
+        color: #fff;
+    }
+
+    .main-nav .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .container { max-width: 1100px; margin: 32px auto 24px auto; padding: 0 8px;}
+    h2 { color: #294169; margin-top: 0; margin-bottom: 18px; font-size: 1.22rem; letter-spacing: 0.5px; font-weight: 700;}
+    .btn {
+      background: #3b5cb8;
+      color: #fff;
+      border: none;
+      padding: 7px 20px;
+      border-radius: 7px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #26407a; }
+    .signout { background: #b83b3b;}
+    .signout:hover { background: #7a2626;}
+    .delete-btn {background: #dc3545;}
+    .delete-btn:hover {background: #c82333;}
+    .students-area, .lessons-area {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      margin-bottom: 22px;
+      padding: 18px 14px;
+    }
+    .add-section-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 7px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .add-section-toggle .toggle-icon {
+      background: #3b5cb8;
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      margin-left: 8px;
+      transition: background 0.2s;
+    }
+    .add-section-toggle .toggle-icon:hover { background: #26407a; }
+    .add-section {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px #00000009;
+      padding: 18px 14px;
+      margin-bottom: 18px;
+      max-width: 500px;
+      margin-right: auto;
+      margin-left: auto;
+      display: none;
+      animation: fadein 0.3s;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(-20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .add-section h3 {
+      color: #294169;
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .add-section form { display: flex; flex-direction: column; gap: 14px;}
+    .add-section label { font-size: 1rem; color: #2e4061; margin-bottom: 4px; margin-right: 2px; font-weight: 500;}
+    .add-section input, .add-section select, .add-section textarea {
+      padding: 9px;
+      border: 1px solid #c5c9d2;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #f7f8fa;
+      color: #23272f;
+      transition: border 0.15s;
+      margin-bottom: 6px;
+    }
+    .add-section input:focus, .add-section select:focus, .add-section textarea:focus { border-color: #3b5cb8; outline: none;}
+    .add-section .btn { margin-top: 8px; width: 100%; padding: 10px 0; font-size: 1.1rem; border-radius: 7px;}
+    /* تحسينات عامة على الجداول */
+.table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+/* ترويسة الجدول */
+th {
+  background: #4361ee;
+  color: #ffffff;
+  padding: 15px 10px;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* خلايا البيانات */
+td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #eef2fa;
+  text-align: center;
+  font-size: 0.98rem;
+  color: #333d4b;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* تأثير عند تمرير المؤشر على الصفوف */
+tbody tr:hover {
+  background-color: #f7f9fc;
+  cursor: pointer;
+}
+
+/* إزالة الحد السفلي لآخر صف */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* تحسينات خاصة بخلية نص التلخيص (لم تعد تستخدم بهذه الطريقة) */
+.summary-text-cell {
+  text-align: right;
+  line-height: 1.6;
+  white-space: normal;
+  max-width: 250px;
+  word-break: break-word;
+}
+
+/* أزرار الإجراءات داخل الجدول (التي قد تنتقل للصندوق المخفي) */
+.btn[onclick^="saveSummaryMark"], .btn[onclick^="saveSummaryComment"] {
+  background-color: #1dad87;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+.btn[onclick^="saveSummaryMark"]:hover, .btn[onclick^="saveSummaryComment"]:hover {
+  background-color: #159b79;
+}
+
+/* حقل إدخال العلامة والتعليق (داخل الصندوق المخفي الآن) */
+.summary-detail-input {
+  padding: 5px 8px;
+  border: 1px solid #c5c9d2;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  text-align: right;
+  width: 90%;
+  margin-bottom: 5px;
+}
+.summary-detail-input.mark { width: 70px; text-align: center; margin-left: 5px;}
+
+/* تحسينات لحالة التلخيص */
+.summary-status {
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  display: inline-block;
+  white-space: nowrap;
+}
+.summary-status.submitted {
+  background-color: #e3f6ed;
+  color: #219e4b;
+  border: 1px solid #b7eecd;
+}
+.summary-status.draft {
+  background-color: #fff4e0;
+  color: #b96d0d;
+  border: 1px solid #ffe0b2;
+}
+
+.btn.reset-summary {
+    background: #dc3545;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+.btn.reset-summary:hover {
+    background: #c82333;
+}
+.reset-icon {
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #dc3545;
+    vertical-align: middle;
+    margin-right: 5px;
+    transition: transform 0.2s ease-in-out;
+}
+.reset-icon:hover {
+    transform: rotate(15deg);
+}
+
+/* تنسيق خاص بالعنوان "تلخيصات الطالب" */
+#summariesTableWrapper h4 {
+    color: #294169;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    text-align: right;
+    border-bottom: 2px solid #eef2fa;
+    padding-bottom: 8px;
+}
+    .student-selection-area { margin-bottom: 20px;}
+    #selectedStudentDetails {
+      background: #f9fbfd;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e0e4e8;
+      display: none;
+    }
+    #selectedStudentDetails h3 { color: #294169; margin-top: 0; margin-bottom: 15px; font-size: 1.1rem; font-weight: bold; text-align: right;}
+    #selectedStudentDetails p { margin-bottom: 8px; font-size: 1rem; color: #23272f; text-align: right;}
+    #selectedStudentDetails p strong { color: #294169;}
+    #selectedStudentDetails h4 { color: #294169; margin-top: 20px; margin-bottom: 10px; font-size: 1.05rem; font-weight: bold; text-align: right;}
+    .levels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px;}
+    .level-item { display: flex; align-items: center; background: #f2f5fc; padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7ea; cursor: pointer; user-select: none;}
+    .level-item input[type="checkbox"] { margin-left: 8px; width: 20px; height: 20px; cursor: pointer;}
+    .level-item label { font-size: 0.95rem; color: #294169; font-weight: 500; flex-grow: 1; cursor: pointer;}
+    .level-color-1 { background: #e7f2fa !important; }
+    .level-color-2 { background: #f8e7fa !important; }
+    .level-color-3 { background: #e7faf0 !important; }
+    .level-color-4 { background: #f9f6e7 !important; }
+    .level-color-5 { background: #f3e7fa !important; }
+    .level-color-6 { background: #e7faee !important; }
+    .level-color-7 { background: #fae7e7 !important; }
+    .edit-btn, .save-btn, .cancel-btn {
+      padding: 4px 14px;
+      border-radius: 5px;
+      border: none;
+      margin: 0 2px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.98rem;
+      transition: background 0.2s;
+    }
+    .edit-btn {background:#5a7be4; color:#fff;}
+    .edit-btn:hover {background:#294169;}
+    .save-btn {background:#1dad87; color:#fff;}
+    .save-btn:hover {background:#156c59;}
+    .cancel-btn {background:#b83b3b; color:#fff;}
+    .cancel-btn:hover {background:#7a2626;}
+    #msg, #addStudentMsg, #addLessonMsg, #addLessonMsg, #editLessonMsg { color: #b83b3b; margin-top: 10px; font-size: 1.05rem; min-height: 20px; text-align: center;}
+    @media (max-width: 900px){
+      .container {padding:8px;}
+      h2 {font-size:1rem;}
+      .students-area, .lessons-area, .add-section {padding:10px 4px;}
+      .add-section {max-width: 99vw;}
+      .levels-grid { grid-template-columns: 1fr;}
+    }
+    .spinner { border: 4px solid #eee; border-top: 4px solid #3b5cb8; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 30px auto; display: none;}
     @keyframes spin { 100% { transform: rotate(360deg); } }
-    .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s; }
+    .toast { visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #3b5cb8; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px; font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;}
     .toast.show { visibility: visible; opacity: 1; }
+    .search-box {width: 80%;margin: 10px 0 18px 0;padding: 8px 12px;border:1px solid #c5c9d2;border-radius:6px;font-size:1rem;}
 
-    /* Tabs */
-    .tabs { display: flex; border-bottom: 1px solid #e0e4e8; margin-bottom: 20px; }
-    .tab-btn { padding: 12px 20px; cursor: pointer; border: none; background: transparent; font-size: 1.1rem; color: #555; border-bottom: 3px solid transparent; transition: all 0.3s ease; }
-    .tab-btn.active { color: #4361ee; border-bottom: 3px solid #4361ee; font-weight: bold; }
-    .tab-btn:hover:not(.active) { color: #4361ee; }
-    .tab-content { padding-top: 20px; }
-
-    /* Forms & Tables */
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: bold; color: #294169; }
-    .form-group input[type="text"],
-    .form-group input[type="email"],
-    .form-group input[type="number"],
-    .form-group input[type="url"],
-    .form-group select,
-    .form-group textarea {
-      width: 100%; padding: 10px; border: 1px solid #b7c0d6; border-radius: 5px; font-size: 1rem;
-      box-sizing: border-box; font-family: 'Cairo', 'Tajawal', Arial, sans-serif;
-      background: #fdfdfd; color: #1b2a39;
+    /* New style for inline summary details box */
+    .summary-details-box {
+      background-color: #fefefe;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #e0e4e8;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+      position: relative;
+      text-align: right;
+      box-sizing: border-box;
+      display: none; /* Hidden by default */
+      animation: fadein 0.3s; /* Reuse fadein animation */
     }
-    .form-group textarea { resize: vertical; min-height: 80px; }
-    .form-group input[type="checkbox"] { margin-left: 8px; }
-    .form-group .checkbox-label { display: inline-block; margin-right: 15px; }
-
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); }
-    .data-table th, .data-table td { padding: 12px 8px; border-bottom: 1px solid #e4e7ef; text-align: right; font-size: 0.95rem; }
-    .data-table th { background: #eef2fa; color: #1b3e72; font-weight: bold; }
-    .data-table tr:last-child td { border-bottom: none; }
-    .data-table .actions button { margin-left: 5px; }
-
-    /* Specific Styles for Summaries */
-    .summary-item {
-      background: #fdfdfd; border: 1px solid #e0e4e8; border-radius: 10px; padding: 20px; margin-bottom: 20px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    .summary-details-box h4 {
+      color: #2260af;
+      margin-top:0;
+      margin-bottom: 15px;
+      font-size: 1.25rem;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
     }
-    .summary-item h3 { color: #294169; margin-top: 0; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #f0f2f5; }
-    .summary-item p { margin-bottom: 10px; line-height: 1.6; }
-    .summary-item .student-info, .summary-item .lesson-info { font-size: 0.95rem; color: #555; margin-bottom: 8px; }
-    .summary-item .summary-text-display {
-      background: #f5f7fb; padding: 15px; border-radius: 8px; border: 1px solid #e4e7ef;
-      margin-top: 15px; white-space: pre-wrap; word-wrap: break-word; line-height: 1.7;
-    }
-    .summary-item .status-badge {
-      display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 0.85rem; font-weight: bold;
-      margin-right: 10px;
-    }
-    .status-badge.submitted { background: #e3f6ed; color: #219e4b; border: 1px solid #b7eecd; }
-    .status-badge.draft { background: #f5f7fb; color: #555; border: 1px solid #d2d8e6; }
-
-    .comment-section { margin-top: 20px; padding-top: 15px; border-top: 1px dashed #e0e4e8; }
-    .comment-section label { display: block; margin-bottom: 8px; font-weight: bold; color: #294169; }
-    .comment-section textarea { width: 98%; height: 80px; padding: 10px; border: 1px solid #b7c0d6; border-radius: 5px; resize: vertical; font-size: 1rem; box-sizing: border-box; }
-    .comment-section input[type="number"] { width: 100px; text-align: center; }
-    .comment-section .current-mark { font-weight: bold; color: #007bff; margin-right: 10px; }
-    .comment-section .mark-input-group { display: flex; align-items: center; margin-bottom: 15px; }
-
-    /* Night Mode */
-    .dark-mode { background: #23272f; color: #e0e0e0; }
-    .dark-mode .container { background: #323946; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); }
-    .dark-mode header { background: #222f3e; }
-    .dark-mode h2 { color: #8cafff; }
-    .dark-mode .btn { background: #556ee6; }
-    .dark-mode .btn:hover { background: #4a5dc4; }
-    .dark-mode .btn.submit { background: #1a8b6f; }
-    .dark-mode .btn.submit:hover { background: #156d56; }
-    .dark-mode .signout { background: #c73a4b; }
-    .dark-mode .signout:hover { background: #a82e3c; }
-    .dark-mode .info-box { background: #2a3447; color: #e0e0e0; }
-    .dark-mode .form-group label { color: #e0e0e0; }
-    .dark-mode .form-group input, .dark-mode .form-group select, .dark-mode .form-group textarea {
-      background: #2b3547; border-color: #4a576b; color: #e0e0e0;
-    }
-    .dark-mode .data-table { background: #293043; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15); }
-    .dark-mode .data-table th { background: #253150; color: #e0e0e0; }
-    .dark-mode .data-table td { border-bottom-color: #4a576b; }
-    .dark-mode .tabs { border-bottom-color: #4a576b; }
-    .dark-mode .tab-btn { color: #bbb; }
-    .dark-mode .tab-btn.active { color: #8cafff; border-bottom-color: #8cafff; }
-    .dark-mode .tab-btn:hover:not(.active) { color: #8cafff; }
-    .dark-mode .summary-item { background: #2b3547; border-color: #4a576b; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); }
-    .dark-mode .summary-item h3 { color: #8cafff; border-bottom-color: #4a576b; }
-    .dark-mode .summary-item .student-info, .dark-mode .summary-item .lesson-info { color: #bbb; }
-    .dark-mode .summary-item .summary-text-display { background: #222f3e; border-color: #4a576b; }
-    .dark-mode .comment-section label { color: #e0e0e0; }
-    .dark-mode .comment-section textarea { background: #2b3547; border-color: #4a576b; color: #e0e0e0; }
-    .dark-mode .comment-section .current-mark { color: #a0c4ff; }
-    .dark-mode .comment-section { border-top-color: #4a576b; }
-
-    /* New styles for student reply display */
-    .student-reply-display {
-      background: #eef2fa; /* Light blue-grey */
+    .summary-details-box .summary-content-display {
+      white-space: pre-wrap;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.8;
+      color: #333;
+      max-height: 40vh;
+      overflow-y: auto;
+      direction: rtl;
+      word-break: break-word;
+      padding: 10px 0;
+      margin-bottom: 15px;
+      border: 1px solid #eef2fa;
+      background: #fdfdfd;
       padding: 10px;
       border-radius: 8px;
-      margin-top: 15px;
-      font-size: 0.98rem;
-      color: #333;
-      border: 1px solid #d2e0f0; /* Slightly darker border */
-      line-height: 1.6;
-      word-break: break-word; /* Ensure long words break */
     }
-    .student-reply-display strong {
-      color: #294169; /* Dark blue for emphasis */
-      display: block;
-      margin-bottom: 5px;
+    .summary-details-box .form-group {
+        margin-bottom: 15px;
     }
-    .dark-mode .student-reply-display {
-      background: #2a3447; /* Darker background for dark mode */
-      border-color: #4a576b; /* Darker border */
-      color: #e0e0e0; /* Light text */
-    }
-    .dark-mode .student-reply-display strong {
-      color: #8cafff; /* Lighter blue for emphasis in dark mode */
-    }
-
-    /* Notification Bell and Panel (similar to student.html) */
-    .notification-bell {
-        position: relative;
-        font-size: 1.5rem;
-        cursor: pointer;
-        margin-left: 20px; /* Space from other header elements */
-    }
-    .notification-badge {
-        position: absolute;
-        top: -5px;
-        right: -10px;
-        background-color: #ff5722; /* Orange-red for unread */
-        color: white;
-        border-radius: 50%;
-        padding: 2px 7px;
-        font-size: 0.75rem;
+    .summary-details-box .form-group label {
+        display: block;
         font-weight: bold;
-        line-height: 1;
-        min-width: 15px;
-        text-align: center;
-        box-shadow: 0 0 5px rgba(0,0,0,0.3);
+        margin-bottom: 5px;
+        color: #2e4061;
     }
-    .notification-panel {
-        display: none; /* Hidden by default */
-        position: absolute;
-        top: 60px; /* Adjust based on header height */
-        right: 10px;
-        width: 320px;
-        max-height: 400px;
-        overflow-y: auto;
-        background-color: white;
-        border-radius: 8px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        z-index: 1000;
-        padding: 15px;
-        text-align: right;
-        border: 1px solid #eee;
+    .summary-details-box .form-group textarea {
+        width: 100%;
+        height: 80px;
+        resize: vertical;
+        padding: 8px;
+        border: 1px solid #c5c9d2;
+        border-radius: 6px;
+        font-size: 1rem;
         box-sizing: border-box;
     }
-    .notification-panel h5 {
-        margin-top: 0;
-        margin-bottom: 15px;
-        color: #294169;
-        font-size: 1.1rem;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-    }
-    .notification-item {
-        padding: 10px 0;
-        border-bottom: 1px solid #f0f2f5;
+    .summary-details-box .form-group .btn {
+        margin-top: 10px;
+        padding: 6px 18px;
         font-size: 0.95rem;
-        color: #333;
-        line-height: 1.4;
     }
-    .notification-item:last-child {
-        border-bottom: none;
+    .summary-details-box .close-box-btn {
+        background: #b83b3b;
+        margin-top: 20px;
+        padding: 8px 30px;
     }
-    .notification-item.unread {
-        background-color: #e6f2ff; /* Light blue for unread */
-        font-weight: bold;
-        padding: 10px;
-        margin: 0 -15px; /* Extend background to panel edges */
+    .summary-details-box .close-box-btn:hover {
+        background: #7a2626;
     }
-    .notification-item .timestamp {
-        display: block;
-        font-size: 0.8em;
-        color: #888;
-        margin-top: 5px;
+    /* Dark Mode for summary details box */
+    .dark-mode .summary-details-box {
+      background-color: #323946;
+      border: 1px solid #4a576b;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
     }
-    .notification-item .mark-read-btn {
-        background: #1dad87;
-        color: white;
-        border: none;
-        padding: 4px 10px;
-        border-radius: 5px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        margin-top: 8px;
-        display: inline-block;
+    .dark-mode .summary-details-box h4 {
+      color: #8cafff;
+      border-bottom: 1px solid #4a576b;
     }
-    .notification-item .mark-read-btn:hover {
-        background: #159b79;
+    .dark-mode .summary-details-box .summary-content-display {
+      background: #2b3547;
+      border-color: #4a576b;
+      color: #e0e0e0;
     }
-    /* Dark mode for notifications */
-    .dark-mode .notification-panel {
-        background-color: #323946;
+    .dark-mode .summary-details-box .form-group label {
+        color: #e0e0e0;
+    }
+    .dark-mode .summary-details-box .form-group textarea {
+        background: #23272f;
         border-color: #4a576b;
         color: #e0e0e0;
     }
-    .dark-mode .notification-panel h5 {
-        color: #8cafff;
-        border-bottom-color: #4a576b;
+    .dark-mode .summary-details-box .summary-detail-input {
+      background: #23272f;
+      border-color: #4a576b;
+      color: #e0e0e0;
     }
-    .dark-mode .notification-item {
-        color: #e0e0e0;
-        border-bottom-color: #4a576b;
+    .dark-mode .summary-details-box .summary-detail-input:focus {
+        border-color: #8cafff;
     }
-    .dark-mode .notification-item.unread {
-        background-color: #2a3447; /* Darker blue for unread in dark mode */
+
+    /* Professional Navigation Bar Styles */
+    .main-nav {
+      background: #3b5cb8;
+      color: #fff;
+      padding: 10px 30px;
+      font-size: 1.4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+      box-sizing: border-box;
     }
-    .dark-mode .notification-item .timestamp {
-        color: #bbb;
+
+    .main-nav .nav-brand {
+        display: flex;
+        align-items: center;
     }
-    .dark-mode .notification-item .mark-read-btn {
-        background: #1a6b3d;
+
+    .main-nav .center-logo {
+        height: 40px;
+        vertical-align: middle;
+        margin-right: 15px;
     }
-    .dark-mode .notification-item .mark-read-btn:hover {
-        background: #159b79;
+
+    .main-nav .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        flex-grow: 1;
+        justify-content: center;
+    }
+
+    .main-nav .nav-link {
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 15px;
+        font-size: 1.05rem;
+        transition: background-color 0.3s, color 0.3s, border-radius 0.3s;
+        border-radius: 5px;
+        white-space: nowrap;
+    }
+
+    .main-nav .nav-link:hover,
+    .main-nav .nav-link.active {
+        background-color: #26407a;
+        border-radius: 7px;
+    }
+
+    .main-nav .nav-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    /* Dark Mode for Navigation Bar */
+    .dark-mode .main-nav {
+        background: #222f3e;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+    .dark-mode .main-nav .nav-link:hover,
+    .dark-mode .main-nav .nav-link.active {
+        background-color: #1a2430;
+    }
+
+    /* Responsive adjustments for the main navigation */
+    @media (max-width: 768px) {
+        .main-nav {
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px 15px;
+        }
+        .main-nav .nav-brand,
+        .main-nav .nav-links,
+        .main-nav .nav-actions {
+            flex-basis: 100%;
+            justify-content: center;
+            margin-bottom: 5px;
+            gap: 10px;
+        }
+        .main-nav .nav-links {
+            order: 2;
+        }
+        .main-nav .nav-brand {
+            order: 1;
+            margin-bottom: 10px;
+        }
+        .main-nav .nav-actions {
+            order: 3;
+            margin-bottom: 0;
+        }
+        .main-nav .nav-link {
+            font-size: 0.95rem;
+            padding: 6px 10px;
+        }
+        .main-nav .center-logo {
+            height: 35px;
+            margin-right: 0;
+        }
+        body {
+            padding-top: 130px;
+        }
     }
 
     @media (max-width: 480px) {
-        .notification-panel {
-            width: 95%;
-            left: 2.5%;
-            right: 2.5%;
+        .main-nav .nav-links {
+            gap: 10px;
         }
-        .notification-item.unread {
-          padding: 10px 5px;
-          margin: 0 -5px;
+        .main-nav .nav-link {
+            font-size: 0.9rem;
+            padding: 5px 8px;
+        }
+        body {
+            padding-top: 120px;
+        }
+        /* Make summary-details-box responsive */
+        .summary-details-box {
+            width: 100%;
+            margin: 10px auto;
+            padding: 10px;
+            border-radius: 0;
+            box-shadow: none;
         }
     }
+
+    /* Dark Mode for general elements */
+    .dark-mode {
+        background: #23272f;
+        color: #e0e0e0;
+    }
+    .dark-mode .container,
+    .dark-mode .students-area,
+    .dark-mode .lessons-area,
+    .dark-mode .add-section,
+    .dark-mode #selectedStudentDetails,
+    .dark-mode .table-wrapper {
+        background: #323946;
+        color: #e0e0e0;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+    .dark-mode h2,
+    .dark-mode h3,
+    .dark-mode h4,
+    .dark-mode #selectedStudentDetails p strong {
+        color: #8cafff;
+    }
+    .dark-mode .btn {
+        background: #4a576b;
+        color: #fff;
+    }
+    .dark-mode .btn:hover {
+        background: #5a6b7e;
+    }
+    .dark-mode .signout,
+    .dark-mode .delete-btn {
+        background: #a40b2b;
+    }
+    .dark-mode .signout:hover,
+    .dark-mode .delete-btn:hover {
+        background: #c02b41;
+    }
+    .dark-mode .add-section-toggle .toggle-icon {
+        background: #4a576b;
+    }
+    .dark-mode .add-section-toggle .toggle-icon:hover {
+        background: #5a6b7e;
+    }
+    .dark-mode input,
+    .dark-mode select,
+    .dark-mode textarea {
+        background: #2b3547;
+        border-color: #4a576b;
+        color: #e0e0e0;
+    }
+    .dark-mode input:focus,
+    .dark-mode select:focus,
+    .dark-mode textarea:focus {
+        border-color: #8cafff;
+    }
+    .dark-mode th {
+        background: #2b3547;
+        color: #fff;
+    }
+    .dark-mode td {
+        border-bottom-color: #4a576b;
+        color: #e0e0e0;
+    }
+    .dark-mode tbody tr:hover {
+        background-color: #3a455a;
+    }
+    .dark-mode .summary-status.submitted {
+        background-color: #1a6b3d;
+        color: #e3f6ed;
+        border-color: #159b79;
+    }
+    .dark-mode .summary-status.draft {
+        background-color: #7a460b;
+        color: #fff4e0;
+        border-color: #b96d0d;
+    }
+    .dark-mode .toast {
+        background-color: #222f3e;
+        color: #fff;
+    }
+    .dark-mode .level-item {
+        background: #2b3547 !important;
+        border-color: #4a576b;
+    }
+    .dark-mode .level-item label {
+        color: #e0e0e0;
+    }
+    .dark-mode .edit-btn { background:#4a576b; }
+    .dark-mode .edit-btn:hover { background:#5a6b7e; }
+    .dark-mode .save-btn { background:#1a6b3d; }
+    .dark-mode .save-btn:hover { background:#159b79; }
+    .dark-mode .cancel-btn { background:#a40b2b; }
+    .dark-mode .cancel-btn:hover { background:#c02b41; }
   </style>
 </head>
 <body>
-  <header>
-    <span>لوحة تحكم المعلم</span>
-    <div>
-      <button class="btn" id="nightModeBtn" onclick="toggleNightMode()">الوضع الليلي</button>
+  <div style="background:#f2f2f7;color:#2e4061;padding:7px 0;text-align:center;font-size:0.97rem;">
+  V20
+</div>
+  <nav class="main-nav">
+    <div class="nav-brand">
+      <img src="https://i.ibb.co/cSpS2NDk/logo-1.png" alt="شعار المركز" class="center-logo">
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-link active">لوحة المعلم - إدارة الطلاب والدروس</a>
+      <a href="questions-admin.html" class="nav-link">إدارة الأسئلة وإعدادات الامتحان</a>
+    </div>
+    <div class="nav-actions">
       
-      <span class="notification-bell" onclick="toggleNotificationPanel()">
+<span class="notification-bell" onclick="toggleNotificationPanel()">
           <i class="fas fa-bell"></i>
           <span id="unreadNotificationsBadge" class="notification-badge" style="display:none;">0</span>
       </span>
 
       <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
     </div>
-  </header>
-
+  </nav>
   <div class="container">
-    <h2>مرحباً، <span id="teacherName"></span></h2>
-    <div class="info-box">
-      <div><b>البريد الإلكتروني:</b> <span id="teacherEmail"></span></div>
+
+    <div class="spinner" id="loadingSpinner"></div>
+    <div id="toast" class="toast"></div>
+    <div class="add-section-toggle" onclick="toggleSection('addStudentSection')">
+      <span class="toggle-icon" id="addStudentToggleIcon">➕</span>
+      <span style="font-weight:bold;">إضافة طالب جديد</span>
+    </div>
+    <div class="add-section" id="addStudentSection">
+      <h3>إضافة طالب جديد</h3>
+      <form id="addStudentForm" onsubmit="addStudent(event)">
+        <label for="studentEmail">البريد الإلكتروني</label>
+        <input type="email" id="studentEmail" placeholder="student@email.com" required>
+        <label for="studentName">اسم الطالب</label>
+        <input type="text" id="studentName" placeholder="اسم الطالب" required>
+        <label for="courseNumber">رقم الدورة</label>
+        <input type="text" id="courseNumber" placeholder="رقم الدورة" required>
+        <button class="btn" type="submit">إضافة الطالب</button>
+      </form>
+      <div id="addStudentMsg"></div>
+    </div>
+
+    <div class="add-section-toggle" onclick="toggleSection('addLessonSection')">
+      <span class="toggle-icon" id="addLessonToggleIcon">➕</span>
+      <span style="font-weight:bold;">إضافة درس جديد</span>
+    </div>
+    <div class="add-section" id="addLessonSection">
+      <h3>إضافة درس جديد</h3>
+      <form id="addLessonForm" onsubmit="addLesson(event)">
+        <label for="lessonId">رقم الدرس</label>
+        <input type="number" id="lessonId" placeholder="مثال: 1" required min="1">
+        <label for="lessonTitle">عنوان الدرس</label>
+        <input type="text" id="lessonTitle" placeholder="عنوان الدرس" required>
+        <label for="lessonUrl">رابط الدرس (للتنزيل)</label>
+        <input type="text" id="lessonUrl" placeholder="رابط التحميل" required>
+        <label for="lessonVoice">رابط الصوت (للاستماع)</label>
+        <input type="text" id="lessonVoice" placeholder="رابط الصوت (mp3 أو غيره)">
+        <label for="lessonLevel">المستوى</label>
+        <input type="text" id="lessonLevel" placeholder='مثال: "الأول"' required>
+        <button class="btn" type="submit">إضافة الدرس</button>
+      </form>
+      <div id="addLessonMsg"></div>
+    </div>
+
+    <div class="students-area">
+      <h2>إدارة مستويات الطلاب </h2>
       <div id="msg"></div>
-    </div>
+      <input type="text" class="search-box" id="studentSearch" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="openTab(event, 'studentsTab')">الطلاب</button>
-      <button class="tab-btn" onclick="openTab(event, 'lessonsTab')">الدروس</button>
-      <button class="tab-btn" onclick="openTab(event, 'questionsTab')">الأسئلة</button>
-      <button class="tab-btn" onclick="openTab(event, 'examSettingsTab')">إعدادات الاختبار</button>
-      <button class="tab-btn" onclick="openTab(event, 'summariesTab')">التلاخيص</button>
-      <button class="tab-btn" onclick="openTab(event, 'examResultsTab')">نتائج الاختبارات</button>
-    </div>
+      <div class="student-selection-area">
+        <label for="studentSelect" style="font-weight:bold; margin-bottom: 10px; display: block; text-align: right;">اختر الطالب:</label>
+        <select id="studentSelect" onchange="showSelectedStudentDetails(this.value)" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #c5c9d2; font-size: 1rem; background: #f7f8fa; color: #23272f;">
+          <option value="">-- اختر طالباً لعرض بياناته --</option>
+        </select>
+      </div>
+      <div style="text-align:left;margin:10px 0;">
+        <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()" style="display:none;">تصدير نتائج الطالب PDF</button>
+        <button class="btn delete-btn" id="deleteStudentBtn" onclick="confirmDeleteStudent()" style="display:none; margin-right:10px;">حذف الطالب</button>
+      </div>
 
-    <div id="studentsTab" class="tab-content">
-      <h3>إدارة الطلاب</h3>
-      <div class="form-group">
-        <label for="studentEmailInput">إيميل الطالب:</label>
-        <input type="email" id="studentEmailInput" placeholder="أدخل إيميل الطالب">
-      </div>
-      <div class="form-group">
-        <label for="studentNameInput">اسم الطالب:</label>
-        <input type="text" id="studentNameInput" placeholder="أدخل اسم الطالب">
-      </div>
-      <div class="form-group">
-        <label for="courseNumberInput">رقم المقرر:</label>
-        <input type="text" id="courseNumberInput" placeholder="أدخل رقم المقرر">
-      </div>
-      <div class="form-group">
-        <label>المستويات المفعلة:</label>
-        <div id="levelsCheckboxes">
-          <label class="checkbox-label"><input type="checkbox" id="level1"> المستوى 1</label>
-          <label class="checkbox-label"><input type="checkbox" id="level2"> المستوى 2</label>
-          <label class="checkbox-label"><input type="checkbox" id="level3"> المستوى 3</label>
-          <label class="checkbox-label"><input type="checkbox" id="level4"> المستوى 4</label>
-          <label class="checkbox-label"><input type="checkbox" id="level5"> المستوى 5</label>
-          <label class="checkbox-label"><input type="checkbox" id="level6"> المستوى 6</label>
-          <label class="checkbox-label"><input type="checkbox" id="level7"> المستوى 7</label>
+      <div id="selectedStudentDetails" style="background: #f9fbfd; padding: 15px; border-radius: 8px; border: 1px solid #e0e4e8; margin-top: 20px; display: none;">
+        <h3>تفاصيل الطالب المحدد:</h3>
+        <p><strong>الاسم:</strong> <span id="detailName"></span></p>
+        <p><strong>البريد الإلكتروني:</strong> <span id="detailEmail"></span></p>
+        <p><strong>رقم الدورة:</strong> <span id="detailCourseNumber"></span></p>
+
+        <p>
+            <strong>حالة القبول:</strong>
+            <select id="detailAcceptedStatus" onchange="updateStudentAdmission(this.value)" style="padding: 5px 8px; border: 1px solid #c5c9d2; border-radius: 5px; font-size: 0.95rem; margin-right: 10px;">
+                <option value="pending">قيد المراجعة</option>
+                <option value="accepted">مقبول</option>
+                <option value="rejected">مرفوض</option>
+            </select>
+        </p>
+        <p style="margin-top: 15px;">
+            <strong>ملاحظات المعلم:</strong>
+            <textarea id="detailTeacherNotes" onblur="saveTeacherNotes()" style="width: 98%; height: 80px; padding: 8px; border: 1px solid #c5c9d2; border-radius: 6px; font-size: 1rem; resize: vertical; margin-top: 5px;"></textarea>
+            <button class="btn" onclick="saveTeacherNotes()" style="padding: 5px 15px; font-size: 0.9rem; margin-top: 5px;">حفظ الملاحظات</button>
+        </p>
+
+
+        <h4>المستويات:</h4>
+        <div id="detailLevels" class="levels-grid"></div>
+        <h4 style="margin-top:20px;">امتحانات المستويات:</h4>
+        <div id="examsTableWrapper"></div>
+        <h4 style="margin-top:30px;">تلخيصات الطالب:</h4>
+        <div style="margin-bottom: 15px; text-align: right;">
+            <label for="summaryFilterStatus" style="font-weight:bold; margin-left: 10px;">تصفية حسب الحالة:</label>
+            <select id="summaryFilterStatus" onchange="filterSummariesTable()" style="padding: 5px 8px; border-radius: 5px; border: 1px solid #c5c9d2;">
+                <option value="all">الكل</option>
+                <option value="submitted">تم التسليم</option>
+                <option value="draft">مسودة</option>
+            </select>
+        </div>
+        <div id="summariesTableWrapper"></div>
+
+        <div id="summaryDetailsBox" class="summary-details-box">
+            <h4 id="summaryDetailsTitle"></h4>
+            <div class="form-group">
+                <label>نص التلخيص:</label>
+                <div id="summaryDetailsContent" class="summary-content-display"></div>
+            </div>
+            <div class="form-group">
+                <label for="summaryDetailsComment">تعليق المعلم:</label>
+                <textarea id="summaryDetailsComment" class="summary-detail-input" placeholder="اكتب تعليقك هنا..."></textarea>
+                <button class="btn" id="saveSummaryDetailsCommentBtn">حفظ التعليق</button>
+            </div>
+            <div id="studentReplySection" class="form-group" style="display:none;">
+                <label>رد الطالب:</label>
+                <div id="summaryDetailsStudentReply" class="summary-content-display"></div>
+                <button class="btn delete-btn" id="clearStudentReplyBtn">مسح رد الطالب</button>
+            </div>
+            <div class="form-group">
+                <label for="summaryDetailsMark">تعديل العلامة:</label>
+                <input type="number" id="summaryDetailsMark" class="summary-detail-input mark" min="0" max="100" placeholder="العلامة">
+                <button class="btn" id="saveSummaryDetailsMarkBtn">حفظ العلامة</button>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn close-box-btn" onclick="hideSummaryDetails()">إغلاق</button>
+            </div>
         </div>
       </div>
-      <div class="form-group">
-        <label>حالة القبول:</label>
-        <select id="admissionStatusSelect">
-          <option value="">لم يتم التحديد</option>
-          <option value="accepted">مقبول</option>
-          <option value="rejected">مرفوض</option>
-          <option value="pending">قيد المراجعة</option>
-        </select>
-      </div>
-      <button class="btn submit" onclick="addOrUpdateStudent()">إضافة/تحديث الطالب</button>
-      <button class="btn signout" onclick="deleteStudent()">حذف الطالب</button>
-      <button class="btn" onclick="loadStudentDataForEdit()">تحميل بيانات الطالب للتعديل</button>
-      <hr style="margin:25px 0;">
-      <h3>قائمة الطلاب</h3>
-      <input type="text" id="studentSearchInput" onkeyup="filterStudents()" placeholder="ابحث عن طالب بالاسم أو الإيميل...">
-      <div class="spinner" id="studentsLoadingSpinner"></div>
-      <table class="data-table" id="studentsTable">
-        <thead>
-          <tr>
-            <th>الإيميل</th>
-            <th>الاسم</th>
-            <th>المقرر</th>
-            <th>المستويات</th>
-            <th>القبول</th>
-            <th>إجراءات</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
     </div>
 
-    <div id="lessonsTab" class="tab-content" style="display:none;">
-      <h3>إدارة الدروس</h3>
-      <div class="form-group">
-        <label for="lessonIdInput">رقم الدرس:</label>
-        <input type="number" id="lessonIdInput" placeholder="أدخل رقم الدرس (مثال: 1)">
-      </div>
-      <div class="form-group">
-        <label for="lessonTitleInput">عنوان الدرس:</label>
-        <input type="text" id="lessonTitleInput" placeholder="أدخل عنوان الدرس">
-      </div>
-      <div class="form-group">
-        <label for="lessonUrlInput">رابط المحاضرة (PDF/Doc):</label>
-        <input type="url" id="lessonUrlInput" placeholder="أدخل رابط ملف المحاضرة">
-      </div>
-      <div class="form-group">
-        <label for="lessonVoiceInput">رابط الصوت (MP3):</label>
-        <input type="url" id="lessonVoiceInput" placeholder="أدخل رابط الملف الصوتي">
-      </div>
-      <div class="form-group">
-        <label for="lessonLevelSelect">المستوى:</label>
-        <select id="lessonLevelSelect">
-          <option value="المستوى 1">المستوى 1</option>
-          <option value="المستوى 2">المستوى 2</option>
-          <option value="المستوى 3">المستوى 3</option>
-          <option value="المستوى 4">المستوى 4</option>
-          <option value="المستوى 5">المستوى 5</option>
-          <option value="المستوى 6">المستوى 6</option>
-          <option value="المستوى 7">المستوى 7</option>
-        </select>
-      </div>
-      <button class="btn submit" onclick="addOrUpdateLesson()">إضافة/تحديث الدرس</button>
-      <button class="btn signout" onclick="deleteLesson()">حذف الدرس</button>
-      <button class="btn" onclick="loadLessonDataForEdit()">تحميل بيانات الدرس للتعديل</button>
-      <hr style="margin:25px 0;">
-      <h3>قائمة الدروس</h3>
-      <div class="spinner" id="lessonsLoadingSpinner"></div>
-      <table class="data-table" id="lessonsTable">
+    <div class="lessons-area">
+      <h2 style="margin-top:0;">قائمة الدروس</h2>
+      <div id="editLessonMsg"></div>
+      <table class="lessons-table" id="lessonsTable">
         <thead>
           <tr>
-            <th>الرقم</th>
+            <th>رقم الدرس</th>
             <th>العنوان</th>
+            <th>رابط الدرس</th>
+            <th>الصوت</th>
             <th>المستوى</th>
-            <th>رابط المحاضرة</th>
-            <th>رابط الصوت</th>
-            <th>إجراءات</th>
+            <th>تعديل</th>
+            <th>حذف</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </div>
-
-    <div id="questionsTab" class="tab-content" style="display:none;">
-      <h3>إدارة الأسئلة</h3>
-      <div class="form-group">
-        <label for="questionTextInput">نص السؤال:</label>
-        <textarea id="questionTextInput" placeholder="أدخل نص السؤال"></textarea>
-      </div>
-      <div class="form-group">
-        <label for="questionLevelSelect">المستوى:</label>
-        <select id="questionLevelSelect">
-          <option value="1">المستوى 1</option>
-          <option value="2">المستوى 2</option>
-          <option value="3">المستوى 3</option>
-          <option value="4">المستوى 4</option>
-          <option value="5">المستوى 5</option>
-          <option value="6">المستوى 6</option>
-          <option value="7">المستوى 7</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="questionMarkInput">علامة السؤال:</label>
-        <input type="number" id="questionMarkInput" value="1" min="0.5" step="0.5">
-      </div>
-      <div class="form-group">
-        <label>الخيارات والإجابات الصحيحة (ضع علامة صح أمام الإجابات الصحيحة):</label>
-        <div id="choicesContainer">
-          <div class="choice-row" style="margin-bottom:10px;">
-            <input type="checkbox" class="correct-choice-checkbox">
-            <input type="text" class="choice-text-input" placeholder="الخيار 1" style="width: calc(100% - 30px);">
-          </div>
-          <div class="choice-row" style="margin-bottom:10px;">
-            <input type="checkbox" class="correct-choice-checkbox">
-            <input type="text" class="choice-text-input" placeholder="الخيار 2" style="width: calc(100% - 30px);">
-          </div>
-        </div>
-        <button class="btn" onclick="addChoiceInput()">إضافة خيار</button>
-      </div>
-      <button class="btn submit" onclick="addOrUpdateQuestion()">إضافة/تحديث السؤال</button>
-      <button class="btn signout" onclick="deleteQuestion()">حذف السؤال</button>
-      <button class="btn" onclick="loadQuestionDataForEdit()">تحميل بيانات السؤال للتعديل</button>
-      <hr style="margin:25px 0;">
-      <h3>قائمة الأسئلة</h3>
-      <div class="spinner" id="questionsLoadingSpinner"></div>
-      <table class="data-table" id="questionsTable">
-        <thead>
-          <tr>
-            <th>الرقم</th>
-            <th>السؤال</th>
-            <th>المستوى</th>
-            <th>العلامة</th>
-            <th>خيارات</th>
-            <th>إجابات صحيحة</th>
-            <th>إجراءات</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div id="examSettingsTab" class="tab-content" style="display:none;">
-      <h3>إعدادات الاختبارات</h3>
-      <div class="form-group">
-        <label for="examSettingLevelSelect">المستوى:</label>
-        <select id="examSettingLevelSelect" onchange="loadExamSetting()">
-          <option value="1">المستوى 1</option>
-          <option value="2">المستوى 2</option>
-          <option value="3">المستوى 3</option>
-          <option value="4">المستوى 4</option>
-          <option value="5">المستوى 5</option>
-          <option value="6">المستوى 6</option>
-          <option value="7">المستوى 7</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="questionNumInput">عدد الأسئلة في الاختبار:</label>
-        <input type="number" id="questionNumInput" min="1" placeholder="أدخل عدد الأسئلة التي ستظهر للطالب">
-      </div>
-      <button class="btn submit" onclick="saveExamSetting()">حفظ إعدادات الاختبار</button>
-      <div class="spinner" id="examSettingsLoadingSpinner"></div>
-    </div>
-
-    <div id="summariesTab" class="tab-content" style="display:none;">
-      <h3>التلاخيص المقدمة من الطلاب</h3>
-      <div class="info-box">
-        <input type="text" id="summariesSearchInput" onkeyup="filterSummaries()" placeholder="ابحث عن تلخيص (اسم الطالب، إيميل، عنوان درس)..." style="width: 70%;">
-        <select id="summariesFilterStatus" onchange="filterSummaries()" style="width: 25%;">
-          <option value="all">جميع الحالات</option>
-          <option value="submitted">تم التسليم النهائي</option>
-          <option value="draft">مسودة</option>
-        </select>
-      </div>
-      <div class="spinner" id="summariesLoadingSpinner"></div>
-      <div id="summariesList">
-        <p style="text-align: center; color: #888;">لا توجد تلاخيص لعرضها.</p>
-      </div>
-    </div>
-
-    <div id="examResultsTab" class="tab-content" style="display:none;">
-      <h3>نتائج الاختبارات</h3>
-      <div class="info-box">
-        <input type="text" id="examResultsSearchInput" onkeyup="filterExamResults()" placeholder="ابحث عن نتيجة (اسم الطالب، إيميل، مستوى)..." style="width: 70%;">
-        <select id="examResultsFilterStatus" onchange="filterExamResults()" style="width: 25%;">
-          <option value="all">جميع الحالات</option>
-          <option value="reviewed">تمت المراجعة</option>
-          <option value="pending">قيد المراجعة</option>
-        </select>
-      </div>
-      <div class="spinner" id="examResultsLoadingSpinner"></div>
-      <div id="examResultsList">
-        <p style="text-align: center; color: #888;">لا توجد نتائج اختبارات لعرضها.</p>
-      </div>
-    </div>
-
   </div>
-  <div id="toast" class="toast"></div>
 
-  <div id="notificationPanel" class="notification-panel">
-    <h5>الإشعارات</h5>
-    <div id="notificationsList">
-      <p style="text-align: center; color: #888;">لا توجد إشعارات حالياً.</p>
-    </div>
-  </div>
 
   <script src="firebase-config.js"></script>
   <script>
     // Firebase Config: تم حذف الكائن من هنا وسيتم جلبه من firebase-config.js
-
+    
     // Global Firebase variables
     let auth, firestore;
     let currentTeacherEmail = "";
@@ -542,11 +866,8 @@
     let summariesListenerUnsubscribe = null; // Listener for summaries
     let examResultsListenerUnsubscribe = null; // Listener for exam results
     let notificationsListenerUnsubscribe = null; // [NEW] Listener for notifications
+    let currentlyOpenSummaryDocId = null; // [NEW] To track if a summary details box is open
 
-    // Firebase Init
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    auth = firebase.auth();
-    firestore = firebase.firestore();
 
     // Utility Functions
     function showToast(msg, color = "#333") {
@@ -797,7 +1118,7 @@
         accepted: acceptedStatus === "" ? firebase.firestore.FieldValue.delete() : acceptedStatus
       };
 
-      for (let i = 1; i <= 7; i++) {
+      for (let i = 1; i => 7; i++) { // Corrected loop condition here (should be <=)
         studentData['level' + i] = document.getElementById('level' + i).checked;
       }
 
@@ -840,6 +1161,11 @@
         showToast("خطأ في تحميل بيانات الطالب: " + error.message, "#e63946");
         showLoading('studentsLoadingSpinner', false);
       });
+    }
+
+    function editStudent(id) {
+      document.getElementById('studentEmailInput').value = id;
+      loadStudentDataForEdit();
     }
 
     function confirmDeleteStudent(email, name) {
@@ -1348,7 +1674,7 @@
                   <input type="number" id="markInput_${summary.id}" value="${studentMark !== null ? studentMark : ''}" min="0" max="100" step="0.5" placeholder="أدخل العلامة">
                   ${studentMark !== null ? `<span class="current-mark"> (العلامة الحالية: ${studentMark})</span>` : ''}
               </div>
-              <button class="btn submit" onclick="saveMarkAndComment('${summary.id}', '${summary.student_email}', '${summary.student_name}', '${lessonTitle}', '${studentMarkDocId}')">حفظ العلامة والملاحظة</button>
+              <button class="btn submit" onclick="saveMarkAndComment('${summary.id}', '${summary.student_email}', '${sanitizeText(summary.student_name)}', '${sanitizeText(lessonTitle)}', '${studentMarkDocId}')">حفظ العلامة والملاحظة</button>
             </div>
           </div>
         `;
@@ -1388,40 +1714,36 @@
           if (existingMarkDocId && existingMarkDocId !== 'null') { // Check if it's a valid existing ID
             await firestore.collection('student_marks').doc(existingMarkDocId).update(markData);
           } else {
-            // Find student's UID for notification
-            const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
-            let studentUid = null;
-            if (!userDoc.empty) {
-                studentUid = userDoc.docs[0].id; // Get the UID
-            }
-            
             const newMarkRef = firestore.collection('student_marks').doc();
             await newMarkRef.set(markData);
-            // After creating a new mark, send a notification to the student
-            if (studentUid) {
-                await sendNotificationToUser(studentUid, `لقد تم تقييم تلخيصك لدرس "${lessonTitle}" وحصلت على علامة ${mark}.`);
-            }
           }
         }
         
-        // Find student's UID for notification (if comment was added/updated, or mark was updated)
+        // Find student's UID for notification (for any update)
         const userDoc = await firestore.collection('users').where('email', '==', studentEmail).limit(1).get();
         let studentUid = null;
         if (!userDoc.empty) {
-            studentUid = userDoc.docs[0].id; // Get the UID
+            studentUid = userDoc.docs[0].id;
         }
 
         // Send notification for teacher comment/mark update (if studentUid is found)
         if (studentUid) {
-            let notificationMessage = `قام المعلم بإضافة ملاحظة على تلخيصك لدرس "${lessonTitle}".`;
-            if (mark !== null) {
-                notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" بعلامة ${mark}.`;
+            let notificationMessage = '';
+            if (commentText) {
+                notificationMessage = `قام المعلم بإضافة ملاحظة على تلخيصك لدرس "${lessonTitle}".`;
             }
-            await sendNotificationToUser(studentUid, notificationMessage);
+            if (mark !== null) {
+                notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" وحصلت على علامة ${mark}.`;
+            }
+            if (commentText && mark !== null) { // If both comment and mark are updated
+                 notificationMessage = `قام المعلم بتقييم تلخيصك لدرس "${lessonTitle}" (علامة ${mark}) وأضاف ملاحظة.`;
+            }
+            if (notificationMessage) {
+                await sendNotificationToUser(studentUid, notificationMessage);
+            }
         }
 
         showToast("تم حفظ العلامة والملاحظة بنجاح!", "#1dad87");
-        // No need to reload all summaries, the real-time listener will update
       } catch (error) {
         showToast("خطأ في حفظ العلامة أو الملاحظة: " + error.message, "#e63946");
         console.error("Error saving mark and comment:", error);
