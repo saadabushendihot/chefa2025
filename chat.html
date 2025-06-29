@@ -2,37 +2,19 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>صفحة الدردشة - شفاء</title>
-
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage.js"></script>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <!-- Firebase Configuration (assumes it's in the same directory or accessible path) -->
   <script src="firebase-config.js"></script>
-
+  <!-- Google Fonts for Arabic -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
-    /* Material Design Variables (inspired) */
-    :root {
-      --primary-color: #6200ee; /* Deep Purple */
-      --primary-dark: #3700b3;
-      --primary-light: #bb86fc;
-      --secondary-color: #03dac6; /* Teal */
-      --secondary-dark: #018786;
-      --background-color: #f5f5f5; /* Light grey background */
-      --surface-color: #ffffff; /* Card/Modal background */
-      --text-on-primary: #ffffff;
-      --text-on-surface: #000000;
-      --text-secondary-light: #666666;
-      --error-color: #b00020; /* Red */
-      --shadow-1: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
-      --shadow-2: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-      --shadow-4: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
-    }
-
     html, body {
       height: 100%; /* Make html and body take full viewport height */
       margin: 0;
@@ -40,25 +22,24 @@
     }
     body {
       font-family: 'Tajawal', Arial, sans-serif;
-      background: var(--background-color);
+      background: #f8fafc;
       display: flex;
       flex-direction: column; /* Arrange children in a column */
       direction: rtl;
       text-align: right;
-      color: var(--text-on-surface);
     }
     header {
-      background: var(--primary-color);
-      color: var(--text-on-primary);
-      padding: 10px 20px; /* Reduced padding */
-      font-size: 1.4rem; /* Slightly reduced font size */
+      background: #4361ee;
+      color: #fff;
+      padding: 15px 25px;
+      font-size: 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow-2); /* Material shadow */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       z-index: 200; /* High z-index to stay on top */
-      flex-shrink: 0;
-      position: fixed;
+      flex-shrink: 0; /* Prevent header from shrinking */
+      position: fixed; /* Make it fixed to the viewport */
       top: 0;
       left: 0;
       right: 0;
@@ -69,50 +50,32 @@
       max-width: 1200px;
       width: 100%;
       margin: 0 auto; /* Center horizontally */
-      padding-top: 60px; /* Space for fixed header (adjust if header height changes) */
-      padding-bottom: 75px; /* Space for fixed input area (adjust if input area height changes) */
+      padding-top: 70px; /* Space for fixed header (adjust if header height changes) */
+      padding-bottom: 70px; /* Space for fixed input area (adjust if input area height changes) */
       box-sizing: border-box; /* Include padding in height calculation */
       overflow: hidden; /* Hide main-container's scrollbar */
-      background: var(--surface-color); /* Apply surface color */
-      border-radius: 8px; /* Rounded corners */
-      box-shadow: var(--shadow-1); /* Subtle container shadow */
-      margin-top: 20px; /* Margin from header */
-      margin-bottom: 20px; /* Margin from bottom (if not full height) */
     }
     .chat-list-panel {
       width: 300px;
-      border-left: 1px solid var(--background-color); /* Use background color for subtle border */
-      background: var(--background-color);
+      border-left: 1px solid #eee;
+      background: #f5f7fb;
       display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      overflow: hidden;
-      transition: transform 0.3s ease-out, opacity 0.3s ease-out, width 0.3s ease-out; /* For sliding in/out */
+      flex-direction: column; /* Arrange header and list within panel */
+      flex-shrink: 0; /* Prevent panel from shrinking */
+      overflow: hidden; /* Hide panel's scrollbar, let #chatRoomsList scroll */
     }
-    /* Default visibility on desktop, hide on mobile */
-    .chat-list-panel.hidden-mobile { /* Class for hiding on mobile when not active */
-        transform: translateX(100%); /* Slide out to the right (RTL) */
-        opacity: 0;
-        pointer-events: none; /* Disable interactions when hidden */
-        width: 0; /* Collapse width completely */
-        /* To make display work with transitions, we manage it in JS */
-    }
-
     .chat-list-header {
       padding: 15px;
-      font-size: 1.1rem; /* Slightly smaller */
+      font-size: 1.2rem;
       font-weight: bold;
-      border-bottom: 1px solid var(--surface-color); /* Use surface color for subtle border */
+      border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-shrink: 0;
-      background: var(--surface-color);
-      color: var(--primary-color); /* Highlight header with primary color */
-      box-shadow: var(--shadow-1); /* Subtle shadow for list header */
+      flex-shrink: 0; /* Prevent header from shrinking */
     }
     #chatRoomsList {
-      flex: 1;
+      flex: 1; /* Takes all available space and scrolls */
       overflow-y: auto;
       padding: 10px 0;
     }
@@ -120,58 +83,53 @@
       padding: 12px 15px;
       border-bottom: 1px solid #eee;
       cursor: pointer;
-      transition: background-color 0.2s ease, transform 0.1s ease;
+      transition: background-color 0.2s ease;
     }
     .chat-room-item:last-child {
       border-bottom: none;
     }
     .chat-room-item:hover {
-      background-color: var(--primary-light); /* Light primary for hover */
-      transform: translateX(-3px); /* Subtle slide on hover */
+      background-color: #eef2fa;
     }
     .chat-room-item.active {
-      background-color: var(--primary-color);
-      color: var(--text-on-primary);
+      background-color: #e0e9f8;
       font-weight: bold;
     }
     .chat-area {
-      flex: 1;
+      flex: 1; /* Takes all available horizontal space */
       display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      flex-direction: column; /* Arrange header, message display, input */
+      overflow: hidden; /* Hide chat-area's scrollbar, let #messageDisplay scroll */
     }
     .chat-header {
       padding: 15px;
-      font-size: 1.1rem; /* Slightly smaller */
+      font-size: 1.2rem;
       font-weight: bold;
-      border-bottom: 1px solid var(--background-color);
+      border-bottom: 1px solid #eee;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--surface-color);
-      color: var(--primary-color); /* Highlight header with primary color */
-      flex-shrink: 0;
-      box-shadow: var(--shadow-1); /* Subtle shadow for chat header */
+      background: #fcfcfc;
+      flex-shrink: 0; /* Prevent header from shrinking */
     }
     #messageDisplay {
-      flex: 1;
-      padding: 15px; /* Slightly reduced padding */
+      flex: 1; /* Takes all available vertical space and scrolls */
+      padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      background: #fdfdfd; /* Lighter background for messages */
-      padding-bottom: 75px; /* Ensure last message is not hidden by fixed input area */
+      background: #fdfdfd;
     }
     .message-input-area {
-      flex-shrink: 0;
-      background: var(--surface-color);
-      border-top: 1px solid var(--background-color);
+      flex-shrink: 0; /* Prevent input area from shrinking */
+      background: #fcfcfc;
+      border-top: 1px solid #eee;
       padding: 10px 15px;
       display: flex;
       align-items: center;
-      box-shadow: var(--shadow-2); /* Material shadow upwards */
-      z-index: 100; /* Ensure it's above main container */
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+      z-index: 50;
       position: fixed; /* Fixed to the viewport */
       bottom: 0;
       left: 0;
@@ -181,61 +139,41 @@
       flex: 1;
       padding: 10px 15px;
       border: 1px solid #ddd;
-      border-radius: 20px; /* More rounded */
+      border-radius: 20px;
       font-size: 1rem;
       resize: none;
       min-height: 40px;
-      max-height: 120px; /* Prevent it from growing too large */
-      margin-left: 10px;
+      margin-left: 10px; /* Adjusted for RTL */
       direction: rtl;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    #messageInput:focus {
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 2px rgba(98, 0, 238, 0.2);
-        outline: none;
     }
     .btn {
-      background: var(--primary-color);
-      color: var(--text-on-primary);
+      background: #4361ee;
+      color: #fff;
       border: none;
       padding: 10px 20px;
       border-radius: 20px;
       font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.2s ease, box-shadow 0.2s ease;
-      white-space: nowrap;
-      box-shadow: var(--shadow-1);
+      transition: background-color 0.2s ease;
+      white-space: nowrap; /* Prevent button text from wrapping */
     }
     .btn:hover {
-      background-color: var(--primary-dark);
-      box-shadow: var(--shadow-2);
-    }
-    .btn:active {
-        box-shadow: var(--shadow-1);
+      background-color: #3f37c9;
     }
     .btn:disabled {
       background: #bdbdbd;
       cursor: not-allowed;
-      box-shadow: none;
     }
-    .logout-btn { background:var(--error-color); }
-    .logout-btn:hover { background:#9b0000; }
+    .logout-btn { background:#e63946; }
+    .logout-btn:hover { background:#d42a3b; }
     .attach-btn {
-        background-color: var(--secondary-color);
-        margin-right: 10px;
+        background-color: #1dad87;
+        margin-right: 10px; /* Adjusted for RTL */
         padding: 10px 15px;
-        border-radius: 50%; /* Circular button */
-        width: 40px; /* Fixed width for circular */
-        height: 40px; /* Fixed height for circular */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: var(--shadow-1);
+        border-radius: 20px;
     }
     .attach-btn:hover {
-        background-color: var(--secondary-dark);
-        box-shadow: var(--shadow-2);
+        background-color: #159b79;
     }
 
     /* Message Bubbles */
@@ -245,34 +183,23 @@
       border-radius: 15px;
       word-wrap: break-word;
       line-height: 1.5;
-      position: relative;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle bubble shadow */
+      position: relative; /* For attachment loading spinner */
     }
     .message-bubble.sent {
-      background-color: var(--primary-light); /* Light primary color for sent messages */
-      color: var(--text-on-primary); /* Text color contrast */
+      background-color: #e0e9f8;
       align-self: flex-end;
       text-align: right;
     }
     .message-bubble.received {
-      background-color: var(--surface-color); /* White for received messages */
-      border: 1px solid #e0e0e0; /* Subtle border */
+      background-color: #f0f2f5;
       align-self: flex-start;
       text-align: right;
     }
-    .message-header-line {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 5px;
-    }
     .message-sender {
       font-weight: bold;
+      margin-bottom: 5px;
       font-size: 0.9em;
-      color: var(--text-secondary-light);
-    }
-    .message-bubble.sent .message-sender {
-      color: rgba(255,255,255,0.8); /* Lighter color for sender in sent bubbles */
+      color: #666;
     }
     .message-text {
       font-size: 1.05em;
@@ -283,22 +210,18 @@
       margin-top: 5px;
       text-align: left;
     }
-    .message-bubble.sent .message-timestamp {
-      color: rgba(255,255,255,0.7); /* Lighter color for timestamp in sent bubbles */
-    }
     .attachment-link {
         display: block;
         padding: 8px 10px;
-        background-color: var(--background-color);
+        background-color: #f0f0f0;
         border-radius: 8px;
         margin-top: 5px;
         text-decoration: none;
-        color: var(--primary-color);
+        color: #4361ee;
         font-weight: bold;
         display: flex;
         align-items: center;
         gap: 8px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
     .attachment-link:hover {
         background-color: #e0e0e0;
@@ -312,28 +235,7 @@
         border-radius: 5px;
         margin-top: 5px;
         display: block;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .delete-message-btn {
-        background: none;
-        border: none;
-        color: var(--error-color);
-        cursor: pointer;
-        font-size: 1.1em; /* Larger icon for delete */
-        padding: 0 5px;
-        transition: color 0.2s ease, transform 0.1s ease;
-    }
-    .delete-message-btn:hover {
-        color: #d42a3b;
-        transform: scale(1.1);
-    }
-    .message-bubble.sent .delete-message-btn {
-        color: rgba(255,255,255,0.8); /* Lighter for sent bubbles */
-    }
-    .message-bubble.sent .delete-message-btn:hover {
-        color: #ffffff; /* White on hover for sent bubbles */
-    }
-
 
     /* Modals for Admin */
     .modal {
@@ -350,11 +252,11 @@
       align-items: center;
     }
     .modal-content {
-      background-color: var(--surface-color);
+      background-color: #fefefe;
       margin: auto;
       padding: 25px;
       border-radius: 10px;
-      box-shadow: var(--shadow-4);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
       max-width: 500px;
       width: 90%;
       position: relative;
@@ -402,7 +304,7 @@
         background-color: #eee;
     }
     .multi-select-list div.selected {
-        background-color: var(--primary-light);
+        background-color: #e0e9f8;
         font-weight: bold;
     }
 
@@ -411,15 +313,14 @@
       visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff;
       text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 9999; left: 50%; bottom: 30px;
       font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;
-      box-shadow: var(--shadow-2);
     }
     .toast.show { visibility: visible; opacity: 1; }
 
     /* Spinner */
     .spinner {
-      border: 4px solid #eee; border-top: 4px solid var(--primary-color); border-radius: 50%;
+      border: 4px solid #eee; border-top: 4px solid #4361ee; border-radius: 50%;
       width: 38px; height: 38px; animation: spin 1s linear infinite; margin: 60px auto;
-      display: none;
+      display: none; /* This hides it by default */
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
@@ -429,83 +330,37 @@
         width: 20px;
         height: 20px;
         border: 2px solid #f3f3f3;
-        border-top: 2px solid var(--primary-color);
+        border-top: 2px solid #4361ee;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin-right: 10px;
-    }
-
-    /* Chat List Toggle Button (FAB) */
-    #chatListToggleButton {
-        position: fixed;
-        top: 80px; /* Below header */
-        right: 20px; /* Positioned on the right for RTL */
-        background-color: var(--secondary-color);
-        color: var(--text-on-primary);
-        border: none;
-        border-radius: 50%;
-        width: 56px; /* Standard FAB size */
-        height: 56px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.5rem;
-        box-shadow: var(--shadow-2);
-        cursor: pointer;
-        z-index: 150; /* Above main container, below header */
-        transition: background-color 0.2s ease, box-shadow 0.2s ease;
-        display: none; /* Hidden by default, shown on mobile via media query */
-    }
-    #chatListToggleButton:hover {
-        background-color: var(--secondary-dark);
-        box-shadow: var(--shadow-4);
+        margin-right: 10px; /* Adjusted for RTL */
     }
 
 
-    /* Responsive Adjustments */
     @media (max-width: 768px) {
       .main-container {
         flex-direction: column;
-        margin: 0; /* Remove horizontal margin on small screens */
-        border-radius: 0; /* Remove rounded corners */
-        box-shadow: none; /* Remove shadow */
+        margin: 0 10px; /* Adjust margin for smaller screens */
       }
       .chat-list-panel {
-        position: fixed; /* Make it fixed to overlay */
-        top: 60px; /* Below header */
-        bottom: 75px; /* Above input area */
-        right: 0;
-        width: 250px; /* Smaller width for mobile overlay */
-        box-shadow: var(--shadow-4); /* Stronger shadow for overlay */
-        z-index: 180; /* Above chat area */
-        transform: translateX(100%); /* Initially off-screen to the right */
-        opacity: 0;
-        pointer-events: none;
-        display: none; /* Start as completely hidden on mobile */
-        flex-direction: column; /* Keep flex-direction for content layout */
-      }
-      .chat-list-panel.active-panel { /* Class toggled by JS */
-          transform: translateX(0); /* Slide into view */
-          opacity: 1;
-          pointer-events: auto;
-          display: flex; /* Make visible and flexible */
+        width: 100%;
+        border-bottom: 1px solid #eee;
+        border-left: none;
+        height: 250px; /* Give a fixed height to chat list panel on small screens */
       }
       .chat-list-header {
         font-size: 1rem;
         padding: 10px;
       }
       .chat-area {
-        min-height: auto; /* Let it adapt */
+        min-height: 350px; /* Adjust as needed */
       }
       .message-input-area {
-        padding: 8px 10px;
+        padding: 8px 10px; /* Adjust padding for smaller screens */
       }
       .btn, .attach-btn {
         padding: 8px 12px;
         font-size: 0.9rem;
-      }
-      #chatListToggleButton {
-          display: flex; /* Show FAB on small screens */
       }
     }
   </style>
@@ -520,7 +375,7 @@
   </header>
 
   <div class="main-container">
-    <div id="chatListOverlay" class="chat-list-panel">
+    <div class="chat-list-panel">
       <div class="chat-list-header">
         <h5>المحادثات</h5>
         <button class="btn" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openCreateChatModal()">
@@ -540,23 +395,25 @@
         </button>
       </div>
       <div id="messageDisplay">
-        </div>
-      <div class="spinner" id="loadingSpinner"></div> </div>
-  </div>
+        <!-- Messages will be loaded here -->
+      </div>
+      <div class="spinner" id="loadingSpinner"></div> <!-- Main loading spinner -->
 
-  <button id="chatListToggleButton" onclick="toggleChatListPanel()">
-      <i class="fas fa-bars" id="chatListToggleIcon"></i>
-  </button>
+      <!-- message-input-area is now fixed to viewport bottom in CSS -->
+    </div>
+  </div>
 
   <div class="message-input-area">
     <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
     <button class="btn attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق ملف">
         <i class="fas fa-paperclip"></i>
     </button>
-    <div id="fileUploadSpinner"></div> <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
+    <div id="fileUploadSpinner"></div> <!-- Spinner for file upload -->
+    <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
     <button class="btn" id="sendMessageBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> إرسال</button>
   </div>
 
+  <!-- Create Chat Modal -->
   <div id="createChatModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeCreateChatModal()">&times;</span>
@@ -577,6 +434,7 @@
     </div>
   </div>
 
+  <!-- Manage Participants Modal -->
   <div id="manageParticipantsModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeManageParticipantsModal()">&times;</span>
@@ -584,7 +442,8 @@
 
       <label>المشاركون الحاليون:</label>
       <div id="currentParticipantsList" class="multi-select-list">
-        </div>
+        <!-- Current participants will be loaded here -->
+      </div>
       <p style="font-size:0.8em; color:#888;">* يمكنك الضغط على اسم المستخدم لتحديده/إلغاء تحديده.</p>
 
       <div class="modal-buttons">
@@ -772,10 +631,6 @@
         document.getElementById('messageDisplay').innerHTML = '<p style="text-align: center; color: #e63946; padding: 20px;">خطأ في تحميل تفاصيل المحادثة.</p>';
         showLoading(false); // Hide main spinner
       });
-      // NEW: Hide chat list panel on mobile when a chat room is selected
-      if (window.innerWidth <= 768) {
-          toggleChatListPanel(); // Toggle it off
-      }
     }
 
     // --- Message Management ---
@@ -829,7 +684,6 @@
     function renderMessage(message) {
       const messageDisplay = document.getElementById('messageDisplay');
       const isSentByMe = message.senderId === currentUser.uid;
-      const isTeacher = currentUserRole === 'teacher';
       const senderName = isSentByMe ? 'أنت' : message.senderName || 'مستخدم غير معروف';
       const timestamp = message.timestamp ? new Date(message.timestamp.toDate()).toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' }) : '';
 
@@ -856,58 +710,13 @@
           `;
       }
 
-      // Add delete button if user is sender or is a teacher
-      const deleteButtonHtml = (isSentByMe || isTeacher) ? `
-        <button class="delete-message-btn" onclick="confirmDeleteMessage('${currentChatRoomId}', '${message.id}', '${message.fileUrl || ''}', '${message.type || 'text'}')">
-            <i class="fas fa-trash-alt"></i>
-        </button>
-      ` : '';
-
       messageDiv.innerHTML = `
-        <div class="message-header-line">
-            <div class="message-sender">${sanitizeText(senderName)}</div>
-            ${deleteButtonHtml}
-        </div>
+        <div class="message-sender">${sanitizeText(senderName)}</div>
         <div class="message-text">${messageContentHtml}</div>
         <div class="message-timestamp">${timestamp}</div>
       `;
       messageDisplay.appendChild(messageDiv);
     }
-
-    // New: Function to confirm and delete a message
-    async function confirmDeleteMessage(chatRoomId, messageId, fileUrl, messageType) {
-        if (!confirm("هل أنت متأكد من حذف هذه الرسالة؟ لا يمكن التراجع عن هذا الإجراء.")) {
-            return;
-        }
-
-        showToast("جاري حذف الرسالة...", "#4361ee");
-        try {
-            // Delete message from Firestore
-            await firestore.collection('chatRooms').doc(chatRoomId).collection('messages').doc(messageId).delete();
-            
-            // If message has an attached file, delete it from Storage
-            if (fileUrl && (messageType === 'file' || messageType === 'image')) {
-                // Extract fullPath from fileUrl (this assumes standard Firebase Storage URL structure)
-                // e.g., https://firebasestorage.googleapis.com/v0/b/project.appspot.com/o/path%2Fto%2Ffile?alt=media
-                const urlParts = fileUrl.split('/o/');
-                if (urlParts.length > 1) {
-                    const encodedPath = urlParts[1].split('?')[0]; // Get path, remove query params
-                    const fullPath = decodeURIComponent(encodedPath); // Decode URI components (%2F to /)
-                    
-                    const fileRef = storage.ref(fullPath);
-                    await fileRef.delete();
-                    console.log("File deleted from Storage:", fullPath);
-                }
-            }
-
-            showToast("تم حذف الرسالة والمرفق (إن وجد) بنجاح!", "#1dad87");
-            // No need to re-load messages, listener will handle it
-        } catch (error) {
-            console.error("Error deleting message or file:", error);
-            showToast("خطأ أثناء حذف الرسالة: " + error.message, "#e63946");
-        }
-    }
-
 
     function getFileIcon(fileName) {
         const extension = fileName.split('.').pop().toLowerCase();
@@ -956,20 +765,17 @@
         fileName: fileName // Include file name if present
       };
 
-      firestore.collection('chatRooms').doc(currentChatRoomId).update({
-        lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
-        lastMessageSender: currentUser.displayName || currentUser.email
-      })
+      firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData)
         .then(() => {
-          // IMPORTANT: Return the promise from the add operation so the next .then() waits for it
-          return firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData);
-        })
-        .then(() => {
+          // Update lastMessageTimestamp in chat room for sorting
+          firestore.collection('chatRooms').doc(currentChatRoomId).update({
+            lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
+            lastMessageSender: currentUser.displayName || currentUser.email
+          });
           messageInput.value = ''; // Clear text input
           messageInput.style.height = 'auto'; // Reset textarea height
           document.getElementById('fileInput').value = ''; // Clear file input
-          showToast("تم إرسال الرسالة بنجاح!", "#1dad87"); // Add a success toast
         })
         .catch(error => {
           console.error("Error sending message:", error);
@@ -998,8 +804,8 @@
     async function handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) {
-            //showFileUploadSpinner(false); // No, handle this in finally or success/error callbacks
-            return; // User cancelled file selection
+            showFileUploadSpinner(false); // Hide spinner if no file selected (e.g., user cancels)
+            return;
         }
 
         // 1. Client-side Validation
@@ -1062,6 +868,8 @@
             showToast("خطأ في بدء عملية رفع الملف: " + error.message, "#e63946");
             showFileUploadSpinner(false);
         } finally {
+            // It's crucial to ensure spinner is hidden even if try/catch blocks don't catch everything
+            // showFileUploadSpinner(false); // This is handled by uploadTask.on('state_changed', ..., error, success)
             document.getElementById('fileInput').value = ''; // Clear file input regardless of success/failure
         }
     }
@@ -1166,6 +974,7 @@
         currentChatParticipants = roomData.participants || [];
 
         // Display all users, pre-selecting current participants
+        currentParticipantsListDiv.innerHTML = '';
         allUsers.forEach(user => {
           const userDiv = document.createElement('div');
           userDiv.innerText = sanitizeText(user.name || user.email);
@@ -1221,67 +1030,8 @@
       });
     }
 
-    // NEW: Toggle Chat List Panel (for mobile/small screens)
-    function toggleChatListPanel() {
-        const chatListPanel = document.getElementById('chatListOverlay');
-        const toggleIcon = document.getElementById('chatListToggleIcon');
-        if (chatListPanel.classList.contains('active-panel')) {
-            // Hide panel
-            chatListPanel.classList.remove('active-panel');
-            toggleIcon.classList.replace('fa-times', 'fa-bars'); // Change icon to bars
-            // After transition, set display to none to make it completely non-interactive
-            chatListPanel.addEventListener('transitionend', function handler() {
-                chatListPanel.style.display = 'none';
-                chatListPanel.removeEventListener('transitionend', handler);
-            });
-        } else {
-            // Show panel
-            chatListPanel.style.display = 'flex'; // Make it visible for transition
-            // Small delay to ensure display:flex applies before transform starts
-            setTimeout(() => {
-                chatListPanel.classList.add('active-panel');
-                toggleIcon.classList.replace('fa-bars', 'fa-times'); // Change icon to X
-            }, 10);
-        }
-    }
-    // Set initial state based on screen size on load and resize
-    function initializeChatListPanelVisibility() {
-        const chatListPanel = document.getElementById('chatListOverlay');
-        const toggleButton = document.getElementById('chatListToggleButton');
-
-        if (window.innerWidth <= 768) {
-            chatListPanel.style.display = 'none'; // Ensure hidden on mobile
-            chatListPanel.classList.remove('active-panel'); // Ensure not active
-            toggleButton.style.display = 'flex'; // Show FAB
-            document.getElementById('chatListToggleIcon').classList.replace('fa-times', 'fa-bars'); // Reset icon
-        } else {
-            chatListPanel.style.display = 'flex'; // Show panel normally on desktop
-            chatListPanel.classList.remove('active-panel'); // Ensure not in active mobile state
-            toggleButton.style.display = 'none'; // Hide FAB
-        }
-    }
-
-    // NEW: Close chat list panel when clicking outside of it on mobile
-    document.addEventListener('click', function(event) {
-        const chatListPanel = document.getElementById('chatListOverlay');
-        const chatListToggleButton = document.getElementById('chatListToggleButton');
-
-        // Only act if on mobile view and panel is active
-        if (window.innerWidth <= 768 && chatListPanel.classList.contains('active-panel')) {
-            const isClickInsidePanel = chatListPanel.contains(event.target);
-            const isClickOnToggleButton = chatListToggleButton.contains(event.target);
-            
-            // If click is outside panel and outside toggle button
-            if (!isClickInsidePanel && !isClickOnToggleButton) {
-                toggleChatListPanel(); // Close the panel
-            }
-        }
-    });
-
-
-    window.addEventListener('load', initializeChatListPanelVisibility);
-    window.addEventListener('resize', initializeChatListPanelVisibility);
-
+    // --- Initial setup on page load ---
+    // You might want to automatically select the first chat or show a welcome message
   </script>
 </body>
 </html>
