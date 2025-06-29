@@ -718,8 +718,6 @@
             case 'xlsx': return 'fas fa-file-excel';
             case 'ppt':
             case 'pptx': return 'fas fa-file-powerpoint';
-            case 'zip':
-            case 'rar': return 'fas fa-file-archive';
             case 'jpg':
             case 'jpeg':
             case 'png':
@@ -789,17 +787,20 @@
         'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .doc, .docx
         'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xls, .xlsx
         'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .ppt, .pptx
-        'text/plain', // Text files
-        'application/zip', 'application/x-rar-compressed' // Archives
+        'text/plain' // Text files
+        // Removed: 'application/zip', 'application/x-rar-compressed'
     ];
 
     async function handleFileSelect(event) {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            showFileUploadSpinner(false); // Hide spinner if no file selected (e.g., user cancels)
+            return;
+        }
 
         // 1. Client-side Validation
         if (!ALLOWED_FILE_TYPES.includes(file.type)) {
-            showToast("نوع الملف غير مدعوم. أنواع الملفات المدعومة هي: صور، PDF، مستندات Word/Excel/PowerPoint، ملفات نصية، ملفات مضغوطة.", "#e63946");
+            showToast("نوع الملف غير مدعوم. أنواع الملفات المدعومة هي: صور، PDF، مستندات Word/Excel/PowerPoint، ملفات نصية.", "#e63946");
             document.getElementById('fileInput').value = ''; // Clear input
             return;
         }
@@ -825,18 +826,40 @@
             const fileNameForStorage = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`; // Sanitize file name
             const fileRef = storageRef.child(`chat_attachments/${currentChatRoomId}/${fileNameForStorage}`);
 
-            const snapshot = await fileRef.put(file);
-            const downloadURL = await snapshot.ref.getDownloadURL();
+            const uploadTask = fileRef.put(file);
 
-            // 3. Send message with file URL
-            sendMessage(downloadURL, file.name, file.type);
-            showToast("تم رفع الملف بنجاح وإرساله!", "#1dad87");
+            // Listen for state changes, errors, and completion of the upload.
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    // Optional: Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    console.log('Upload is ' + progress + '% done');
+                    // You could update a progress bar here if you have one
+                },
+                (error) => {
+                    // Handle unsuccessful uploads
+                    console.error("Error during file upload:", error);
+                    showToast("خطأ أثناء رفع الملف: " + error.message, "#e63946");
+                    showFileUploadSpinner(false);
+                },
+                async () => {
+                    // Handle successful uploads on complete
+                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+
+                    // 3. Send message with file URL
+                    sendMessage(downloadURL, file.name, file.type);
+                    showToast("تم رفع الملف بنجاح وإرساله!", "#1dad87");
+                    showFileUploadSpinner(false);
+                }
+            );
 
         } catch (error) {
-            console.error("Error uploading file:", error);
-            showToast("خطأ أثناء رفع الملف: " + error.message, "#e63946");
-        } finally {
+            console.error("Error initiating file upload:", error); // Error in the try block itself, not the uploadTask
+            showToast("خطأ في بدء عملية رفع الملف: " + error.message, "#e63946");
             showFileUploadSpinner(false);
+        } finally {
+            // It's crucial to ensure spinner is hidden even if try/catch blocks don't catch everything
+            // showFileUploadSpinner(false); // This is handled by uploadTask.on('state_changed', ..., error, success)
             document.getElementById('fileInput').value = ''; // Clear file input regardless of success/failure
         }
     }
