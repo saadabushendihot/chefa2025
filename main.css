@@ -216,31 +216,31 @@ header, .app-bar {
   top: 0;
   left: 0;
   right: 0;
-  height: 64px; /* الارتفاع الافتراضي للرأس */
-  transition: all 0.3s ease-in-out; /* إضافة انتقال سلس لتغييرات الارتفاع/الحجم */
+  height: 64px;
+  transition: all 0.3s ease-in-out;
 }
 /* نمط الرأس عند التمرير (للسكربت) */
 .app-bar.scrolled {
-  height: 50px; /* ارتفاع أصغر عند التمرير لأسفل */
+  height: 50px;
   padding-top: 10px;
   padding-bottom: 10px;
   font-size: 1.2rem;
-  box-shadow: 0 4px 8px var(--shadow-strong); /* ظل أقوى عند التمرير */
+  box-shadow: 0 4px 8px var(--shadow-strong);
 }
 .app-bar.scrolled .app-bar-logo {
-  height: 30px; /* تصغير الشعار */
+  height: 30px;
 }
 .app-bar.scrolled .app-bar-title {
-  font-size: 1rem; /* تصغير عنوان التطبيق */
+  font-size: 1rem;
 }
 .app-bar.scrolled .nav-link {
-  height: 50px; /* تصغير روابط التنقل */
+  height: 50px;
 }
 .app-bar.scrolled .notification-bell {
-  font-size: 1.3rem; /* تصغير أيقونة الجرس */
+  font-size: 1.3rem;
 }
 .app-bar.scrolled .btn {
-  padding: 5px 12px; /* تصغير الأزرار في الرأس */
+  padding: 5px 12px;
   font-size: 0.8rem;
 }
 
@@ -262,6 +262,16 @@ header, .app-bar {
 .app-bar-spacer {
   flex-grow: 1;
 }
+
+/* Navigation Links Container */
+nav#main-nav-links {
+    display: flex; /* يجعل الروابط تترتب أفقياً */
+    align-items: center; /* محاذاة عمودية */
+    gap: 15px; /* مسافة بين الروابط */
+    margin-right: 20px; /* مسافة بين الروابط وباقي عناصر الرأس */
+    flex-wrap: wrap; /* للسماح للروابط بالالتفاف في الشاشات الصغيرة */
+}
+
 
 /* Navigation Links (لصفحات المعلم) */
 .nav-link {
@@ -298,8 +308,8 @@ header, .app-bar {
 /* الحاويات الرئيسية */
 .container {
   max-width: 1200px;
-  margin: 24px auto; /* مسافة موحدة أسفل الهيدر */
-  padding: 28px; /* تباعد داخلي للحاوية */
+  margin: 24px auto;
+  padding: 28px;
   background: var(--surface-light);
   border-radius: 12px;
   box-shadow: 0 2px 10px var(--shadow-light);
@@ -308,7 +318,7 @@ header, .app-bar {
 
 /* لجعل العناصر الأولى داخل الـ container تبتعد عن الرأس (إذا لم يكن هناك عنصر أعلى) */
 .container > *:first-child {
-    margin-top: 24px; /* مسافة أعلى العنصر الأول داخل الكونتينر */
+    margin-top: 24px;
 }
 /* ضبط خاص لصفحة الدردشة حيث main-container هو العنصر الرئيسي */
 .main-container {
@@ -316,8 +326,8 @@ header, .app-bar {
   display: flex;
   max-width: 1200px;
   width: 100%;
-  margin: 0 auto; /* لا هوامش علوية هنا، body padding-top هو المسؤول */
-  padding-top: 70px; /* هذه المسافة خاصة بـ chat.html لتعويض الهيدر + تباعد داخلي */
+  margin: 0 auto;
+  padding-top: 70px;
   padding-bottom: 70px;
   box-sizing: border-box;
   overflow: hidden;
