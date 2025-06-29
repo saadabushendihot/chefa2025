@@ -60,6 +60,8 @@
 
 html {
   scroll-behavior: smooth;
+  height: 100%; /* مهم لصفحة الدردشة لضبط ارتفاع الأقسام الداخلية */
+  overflow: hidden; /* مهم لصفحة الدردشة لمنع التمرير العام للصفحة */
 }
 
 body {
@@ -265,11 +267,11 @@ header, .app-bar {
 
 /* Navigation Links Container */
 nav#main-nav-links {
-    display: flex; /* يجعل الروابط تترتب أفقياً */
-    align-items: center; /* محاذاة عمودية */
-    gap: 15px; /* مسافة بين الروابط */
-    margin-right: 20px; /* مسافة بين الروابط وباقي عناصر الرأس */
-    flex-wrap: wrap; /* للسماح للروابط بالالتفاف في الشاشات الصغيرة */
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-right: 20px;
+    flex-wrap: wrap;
 }
 
 
@@ -321,17 +323,20 @@ nav#main-nav-links {
     margin-top: 24px;
 }
 /* ضبط خاص لصفحة الدردشة حيث main-container هو العنصر الرئيسي */
+/* مهم: هذا النمط يُطبق فقط على العنصر ذي الفئة .main-container */
 .main-container {
-  flex: 1;
-  display: flex;
+  flex: 1; /* يأخذ المساحة المتاحة عموديا بين الرأس ومنطقة الإدخال */
+  display: flex; /* لترتيب chat-list-panel و chat-area جنباً إلى جنب */
   max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
-  padding-top: 70px;
-  padding-bottom: 70px;
+  margin: 0 auto; /* توسيط أفقيا */
+  padding-top: 0; /* تم إزالة padding-top هنا، لأن body هو من يتعامل مع مسافة الرأس الثابت */
+  padding-bottom: 70px; /* مسافة لمنطقة إدخال الرسائل الثابتة في الأسفل */
   box-sizing: border-box;
-  overflow: hidden;
+  overflow: hidden; /* لمنع ظهور شريط التمرير الرئيسي */
+  position: relative; /* لتحديد سياق التمركز المطلق للقائمة الجانبية في الجوال */
 }
+
 
 /* ------------------------------------ */
 /* 4. أنماط البطاقات والجداول والنماذج والإشعارات (المكونات الأساسية) */
@@ -1490,6 +1495,41 @@ textarea.summary-text:focus {
   .login-container {
     margin: 40px auto;
   }
+
+  /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
+  body.chat-page .main-container {
+    padding-top: 0; /* لإتاحة مساحة أكبر للقائمة الجانبية */
+    flex-direction: column; /* لترتيب العناصر عمودياً */
+  }
+  body.chat-page .chat-list-panel {
+    position: fixed; /* لتثبيتها كقائمة جانبية */
+    top: 0;
+    right: -250px; /* لإخفائها خارج الشاشة في البداية (لجهة اليمين في RTL) */
+    width: 250px; /* عرض القائمة الجانبية */
+    height: 100%; /* ارتفاع كامل الشاشة */
+    background: var(--surface-light);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.3); /* ظل جانبي */
+    z-index: 500; /* لضمان ظهورها فوق محتوى الدردشة */
+    transition: all 0.3s ease-in-out; /* حركة سلسة للظهور والاختفاء */
+    border-left: 1px solid var(--border-color);
+    flex-shrink: unset; /* إلغاء تقليص الفئة */
+  }
+  body.chat-page .chat-list-panel.open {
+    right: 0; /* لإظهارها على الشاشة */
+    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+  }
+  body.chat-page .chat-area {
+    width: 100%; /* لتأخذ المساحة الكاملة */
+    flex: 1;
+    overflow-y: auto; /* للسماح بمنطقة الدردشة بالتمرير */
+  }
+  body.chat-page .sidebar-toggle-btn {
+    display: flex; /* إظهار زر التبديل */
+  }
+  body.chat-page .app-bar-title {
+    margin-right: auto; /* لدفع العنوان لليسار */
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 576px) {
@@ -1552,4 +1592,27 @@ textarea.summary-text:focus {
     padding: 20px;
     margin: 30px auto;
   }
+}
+
+/* نمط زر تبديل القائمة الجانبية (Sidebar Toggle Button) */
+.sidebar-toggle-btn {
+    display: none; /* مخفي افتراضياً على الشاشات الكبيرة */
+    background-color: transparent;
+    color: var(--surface-light);
+    font-size: 1.5rem;
+    padding: 5px 10px;
+    margin-left: 15px; /* مسافة عن الشعار */
+    border-radius: 5px;
+    box-shadow: none;
+    transition: background-color 0.2s ease;
+}
+.sidebar-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    box-shadow: none;
+}
+.dark-mode .sidebar-toggle-btn {
+    color: var(--text-dark);
+}
+.dark-mode .sidebar-toggle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
 }
