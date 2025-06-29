@@ -1,277 +1,28 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>لوحة المعلم - إدارة الطلاب والدروس</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="firebase-config.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="main.css">
-</head>
+  </head>
 <body>
   <header class="app-bar">
     <img src="https://i.ibb.co/cSpS2NDk/logo-1.png" alt="شعار المركز" class="app-bar-logo">
-    <h1 class="app-bar-title">لوحة المعلم - إدارة الطلاب والدروس</h1>
-    <div class="app-bar-spacer"></div>
-    <nav>
-      <a href="dashboard.html" class="nav-link active">لوحة التحكم</a>
-      <a href="questions-admin.html" class="nav-link">إدارة الأسئلة</a>
-    </nav>
+    <h1 class="app-bar-title">منصة شفاء</h1> <div class="app-bar-spacer"></div>
+
+    <nav id="main-nav-links">
+      </nav>
+
     <div class="d-flex align-items-center">
-      <button class="btn ml-2" onclick="toggleDarkMode()">
+      <button class="btn" onclick="toggleDarkMode()">
         <i class="material-icons">brightness_4</i>
       </button>
       <div class="notification-bell" onclick="toggleTeacherNotificationPanel()">
         <i class="material-icons">notifications</i>
         <span id="unreadTeacherNotificationsBadge" class="notification-badge d-none">0</span>
       </div>
-      <button class="btn btn-danger ml-2" onclick="logout()">
-        <i class="material-icons mr-1">logout</i> تسجيل الخروج
+      <button class="btn btn-danger" onclick="logout()">
+        <i class="material-icons">logout</i> تسجيل الخروج
       </button>
     </div>
   </header>
-
-  <div id="teacherNotificationPanel" class="notification-panel">
-    <div class="notification-header">
-      <h5 class="mb-0">إشعارات الطلاب</h5>
-    </div>
-    <div id="teacherNotificationsList">
-      <p class="text-center" style="color: var(--text-secondary); padding: 16px;">لا توجد إشعارات حالياً.</p>
-    </div>
-  </div>
-
-  <main class="container"> <div class="spinner" id="loadingSpinner"></div>
-    <div id="toast" class="toast"></div>
-
-    <div class="card">
-      <div class="card-header d-flex align-items-center justify-content-between" style="cursor: pointer;" onclick="toggleSection('addStudentSection')">
-        <h4 class="mb-0">إضافة طالب جديد</h4>
-        <i class="material-icons" id="addStudentToggleIcon">add</i>
-      </div>
-      <div class="card-content" id="addStudentSection" style="display: none;">
-        <form id="addStudentForm" onsubmit="addStudent(event)">
-          <div class="form-group">
-            <label for="studentEmail" class="form-label">البريد الإلكتروني</label>
-            <input type="email" id="studentEmail" class="form-control" placeholder="student@email.com" required>
-          </div>
-          <div class="form-group">
-            <label for="studentName" class="form-label">اسم الطالب</label>
-            <input type="text" id="studentName" class="form-control" placeholder="اسم الطالب" required>
-          </div>
-          <div class="form-group">
-            <label for="courseNumber" class="form-label">رقم الدورة</label>
-            <input type="text" id="courseNumber" class="form-control" placeholder="رقم الدورة" required>
-          </div>
-          <div class="card-actions">
-            <button class="btn" type="submit">إضافة الطالب</button>
-          </div>
-        </form>
-        <div id="addStudentMsg" class="mt-2 text-center" style="color: var(--error);"></div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-header d-flex align-items-center justify-content-between" style="cursor: pointer;" onclick="toggleSection('addLessonSection')">
-        <h4 class="mb-0">إضافة درس جديد</h4>
-        <i class="material-icons" id="addLessonToggleIcon">add</i>
-      </div>
-      <div class="card-content" id="addLessonSection" style="display: none;">
-        <form id="addLessonForm" onsubmit="addLesson(event)">
-          <div class="form-group">
-            <label for="lessonId" class="form-label">رقم الدرس</label>
-            <input type="number" id="lessonId" class="form-control" placeholder="مثال: 1" required min="1">
-          </div>
-          <div class="form-group">
-            <label for="lessonTitle" class="form-label">عنوان الدرس</label>
-            <input type="text" id="lessonTitle" class="form-control" placeholder="عنوان الدرس" required>
-          </div>
-          <div class="form-group">
-            <label for="lessonUrl" class="form-label">رابط الدرس (للتنزيل)</label>
-            <input type="text" id="lessonUrl" class="form-control" placeholder="رابط التحميل" required>
-          </div>
-          <div class="form-group">
-            <label for="lessonVoice" class="form-label">رابط الصوت (للاستماع)</label>
-            <input type="text" id="lessonVoice" class="form-control" placeholder="رابط الصوت (mp3 أو غيره)">
-          </div>
-          <div class="form-group">
-            <label for="lessonLevel" class="form-label">المستوى</label>
-            <input type="text" id="lessonLevel" class="form-control" placeholder='مثال: "الأول"' required>
-          </div>
-          <div class="card-actions">
-            <button class="btn" type="submit">إضافة الدرس</button>
-          </div>
-        </form>
-        <div id="addLessonMsg" class="mt-2 text-center" style="color: var(--error);"></div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-header d-flex align-items-center justify-content-between" style="cursor: pointer;" onclick="toggleSection('sendNotificationSection')">
-        <h4 class="mb-0">إرسال إشعار جديد</h4>
-        <i class="material-icons" id="sendNotificationToggleIcon">notifications</i>
-      </div>
-      <div class="card-content" id="sendNotificationSection" style="display: none;">
-        <form id="sendNotificationForm" onsubmit="sendNotification(event)">
-          <div class="form-group">
-            <label for="notificationMessage" class="form-label">رسالة الإشعار:</label>
-            <textarea id="notificationMessage" class="form-control" placeholder="اكتب رسالة الإشعار هنا..." required></textarea>
-          </div>
-          <div class="form-group">
-            <label for="notificationRecipient" class="form-label">إرسال إلى:</label>
-            <select id="notificationRecipient" class="form-control form-select">
-              <option value="selectedStudent">الطالب المحدد حالياً</option>
-              <option value="allStudents">جميع الطلاب</option>
-            </select>
-          </div>
-          <div class="card-actions">
-            <button class="btn" type="submit">إرسال الإشعار</button>
-          </div>
-        </form>
-        <div id="addNotificationMsg" class="mt-2 text-center" style="color: var(--error);"></div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-header">
-        <h3>إدارة مستويات الطلاب</h3>
-      </div>
-      <div class="card-content">
-        <div id="msg" class="mb-3 text-center" style="color: var(--error);"></div>
-        
-        <div class="form-group">
-          <label for="studentSearch" class="form-label">بحث عن الطلاب:</label>
-          <input type="text" id="studentSearch" class="form-control" placeholder="ابحث باسم الطالب أو بريده..." onkeyup="filterStudents()">
-        </div>
-        
-        <div class="form-group">
-          <label for="studentSelect" class="form-label">اختر الطالب:</label>
-          <select id="studentSelect" class="form-control form-select" onchange="showSelectedStudentDetails(this.value)">
-            <option value="">-- اختر طالباً لعرض بياناته --</option>
-          </select>
-        </div>
-        
-        <div id="selectedStudentDetails" style="display: none;">
-          <div class="d-flex justify-content-between mt-4 mb-3">
-            <button class="btn btn-danger" id="deleteStudentBtn" onclick="confirmDeleteStudent()">حذف الطالب</button>
-            <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()">تصدير نتائج الطالب PDF</button>
-          </div>
-          
-          <h4 class="mt-4">تفاصيل الطالب المحدد:</h4>
-          <div class="table-container">
-            <table class="table">
-              <tbody>
-                <tr>
-                  <td><strong>الاسم:</strong></td>
-                  <td id="detailName"></td>
-                </tr>
-                <tr>
-                  <td><strong>البريد الإلكتروني:</strong></td>
-                  <td id="detailEmail"></td>
-                </tr>
-                <tr>
-                  <td><strong>رقم الدورة:</strong></td>
-                  <td id="detailCourseNumber"></td>
-                </tr>
-                <tr>
-                  <td><strong>حالة القبول:</strong></td>
-                  <td>
-                    <select id="detailAcceptedStatus" class="form-control form-select" onchange="updateStudentAdmission(this.value)" style="width: auto; display: inline-block;">
-                      <option value="pending">قيد المراجعة</option>
-                      <option value="accepted">مقبول</option>
-                      <option value="rejected">مرفوض</option>
-                    </select>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          
-          <div class="form-group mt-3">
-            <label for="detailTeacherNotes" class="form-label">ملاحظات المعلم:</label>
-            <textarea id="detailTeacherNotes" class="form-control" onblur="saveTeacherNotes()"></textarea>
-            <button class="btn mt-2" onclick="saveTeacherNotes()">حفظ الملاحظات</button>
-          </div>
-               <h4 class="mt-4">المستويات:</h4>
-          <div id="detailLevels" class="levels-grid"></div>
-          
-          
-          <h4 class="mt-4">امتحانات المستويات:</h4>
-          <div id="examsTableWrapper" class="table-container"></div>
-          
-          <h4 class="mt-4">تلخيصات الطالب:</h4>
-          <div class="form-group">
-            <label for="summaryFilterStatus" class="form-label">تصفية حسب الحالة:</label>
-            <select id="summaryFilterStatus" class="form-control form-select" onchange="filterSummariesTable()">
-              <option value="all">الكل</option>
-              <option value="submitted">تم التسليم</option>
-              <option value="draft">مسودة</option>
-            </select>
-          </div>
-          <div id="summariesTableWrapper" class="table-container"></div>
-          
-          <div id="summaryDetailsBox" class="card mt-3" style="display: none;">
-            <div class="card-header">
-              <h4 id="summaryDetailsTitle"></h4>
-            </div>
-            <div class="card-content">
-              <div class="form-group">
-                <label class="form-label">نص التلخيص:</label>
-                <div id="summaryDetailsContent" class="form-control" style="min-height: 100px; background-color: var(--background);"></div>
-              </div>
-              <div class="form-group">
-                <label for="summaryDetailsComment" class="form-label">تعليق المعلم:</label>
-                <textarea id="summaryDetailsComment" class="form-control" placeholder="اكتب تعليقك هنا..."></textarea>
-                <button class="btn mt-2" id="saveSummaryDetailsCommentBtn">حفظ التعليق</button>
-              </div>
-              <div id="studentReplySection" class="form-group" style="display: none;">
-                <label class="form-label">رد الطالب:</label>
-                <div id="summaryDetailsStudentReply" class="form-control" style="min-height: 60px; background-color: var(--background);"></div>
-                <button class="btn btn-danger mt-2" id="clearStudentReplyBtn">مسح رد الطالب</button>
-              </div>
-              <div class="form-group">
-                <label for="summaryDetailsMark" class="form-label">تعديل العلامة:</label>
-                <input type="number" id="summaryDetailsMark" class="form-control" min="0" max="100" placeholder="العلامة">
-                <button class="btn mt-2" id="saveSummaryDetailsMarkBtn">حفظ العلامة</button>
-              </div>
-            </div>
-            <div class="card-actions">
-              <button class="btn btn-danger" onclick="hideSummaryDetails()">إغلاق</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card mt-3">
-      <div class="card-header">
-        <h3>قائمة الدروس</h3>
-      </div>
-      <div class="card-content">
-        <div id="editLessonMsg" class="mb-3 text-center" style="color: var(--error);"></div>
-        <div class="table-container">
-          <table class="table" id="lessonsTable">
-            <thead>
-              <tr>
-                <th>رقم الدرس</th>
-                <th>العنوان</th>
-                <th>رابط الدرس</th>
-                <th>الصوت</th>
-                <th>المستوى</th>
-                <th>تعديل</th>
-                <th>حذف</th>
-              </tr>
-            </thead>
-            <tbody id="lessonsList"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </main>
 
   <script src="dashboard.js"></script>
 </body>
