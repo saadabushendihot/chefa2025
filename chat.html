@@ -87,13 +87,17 @@
       flex-direction: column;
       flex-shrink: 0;
       overflow: hidden;
-      transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* For sliding in/out */
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out, width 0.3s ease-out; /* Added width to transition */
     }
-    .chat-list-panel.hidden-desktop { /* New class for desktop hiding */
-        width: 0;
+    /* Default visibility on desktop, hide on mobile */
+    .chat-list-panel.hidden-mobile { /* Class for hiding on mobile when not active */
+        transform: translateX(100%); /* Slide out to the right (RTL) */
         opacity: 0;
-        pointer-events: none;
+        pointer-events: none; /* Disable interactions when hidden */
+        width: 0; /* Collapse width completely */
+        /* To make display work with transitions, we manage it in JS */
     }
+
     .chat-list-header {
       padding: 15px;
       font-size: 1.1rem; /* Slightly smaller */
