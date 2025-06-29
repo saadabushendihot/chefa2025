@@ -42,33 +42,92 @@ var firestore = firebase.firestore();
 let questions = [];
 const LEVELS = [1,2,3,4,5,6,7];
 
+// تعريف روابط التنقل لكل دور
+const navLinks = {
+    teacher: [
+        { name: 'لوحة التحكم', href: 'dashboard.html' },
+        { name: 'إدارة الأسئلة', href: 'questions-admin.html' },
+        { name: 'الدردشة', href: 'chat.html' }
+    ],
+    student: [
+        { name: 'لوحة الطالب', href: 'student.html' },
+        { name: 'الاختبار', href: 'student-quiz.html' },
+        { name: 'الدردشة', href: 'chat.html' }
+    ]
+};
+
+// دالة جديدة لرسم روابط التنقل بناءً على الدور
+function renderNavigation(role) {
+    console.log("renderNavigation: الدالة بدأت. الدور:", role); // رسالة تصحيح
+    const navContainer = document.getElementById('main-nav-links');
+    if (!navContainer) {
+        console.error("renderNavigation: العنصر #main-nav-links لم يتم العثور عليه!"); // رسالة خطأ
+        return;
+    }
+    console.log("renderNavigation: تم العثور على Nav Container."); // رسالة تصحيح
+
+    navContainer.innerHTML = ''; // مسح الروابط الحالية
+    const linksToRender = navLinks[role] || []; // جلب الروابط بناءً على الدور
+    console.log("renderNavigation: الروابط المراد عرضها:", linksToRender); // رسالة تصحيح
+
+    const currentPath = window.location.pathname.split('/').pop(); // اسم الملف الحالي
+
+    if (linksToRender.length === 0) {
+        console.warn("renderNavigation: لا توجد روابط لعرضها لهذا الدور."); // رسالة تحذير
+    }
+
+    linksToRender.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.href;
+        a.textContent = link.name;
+        a.className = 'nav-link';
+        if (currentPath === link.href) {
+             a.classList.add('active');
+        }
+        navContainer.appendChild(a);
+        console.log("renderNavigation: تم إضافة الرابط:", link.name); // رسالة تصحيح
+    });
+    console.log("renderNavigation: الدالة انتهت."); // رسالة تصحيح
+}
+
+
 // حماية الصفحة - فقط للمعلمين
 auth.onAuthStateChanged(function(user) {
+  console.log("auth.onAuthStateChanged: حالة المصادقة تغيرت. المستخدم:", user); // رسالة تصحيح
   if (user) {
     firestore.collection('users').doc(user.uid).get().then(function(doc) {
+      console.log("auth.onAuthStateChanged: تم جلب مستند المستخدم."); // رسالة تصحيح
       if (!doc.exists || doc.data().role !== "teacher") {
+        console.warn("auth.onAuthStateChanged: المستخدم ليس معلماً أو لا يوجد لديه دور. إعادة التوجيه إلى صفحة تسجيل الدخول."); // رسالة تحذير
         window.location.href = "login.html";
       } else {
+        const userRole = doc.data().role;
+        console.log("auth.onAuthStateChanged: دور المستخدم:", userRole); // رسالة تصحيح
         startQuestionsAdmin();
         loadSettingsTable();
+        renderNavigation(userRole); // استدعاء دالة رسم التنقل
       }
     }).catch(function(error) {
+      console.error("auth.onAuthStateChanged: خطأ في جلب دور المستخدم:", error); // رسالة خطأ
       window.location.href = "login.html";
     });
   } else {
+    console.log("auth.onAuthStateChanged: لا يوجد مستخدم مسجل الدخول. إعادة التوجيه إلى صفحة تسجيل الدخول."); // رسالة تصحيح
     window.location.href = "login.html";
   }
 });
 
 function logout() {
-  auth.signOut().then(()=>{window.location.href='login.html';});
+  auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
+    console.error("خطأ في تسجيل الخروج:", error);
+  });
 }
 
 // إعدادات عدد الأسئلة لكل مستوى
 function loadSettingsTable() {
   showLoading(true);
   const tbody = document.getElementById('settingsTbody');
-  tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color:var(--text-secondary)">جاري التحميل...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color:var(--text-muted)">جاري التحميل...</td></tr>';
   firestore.collection('exam_settings').get().then(snapshot => {
     let data = {};
     snapshot.forEach(doc => {
@@ -103,7 +162,7 @@ function loadSettingsTable() {
     tbody.innerHTML = rows;
     showLoading(false);
   }).catch(error => {
-      showToast(`خطأ في تحميل الإعدادات: ${error.message}`, 'var(--error)');
+      showToast(`خطأ في تحميل الإعدادات: ${error.message}`, 'var(--danger-color)');
       showLoading(false);
   });
 }
@@ -118,17 +177,17 @@ function saveLevel(lvl) {
   let duration = parseInt(inputDuration.value);
 
   if (!qNum || qNum < 1) {
-    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`, 'var(--error)');
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`, 'var(--danger-color)');
     inputQNum.focus();
     return;
   }
   if (!tMarks || tMarks < 1) {
-    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`, 'var(--error)');
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`, 'var(--danger-color)');
     inputTMarks.focus();
     return;
   }
   if (!duration || duration < 1) {
-    showToast(`يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`, 'var(--error)');
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`, 'var(--danger-color)');
     inputDuration.focus();
     return;
   }
@@ -138,9 +197,9 @@ function saveLevel(lvl) {
     total_marks: tMarks,
     exam_duration: duration
   }).then(()=>{
-    showToast(`تم حفظ إعدادات المستوى ${lvl} بنجاح`, 'var(--secondary-color)');
+    showToast(`تم حفظ إعدادات المستوى ${lvl} بنجاح`, 'var(--success-color)');
   }).catch((error)=>{
-    showToast(`حدث خطأ أثناء الحفظ! ${error.message}`, 'var(--error)');
+    showToast(`حدث خطأ أثناء الحفظ! ${error.message}`, 'var(--danger-color)');
     console.error("Error saving level settings:", error);
   });
 }
@@ -159,7 +218,7 @@ function addChoice(text = '', checked = false) {
     <input type="checkbox" class="correctChoice" name="correct${idx}" ${checked ? 'checked' : ''} title="صحيح" style="width:24px; height:24px; margin-left:8px; accent-color: var(--primary-color);">
     <input type="text" class="choiceText form-control" value="${text}" required placeholder="الخيار ${idx+1}" style="flex-grow:1; margin-bottom:0;">
     <button type="button" class="btn btn-danger ml-2" onclick="this.parentNode.remove()" style="padding: 6px 12px; height: auto;">
-        <i class="material-icons" style="font-size:18px;">delete</i>
+        <i class="material-icons">delete</i>
     </button>
   `;
   document.getElementById('choicesArea').appendChild(div);
@@ -183,7 +242,7 @@ function loadQuestions() {
     renderQuestionsTable();
     showLoading(false);
   }).catch(error => {
-      showToast(`خطأ في تحميل الأسئلة: ${error.message}`, 'var(--error)');
+      showToast(`خطأ في تحميل الأسئلة: ${error.message}`, 'var(--danger-color)');
       showLoading(false);
   });
 }
@@ -205,17 +264,17 @@ function renderQuestionsTable() {
       <td class="text-center">${q.correct ? q.correct.length : 0}</td>
       <td class="text-center">
         <button class="btn" onclick="editQuestion('${q.id}')" style="padding: 6px 12px; height: auto;">
-            <i class="material-icons" style="font-size:18px;">edit</i>
+            <i class="material-icons">edit</i>
         </button>
       </td>
       <td class="text-center">
         <button class="btn btn-danger" onclick="deleteQuestion('${q.id}')" style="padding: 6px 12px; height: auto;">
-            <i class="material-icons" style="font-size:18px;">delete</i>
+            <i class="material-icons">delete</i>
         </button>
       </td>
     </tr>`;
   });
-  document.getElementById('questionsTbody').innerHTML = rows || `<tr><td colspan="8" class="text-center" style="color:var(--text-secondary)">لا توجد أسئلة</td></tr>`;
+  document.getElementById('questionsTbody').innerHTML = rows || `<tr><td colspan="8" class="text-center" style="color:var(--text-muted)">لا توجد أسئلة</td></tr>`;
 }
 
 function editQuestion(id) {
@@ -237,9 +296,9 @@ function deleteQuestion(id) {
   if (!confirm('هل أنت متأكد من حذف السؤال؟')) return;
   firestore.collection('questions').doc(id).delete().then(()=>{
       loadQuestions();
-      showToast('تم حذف السؤال بنجاح!', 'var(--secondary-color)');
+      showToast('تم حذف السؤال بنجاح!', 'var(--success-color)');
   }).catch(error => {
-      showToast(`خطأ في حذف السؤال: ${error.message}`, 'var(--error)');
+      showToast(`خطأ في حذف السؤال: ${error.message}`, 'var(--danger-color)');
       console.error("Error deleting question:", error);
   });
 }
@@ -275,10 +334,10 @@ document.getElementById('questionForm').onsubmit = function(e){
       resetForm();
       loadQuestions();
       showFormMsg('تم تحديث السؤال بنجاح', true);
-      showToast('تم تحديث السؤال بنجاح!', 'var(--secondary-color)');
+      showToast('تم تحديث السؤال بنجاح!', 'var(--success-color)');
     }).catch(error => {
         showFormMsg(`خطأ في تحديث السؤال: ${error.message}`, false);
-        showToast(`خطأ في تحديث السؤال: ${error.message}`, 'var(--error)');
+        showToast(`خطأ في تحديث السؤال: ${error.message}`, 'var(--danger-color)');
         console.error("Error updating question:", error);
     });
   } else {
@@ -286,10 +345,10 @@ document.getElementById('questionForm').onsubmit = function(e){
       resetForm();
       loadQuestions();
       showFormMsg('تمت إضافة السؤال بنجاح', true);
-      showToast('تمت إضافة السؤال بنجاح!', 'var(--secondary-color)');
+      showToast('تمت إضافة السؤال بنجاح!', 'var(--success-color)');
     }).catch(error => {
         showFormMsg(`خطأ في إضافة السؤال: ${error.message}`, false);
-        showToast(`خطأ في إضافة السؤال: ${error.message}`, 'var(--error)');
+        showToast(`خطأ في إضافة السؤال: ${error.message}`, 'var(--danger-color)');
         console.error("Error adding question:", error);
     });
   }
@@ -298,6 +357,20 @@ document.getElementById('questionForm').onsubmit = function(e){
 function showFormMsg(msg, success=false) {
   let el = document.getElementById('formMsg');
   el.innerText = msg;
-  el.style.color = success ? 'var(--secondary-color)' : 'var(--error)';
+  el.style.color = success ? 'var(--success-color)' : 'var(--danger-color)';
   setTimeout(()=>{el.innerText='';}, 2500);
 }
+
+// أكواد JavaScript لإضافة ميزة الرأس المتحرك (Collapsing Header)
+document.addEventListener('DOMContentLoaded', () => {
+    const appBar = document.querySelector('.app-bar');
+    if (appBar) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) { // عندما يتجاوز التمرير 50 بكسل
+                appBar.classList.add('scrolled');
+            } else {
+                appBar.classList.remove('scrolled');
+            }
+        });
+    }
+});
