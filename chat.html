@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script> <!-- New: Firebase Storage -->
   <!-- Firebase Configuration (assumes it's in the same directory or accessible path) -->
   <script src="firebase-config.js"></script>
   <!-- Google Fonts for Arabic -->
@@ -87,6 +88,18 @@
       flex: 1;
       display: flex;
       flex-direction: column;
+      position: relative; /* Needed for fixed message input within this area */
+      padding-bottom: 70px; /* Space for fixed message input */
+    }
+    #messageDisplay {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fdfdfd;
+      padding-bottom: 20px; /* Ensure space at the very bottom */
     }
     .chat-header {
       padding: 15px;
@@ -98,21 +111,18 @@
       align-items: center;
       background: #fcfcfc;
     }
-    #messageDisplay {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #fdfdfd;
-    }
     .message-input-area {
+      position: absolute; /* Changed to absolute to be relative to .chat-area */
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #fcfcfc;
       border-top: 1px solid #eee;
-      padding: 15px;
+      padding: 10px 15px; /* Reduced padding slightly */
       display: flex;
       align-items: center;
-      background: #fcfcfc;
+      box-shadow: 0 -2px 5px rgba(0,0,0,0.05); /* Subtle shadow upwards */
+      z-index: 50; /* Ensure it stays above messages */
     }
     #messageInput {
       flex: 1;
@@ -134,6 +144,7 @@
       font-size: 1rem;
       cursor: pointer;
       transition: background-color 0.2s ease;
+      white-space: nowrap; /* Prevent button text from wrapping */
     }
     .btn:hover {
       background-color: #3f37c9;
@@ -144,6 +155,15 @@
     }
     .logout-btn { background:#e63946; }
     .logout-btn:hover { background:#d42a3b; }
+    .attach-btn {
+        background-color: #1dad87;
+        margin-right: 10px; /* Adjusted for RTL */
+        padding: 10px 15px; /* Slightly less padding for file icon */
+        border-radius: 20px;
+    }
+    .attach-btn:hover {
+        background-color: #159b79;
+    }
 
     /* Message Bubbles */
     .message-bubble {
@@ -152,6 +172,7 @@
       border-radius: 15px;
       word-wrap: break-word;
       line-height: 1.5;
+      position: relative; /* For attachment loading spinner */
     }
     .message-bubble.sent {
       background-color: #e0e9f8;
@@ -177,6 +198,32 @@
       color: #888;
       margin-top: 5px;
       text-align: left;
+    }
+    .attachment-link {
+        display: block;
+        padding: 8px 10px;
+        background-color: #f0f0f0;
+        border-radius: 8px;
+        margin-top: 5px;
+        text-decoration: none;
+        color: #4361ee;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .attachment-link:hover {
+        background-color: #e0e0e0;
+    }
+    .attachment-link i {
+        font-size: 1.2em;
+    }
+    .attachment-preview {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+        margin-top: 5px;
+        display: block;
     }
 
     /* Modals for Admin */
@@ -266,6 +313,19 @@
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
+    /* File upload spinner */
+    #fileUploadSpinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #4361ee;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px; /* Adjusted for RTL */
+    }
+
+
     @media (max-width: 768px) {
       .main-container {
         flex-direction: column;
@@ -282,9 +342,17 @@
       }
       .chat-area {
         min-height: 400px; /* Adjust as needed */
+        padding-bottom: 70px; /* Ensure space for fixed input on smaller screens */
       }
       .message-bubble {
         max-width: 85%;
+      }
+      .message-input-area {
+        padding: 8px 10px; /* Adjust padding for smaller screens */
+      }
+      .btn, .attach-btn {
+        padding: 8px 12px;
+        font-size: 0.9rem;
       }
     }
   </style>
@@ -321,8 +389,14 @@
       <div id="messageDisplay">
         <!-- Messages will be loaded here -->
       </div>
-      <div class="spinner" id="loadingSpinner"></div> <!-- Spinner moved here to be managed globally -->
+      <div class="spinner" id="loadingSpinner"></div> <!-- Main loading spinner -->
+
       <div class="message-input-area">
+        <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(event)">
+        <button class="btn attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق ملف">
+            <i class="fas fa-paperclip"></i>
+        </button>
+        <div id="fileUploadSpinner"></div> <!-- Spinner for file upload -->
         <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
         <button class="btn" id="sendMessageBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> إرسال</button>
       </div>
@@ -378,6 +452,7 @@
     }
     const auth = firebase.auth();
     const firestore = firebase.firestore();
+    const storage = firebase.storage(); // Initialize Firebase Storage
 
     // Global variables
     let currentUser = null;
@@ -400,13 +475,17 @@
     }
 
     function showLoading(show) {
-      // Ensure the element exists before trying to access its style property
       const spinner = document.getElementById('loadingSpinner');
       if (spinner) {
         spinner.style.display = show ? 'block' : 'none';
-      } else {
-        console.warn("Loading spinner element not found!");
       }
+    }
+
+    function showFileUploadSpinner(show) {
+        const spinner = document.getElementById('fileUploadSpinner');
+        if (spinner) {
+            spinner.style.display = show ? 'block' : 'none';
+        }
     }
 
     function sanitizeText(text) {
@@ -510,8 +589,8 @@
       if (messagesListenerUnsubscribe) messagesListenerUnsubscribe(); // Unsubscribe previous listener
 
       currentChatRoomId = chatRoomId;
-      document.getElementById('messageDisplay').innerHTML = ''; // Clear previous messages (but not the spinner which is now outside)
-      showLoading(true); // Show spinner
+      document.getElementById('messageDisplay').innerHTML = ''; // Clear previous messages
+      showLoading(true); // Show main spinner
 
       document.getElementById('currentChatRoomName').innerText = 'جاري التحميل...';
 
@@ -533,14 +612,14 @@
           showToast("تعذر العثور على غرفة الدردشة.", "#e63946");
           document.getElementById('currentChatRoomName').innerText = 'المحادثة غير موجودة';
           document.getElementById('messageDisplay').innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">المحادثة غير موجودة.</p>';
-          showLoading(false); // Hide spinner
+          showLoading(false); // Hide main spinner
         }
       }).catch(error => {
         console.error("Error fetching chat room details:", error);
         showToast("خطأ في جلب تفاصيل المحادثة: " + error.message, "#e63946");
         document.getElementById('currentChatRoomName').innerText = 'خطأ في التحميل';
         document.getElementById('messageDisplay').innerHTML = '<p style="text-align: center; color: #e63946; padding: 20px;">خطأ في تحميل تفاصيل المحادثة.</p>';
-        showLoading(false); // Hide spinner
+        showLoading(false); // Hide main spinner
       });
     }
 
@@ -553,11 +632,10 @@
         .orderBy('timestamp', 'asc')
         .limit(50) // Load initial 50 messages, implement pagination for more
         .onSnapshot(snapshot => {
-          showLoading(false); // Hide spinner once initial messages are loaded
+          showLoading(false); // Hide main spinner once initial messages are loaded
 
           // Clear messages and re-render only if it's the first load or a full refresh is needed
           // To prevent flickering with real-time updates, handle docChanges
-          // Let's refine this to clear only on the first snapshot, then append
           if (messageDisplay.innerHTML === '' && snapshot.size > 0) { // Check if empty for initial load
               messageDisplay.innerHTML = '';
           }
@@ -602,20 +680,69 @@
       const messageDiv = document.createElement('div');
       messageDiv.className = `message-bubble ${isSentByMe ? 'sent' : 'received'}`;
       messageDiv.dataset.messageId = message.id; // Add data attribute for easier identification
+      
+      let messageContentHtml = sanitizeText(message.text || '');
+
+      if (message.type === 'file' && message.fileUrl) {
+          const fileName = message.fileName || 'ملف مرفق';
+          const fileIcon = getFileIcon(fileName);
+          messageContentHtml += `
+            <a href="${message.fileUrl}" target="_blank" class="attachment-link" download>
+                <i class="${fileIcon}"></i>
+                ${sanitizeText(fileName)}
+            </a>
+          `;
+      } else if (message.type === 'image' && message.fileUrl) {
+          messageContentHtml += `
+            <a href="${message.fileUrl}" target="_blank">
+                <img src="${message.fileUrl}" alt="صورة مرفقة" class="attachment-preview" onerror="this.onerror=null;this.src='https://placehold.co/150x100?text=صورة+غير+متوفرة';"/>
+            </a>
+          `;
+      }
+
       messageDiv.innerHTML = `
         <div class="message-sender">${sanitizeText(senderName)}</div>
-        <div class="message-text">${sanitizeText(message.text)}</div>
+        <div class="message-text">${messageContentHtml}</div>
         <div class="message-timestamp">${timestamp}</div>
       `;
       messageDisplay.appendChild(messageDiv);
     }
 
-    function sendMessage() {
+    function getFileIcon(fileName) {
+        const extension = fileName.split('.').pop().toLowerCase();
+        switch (extension) {
+            case 'pdf': return 'fas fa-file-pdf';
+            case 'doc':
+            case 'docx': return 'fas fa-file-word';
+            case 'xls':
+            case 'xlsx': return 'fas fa-file-excel';
+            case 'ppt':
+            case 'pptx': return 'fas fa-file-powerpoint';
+            case 'zip':
+            case 'rar': return 'fas fa-file-archive';
+            case 'jpg':
+            case 'jpeg':
+            case 'png':
+            case 'gif': return 'fas fa-file-image';
+            case 'mp3':
+            case 'wav': return 'fas fa-file-audio';
+            case 'mp4':
+            case 'avi': return 'fas fa-file-video';
+            default: return 'fas fa-file';
+        }
+    }
+
+    function sendMessage(fileUrl = null, fileName = null, fileType = 'text') {
       const messageInput = document.getElementById('messageInput');
       const messageText = messageInput.value.trim();
 
-      if (!messageText || !currentChatRoomId || !currentUser) {
-        showToast("لا يمكن إرسال رسالة فارغة أو عدم اختيار محادثة.", "#e63946");
+      // Only allow sending if there's text OR a file
+      if (!messageText && !fileUrl) {
+        showToast("لا يمكن إرسال رسالة فارغة.", "#e63946");
+        return;
+      }
+      if (!currentChatRoomId || !currentUser) {
+        showToast("الرجاء اختيار محادثة.", "#e63946");
         return;
       }
 
@@ -624,7 +751,10 @@
         senderName: currentUser.displayName || currentUser.email,
         text: messageText,
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        readBy: [currentUser.uid] // Mark as read by sender immediately
+        readBy: [currentUser.uid], // Mark as read by sender immediately
+        type: fileUrl ? (fileType.startsWith('image/') ? 'image' : 'file') : 'text', // Set message type
+        fileUrl: fileUrl, // Include file URL if present
+        fileName: fileName // Include file name if present
       };
 
       firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData)
@@ -632,10 +762,12 @@
           // Update lastMessageTimestamp in chat room for sorting
           firestore.collection('chatRooms').doc(currentChatRoomId).update({
             lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            lastMessageText: messageText, // Optional: show last message in chat list
-            lastMessageSender: currentUser.displayName || currentUser.email // Optional
+            lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
+            lastMessageSender: currentUser.displayName || currentUser.email
           });
-          messageInput.value = ''; // Clear input
+          messageInput.value = ''; // Clear text input
+          messageInput.style.height = 'auto'; // Reset textarea height
+          document.getElementById('fileInput').value = ''; // Clear file input
         })
         .catch(error => {
           console.error("Error sending message:", error);
@@ -648,6 +780,66 @@
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
     });
+
+    // --- File Attachment Logic ---
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_FILE_TYPES = [
+        'image/jpeg', 'image/png', 'image/gif', // Images
+        'application/pdf', // Documents
+        'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .doc, .docx
+        'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xls, .xlsx
+        'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .ppt, .pptx
+        'text/plain', // Text files
+        'application/zip', 'application/x-rar-compressed' // Archives
+    ];
+
+    async function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // 1. Client-side Validation
+        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+            showToast("نوع الملف غير مدعوم. أنواع الملفات المدعومة هي: صور، PDF، مستندات Word/Excel/PowerPoint، ملفات نصية، ملفات مضغوطة.", "#e63946");
+            document.getElementById('fileInput').value = ''; // Clear input
+            return;
+        }
+
+        if (file.size > MAX_FILE_SIZE) {
+            showToast(`حجم الملف كبير جداً. الحد الأقصى المسموح به هو ${MAX_FILE_SIZE / (1024 * 1024)} ميجابايت.`, "#e63946");
+            document.getElementById('fileInput').value = ''; // Clear input
+            return;
+        }
+
+        if (!currentChatRoomId) {
+            showToast("الرجاء اختيار محادثة قبل إرفاق ملف.", "#e63946");
+            document.getElementById('fileInput').value = ''; // Clear input
+            return;
+        }
+
+        showFileUploadSpinner(true);
+        try {
+            // 2. Upload to Firebase Storage
+            const storageRef = storage.ref();
+            // Path: chat_attachments/{chatRoomId}/{timestamp}_{fileName}
+            const fileExtension = file.name.split('.').pop();
+            const fileNameForStorage = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`; // Sanitize file name
+            const fileRef = storageRef.child(`chat_attachments/${currentChatRoomId}/${fileNameForStorage}`);
+
+            const snapshot = await fileRef.put(file);
+            const downloadURL = await snapshot.ref.getDownloadURL();
+
+            // 3. Send message with file URL
+            sendMessage(downloadURL, file.name, file.type);
+            showToast("تم رفع الملف بنجاح وإرساله!", "#1dad87");
+
+        } catch (error) {
+            console.error("Error uploading file:", error);
+            showToast("خطأ أثناء رفع الملف: " + error.message, "#e63946");
+        } finally {
+            showFileUploadSpinner(false);
+            document.getElementById('fileInput').value = ''; // Clear file input regardless of success/failure
+        }
+    }
 
 
     // --- Admin Functionality (Create/Manage Chats) ---
