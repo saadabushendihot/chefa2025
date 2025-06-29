@@ -1,0 +1,354 @@
+body { font-family: 'Tajawal','Cairo',Arial,sans-serif; margin: 0; background: #f8fafc;}
+header { background: #4361ee; color: #fff; padding: 18px 30px; font-size: 1.5rem; display:flex; justify-content:space-between; align-items:center;}
+.container { max-width: 800px; margin: 30px auto; background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px #0001;}
+h2 { color: #4361ee; margin-top:0;}
+.btn { background: #4361ee; color: #fff; border: none; padding: 7px 22px; border-radius: 5px; font-size: 1rem; cursor: pointer;}
+.btn[disabled] {background: #bdbdbd; color: #fff; cursor: not-allowed;}
+.btn.submit {background: #1dad87;}
+.signout {background:#e63946;}
+.info { background: #f5f7fb; border-radius: 7px; padding: 10px 18px; margin: 16px 0;}
+#msg { color: #e63946; margin-top: 20px; }
+.levels-table, .exams-table {
+  width: 100%; border-collapse: collapse; margin-top: 26px; margin-bottom: 12px;
+  background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px #0001;
+}
+.levels-table th, .levels-table td,
+.exams-table th, .exams-table td {
+  padding: 10px 6px; border-bottom:1px solid #e4e7ef; text-align:center; font-size: 1rem;
+}
+.levels-table th, .exams-table th {background:#eef2fa; color:#1b3e72; font-weight: bold;}
+.level-on {color: #219e4b; font-weight: bold;}
+.level-off {color: #e63946; font-weight: bold;}
+.exam-label {
+  display: inline-block; padding: 3px 14px; border-radius: 18px; font-size: 1rem; font-weight: bold;
+  background: #e3f6ed; color: #219e4b; border: 1px solid #b7eecd; box-shadow: 0 1px 4px #219e4b12; min-width: 90px;
+}
+.exam-label.fail { background: #ffecec; color: #e63946; border: 1px solid #ffbcbc; box-shadow: 0 1px 4px #e6394612;}
+.exam-label.wait {background: #f5f7fb; color: #555; border: 1px solid #d2d8e6;}
+.exams-table tr:last-child td, .levels-table tr:last-child td { border-bottom: none; }
+.exams-title-bar {
+  font-size: 1.16rem; background: #f7faff; padding: 8px 0;
+  border-radius: 10px 10px 0 0; color: #2260af; border-bottom: 2px solid #e4e7ef; font-weight:bold;
+  text-align:center; letter-spacing: 1px;
+}
+.exams-table {margin-bottom: 26px; margin-top: 18px;}
+#examWarnMsg {color:#e63946;font-weight:bold;margin:10px 0 15px 0;text-align:center;}
+#examBox {background:#f8fafc;border-radius:12px;padding:28px 20px;box-shadow:0 2px 10px #0002;}
+.student-info {background:#eaf7e4;padding:12px 18px;border-radius:9px;margin-bottom:20px;display:inline-block;font-size:1.1em;}
+.level-info {background:#e6f2ff;padding:10px 16px;border-radius:8px;font-size:1.08em;margin-bottom:20px;display:inline-block;}
+.question-block {background:#f8fafc;border-radius:10px;padding:14px 12px;margin:18px 0 30px 0;box-shadow:0 2px 8px #e4e7ef44;}
+.question-title {font-weight:bold;margin-bottom:9px;}
+.multi-note {color:#b96d0d;font-size:0.98em;margin-right:6px;}
+.question-mark {color:#2260af;margin-right:12px;}
+.choices-list {margin-bottom:10px;}
+.choice-row {margin-bottom:6px;}
+.msg {color:#e63946;margin-bottom:16px;}
+.result {font-size:1.3rem;color:#219e4b;font-weight:bold;text-align:center;}
+.scoring-note {color:#007b8f;font-size:0.95em;margin-top:5px;}
+#examForm .btn {margin-left:6px;}
+#examForm .btn.signout {background:#b83b3b;}
+/* Spinner */
+.spinner {
+  border: 4px solid #eee; border-top: 4px solid #4361ee; border-radius: 50%;
+  width: 38px; height: 38px; animation: spin 1s linear infinite; margin: 60px auto;
+  display: none;
+}
+@keyframes spin { 100% { transform: rotate(360deg); } }
+/* Toast */
+.toast {
+  visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff;
+  text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 999; left: 50%; bottom: 30px;
+  font-size: 1.05rem; opacity: 0; transition: opacity 0.5s, visibility 0.5s;
+}
+.toast.show { visibility: visible; opacity: 1; }
+/* Night Mode */
+.dark-mode {background: #23272f; color: #fff;}
+.dark-mode .container {background: #323946; color: #fff;}
+.dark-mode header {background: #222f3e;}
+.dark-mode .info {background: #222f3e;}
+.dark-mode .levels-table, .dark-mode .exams-table {background: #293043;}
+.dark-mode .levels-table th, .dark-mode .exams-table th {background: #253150; color: #fff;}
+.dark-mode .lesson-summary-block {background: #242b39;}
+.dark-mode textarea.summary-text {background: #23272f; color: #fff;}
+/* Dark mode styles for Exam Box */
+.dark-mode #examBox {background: #293043;}
+.dark-mode #examBox h2 {color: #fff;}
+.dark-mode .student-info, .dark-mode .level-info {background: #2b3547; color: #e0e0e0;}
+.dark-mode .question-block {background: #3a455a; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);}
+.dark-mode .question-title {color: #fff;}
+.dark-mode .multi-note {color: #ffcc80;}
+.dark-mode .question-mark {color: #8cafff;}
+.dark-mode .choices-list label {color: #e0e0e0;}
+.dark-mode .scoring-note {color: #66b2b2;}
+.dark-mode .msg {color: #ff8080;}
+.dark-mode .result {color: #66bb6a;}
+.dark-mode input[type="radio"], .dark-mode input[type="checkbox"] {
+    filter: invert(0.8);
+}
+/* الأساس لشكل العلامة البيضاوي */
+.lesson-mark-badge {
+  display:inline-block;
+  font-weight:bold;
+  border-radius:15px; /* لجعلها بيضاوية */
+  padding:1px 13px;
+  font-size:0.99em;
+  margin-right:8px;
+  min-width:44px;
+  vertical-align:middle;
+}
+/* فئة للعلامات الإيجابية (أكبر من صفر) */
+.lesson-mark-badge.positive-mark {
+    background:#e3f6ed; /* أخضر فاتح */
+    color:#219e4b;     /* أخضر داكن */
+    border:1px solid #b7eecd; /* حدود خضراء */
+}
+/* فئة للعلامة صفر */
+.lesson-mark-badge.zero-mark {
+    background:#ffecf0; /* أحمر فاتح */
+    color:#e63946;     /* أحمر داكن */
+    border:1px solid #ffbcbc; /* حدود حمراء */
+}
+/* فئة للعلامة غير الموجودة (مثل المسودة أو لم يتم تحديد علامة) */
+.lesson-mark-badge.no-mark {
+    background:#f5f7fb; /* رمادي فاتح */
+    color:#555;         /* رمادي داكن */
+    border:1px solid #d2d8e6; /* حدود رمادية */
+}
+
+/* تحسينات تصميم مربع التلخيص */
+.lesson-summary-block {
+  background: #ffffff;
+  border-radius: 12px;
+  margin: 20px 0 30px 0;
+  padding: 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e0e4e8;
+  transition: all 0.3s ease;
+}
+.lesson-summary-block:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* تحسين عنوان الدرس داخل مربع التلخيص */
+.lesson-summary-block h4 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f2f5;
+    color: #294169;
+    font-size: 1.15rem;
+}
+
+/* تعديلات الوضع الليلي لمربع التلخيص المحسن */
+.dark-mode .lesson-summary-block {
+  background: #323946;
+  border: 1px solid #3d4a5c;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.dark-mode .lesson-summary-block:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+}
+.dark-mode .lesson-summary-block h4 {
+    color: #e0e0e0;
+    border-bottom: 1px solid #4a576b;
+}
+
+textarea.summary-text {
+  width:98%;height:80px;padding:8px;border-radius:5px;border:1px solid #b7c0d6;
+  resize:vertical;font-size:1.08rem; box-sizing: border-box; background:#fff;
+  font-family: 'Cairo','Tajawal',Arial,sans-serif; color: #1b2a39; line-height: 1.7;
+  transition: border 0.15s; direction: rtl;
+}
+textarea.summary-text:focus {border-color: #4361ee;}
+/* زر الدعم */
+#supportBtn {background:#007b8f;margin-right:10px;}
+/* زر الوضع الليلي */
+#nightModeBtn {background:#323946;margin-right:10px;}
+
+/* New styles for teacher comment display */
+.teacher-comment-display, .student-reply-display { /* Combined styles */
+  background: #f0f2f5;
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 0.98rem;
+  color: #333;
+  border: 1px solid #e0e4e8;
+  line-height: 1.6;
+  word-break: break-word; /* Ensure long words break */
+}
+.teacher-comment-display strong, .student-reply-display strong {
+  color: #294169;
+  display: block;
+  margin-bottom: 5px;
+}
+.dark-mode .teacher-comment-display, .dark-mode .student-reply-display {
+  background: #2b3547;
+  border-color: #4a576b;
+  color: #e0e0e0;
+}
+.dark-mode .teacher-comment-display strong, .dark-mode .student-reply-display strong {
+  color: #8cafff;
+}
+
+/* Style for reply textarea */
+.reply-area {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px dashed #e0e4e8;
+}
+.reply-area label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+    color: #294169;
+}
+.reply-area textarea {
+    width: 98%;
+    height: 60px;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #b7c0d6;
+    resize: vertical;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: #fff;
+    font-family: 'Cairo','Tajawal',Arial,sans-serif;
+    color: #1b2a39;
+}
+.reply-area .btn {
+    margin-top: 8px;
+    padding: 6px 15px;
+    font-size: 0.95rem;
+}
+.dark-mode .reply-area label {
+    color: #e0e0e0;
+}
+.dark-mode .reply-area textarea {
+    background: #2b3547;
+    border-color: #4a576b;
+    color: #e0e0e0;
+}
+
+/* Notifications icon and panel styles */
+.notification-bell {
+    position: relative;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 20px; /* Space from other header elements */
+}
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -10px;
+    background-color: #ff5722; /* Orange-red for unread */
+    color: white;
+    border-radius: 50%;
+    padding: 2px 7px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 1;
+    min-width: 15px;
+    text-align: center;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+.notification-panel {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 60px; /* Adjust based on header height */
+    right: 10px;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    z-index: 1000;
+    padding: 15px;
+    text-align: right;
+    border: 1px solid #eee;
+    box-sizing: border-box;
+}
+.notification-panel h5 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #294169;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+.notification-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f2f5;
+    font-size: 0.95rem;
+    color: #333;
+    line-height: 1.4;
+}
+.notification-item:last-child {
+    border-bottom: none;
+}
+.notification-item.unread {
+    background-color: #e6f2ff; /* Light blue for unread */
+    font-weight: bold;
+    padding: 10px;
+    margin: 0 -15px; /* Extend background to panel edges */
+}
+.notification-item .timestamp {
+    display: block;
+    font-size: 0.8em;
+    color: #888;
+    margin-top: 5px;
+}
+.notification-item .mark-read-btn {
+    background: #1dad87;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 8px;
+    display: inline-block;
+}
+.notification-item .mark-read-btn:hover {
+    background: #159b79;
+}
+/* Dark mode for notifications */
+.dark-mode .notification-panel {
+    background-color: #323946;
+    border-color: #4a576b;
+    color: #e0e0e0;
+}
+.dark-mode .notification-panel h5 {
+    color: #8cafff;
+    border-bottom-color: #4a576b;
+}
+.dark-mode .notification-item {
+    color: #e0e0e0;
+    border-bottom-color: #4a576b;
+}
+.dark-mode .notification-item.unread {
+    background-color: #2a3447; /* Darker blue for unread in dark mode */
+}
+.dark-mode .notification-item .timestamp {
+    color: #bbb;
+}
+.dark-mode .notification-item .mark-read-btn {
+    background: #1a6b3d;
+}
+.dark-mode .notification-item .mark-read-btn:hover {
+    background: #159b79;
+}
+
+@media (max-width: 480px) {
+    .notification-panel {
+        width: 95%;
+        left: 2.5%;
+        right: 2.5%;
+    }
+    .notification-item.unread {
+      padding: 10px 5px;
+      margin: 0 -15px;
+    }
+}
