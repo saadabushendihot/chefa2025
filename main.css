@@ -298,9 +298,8 @@ header, .app-bar {
 /* الحاويات الرئيسية */
 .container {
   max-width: 1200px;
-  /* تم إزالة margin-top هنا بشكل كامل. المسافة ستُدار بواسطة padding-top على body */
-  margin: 24px auto; /* حافظ على هامش 24px من الأعلى للعناصر التي تتبع مباشرة الـ body */
-  padding: 28px;
+  margin: 24px auto; /* مسافة موحدة أسفل الهيدر */
+  padding: 28px; /* تباعد داخلي للحاوية */
   background: var(--surface-light);
   border-radius: 12px;
   box-shadow: 0 2px 10px var(--shadow-light);
@@ -308,10 +307,9 @@ header, .app-bar {
 }
 
 /* لجعل العناصر الأولى داخل الـ container تبتعد عن الرأس (إذا لم يكن هناك عنصر أعلى) */
-/* ملاحظة: هذا النمط قد لا يكون ضرورياً إذا كان الـ body padding-top كافياً */
-/* .container > *:first-child {
-    margin-top: 24px;
-} */
+.container > *:first-child {
+    margin-top: 24px; /* مسافة أعلى العنصر الأول داخل الكونتينر */
+}
 /* ضبط خاص لصفحة الدردشة حيث main-container هو العنصر الرئيسي */
 .main-container {
   flex: 1;
