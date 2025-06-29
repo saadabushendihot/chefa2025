@@ -7,20 +7,8 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
   <script src="firebase-config.js"></script>
-  <style>
-    body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin:0;}
-    .login-container { max-width: 380px; margin: 60px auto; background: #fff; border-radius: 12px; padding: 32px 24px; box-shadow: 0 2px 10px #0002;}
-    h2 { text-align:center; color: #4361ee;}
-    label { display:block; margin-bottom:6px;}
-    input[type="email"], input[type="password"] { width:100%; padding:8px; border:1px solid #ddd; border-radius:5px; margin-bottom:16px;}
-    .btn { width:100%; background: #4361ee; color: #fff; border: none; padding: 10px 0; border-radius: 5px; font-size: 1rem; cursor: pointer;}
-    .google-btn { background: #fff; color: #333; border: 1px solid #aaa; margin-top: 12px; }
-    .google-btn img { vertical-align:middle; width:22px; margin-left:8px;}
-    #msg { color: #e63946; text-align: center; margin: 16px 0 0 0;}
-    @media (max-width: 500px) { .login-container{padding:10px 4vw;} }
-  </style>
+  <link rel="stylesheet" href="login.css">
 </head>
 <body>
   <div class="login-container">
@@ -38,91 +26,6 @@
     <div id="msg"></div>
   </div>
 
-  <script>
-
-    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-    var auth = firebase.auth();
-    var firestore = firebase.firestore();
-
-    // تسجيل الدخول بالبريد وكلمة المرور
-    function login(e) {
-      e.preventDefault();
-      var email = document.getElementById('email').value.trim().toLowerCase();
-      var password = document.getElementById('password').value;
-      var msg = document.getElementById('msg');
-      msg.innerText = "";
-
-      auth.signInWithEmailAndPassword(email, password)
-        .then(function(result) {
-          handleUserAfterLogin(result.user);
-        })
-        .catch(function(error) {
-          msg.innerText = "خطأ: " + (error.message || "تأكد من البيانات");
-        });
-    }
-
-    // تسجيل الدخول عبر Google
-    function loginWithGoogle() {
-      var provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(function(result) {
-          handleUserAfterLogin(result.user);
-        })
-        .catch(function(error) {
-          document.getElementById('msg').innerText = "خطأ في تسجيل الدخول عبر Google: " + (error.message || "");
-        });
-    }
-
-    // بعد نجاح الدخول: أضف المستخدم إلى users إذا لم يكن موجودًا ووجهه حسب الدور
-    function handleUserAfterLogin(user) {
-      if (!user) return;
-      var msg = document.getElementById('msg');
-      var usersRef = firestore.collection('users').doc(user.uid);
-
-      usersRef.get().then(function(doc) {
-        if (!doc.exists) {
-          // إضافة المستخدم لأول مرة (طالب افتراضي)
-          usersRef.set({
-            email: user.email,
-            role: "student"
-          }).then(function() {
-            // توجيه الطالب
-            window.location.href = "student.html";
-          }).catch(function(error){
-            msg.innerText = "تعذر إضافة الحساب: " + (error.message || "");
-          });
-        } else {
-          // المستخدم موجود مسبقًا: وجهه حسب الصلاحية
-          var role = doc.data().role;
-          if (role === "teacher") {
-            window.location.href = "dashboard.html";
-          } else if (role === "student") {
-            window.location.href = "student.html";
-          } else {
-            msg.innerText = "حسابك لا يملك صلاحية دخول معروفة. تواصل مع الإدارة.";
-            auth.signOut();
-          }
-        }
-      }).catch(function(error){
-        msg.innerText = "خطأ في التحقق من بيانات الحساب: " + (error.message || "");
-      });
-    }
-
-    // الحماية: إذا المستخدم مسجل دخوله بالفعل، وجهه مباشرة حسب صلاحياته
-    auth.onAuthStateChanged(function(user) {
-      if (user) {
-        firestore.collection('users').doc(user.uid).get().then(function(doc) {
-          if (doc.exists) {
-            var role = doc.data().role;
-            if (role === "teacher") {
-              window.location.href = "dashboard.html";
-            } else if (role === "student") {
-              window.location.href = "student.html";
-            }
-          }
-        });
-      }
-    });
-  </script>
+  <script src="login.js"></script>
 </body>
 </html>
