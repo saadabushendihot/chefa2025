@@ -1,10 +1,13 @@
-// Firebase Initialization (firebaseConfig يتم جلبه من firebase-config.js)
+// Firebase Initialization (from firebase-config.js)
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 const auth = firebase.auth();
 const firestore = firebase.firestore();
 const storage = firebase.storage(); // Initialize Firebase Storage
+// تهيئة Cloud Functions (أضف هذا السطر)
+const functions = firebase.functions();
+
 
 // Global variables
 let currentUser = null;
@@ -58,37 +61,70 @@ function logout() {
   });
 }
 
+// دالة تبديل إظهار/إخفاء القائمة الجانبية
+function toggleSidebar() {
+    const chatListPanel = document.getElementById('chatListPanel');
+    if (chatListPanel) {
+        chatListPanel.classList.toggle('open');
+    }
+}
+
 // --- Authentication State Listener ---
-auth.onAuthStateChanged(function(user) {
-  if (user) {
-    currentUser = user;
-    firestore.collection('users').doc(user.uid).get().then(doc => {
-      if (doc.exists) {
-        currentUserRole = doc.data().role;
-        document.getElementById('currentUserInfo').innerText = `مرحباً، ${doc.data().name || user.email} (${currentUserRole === 'teacher' ? 'معلم' : 'طالب'})`;
-        // If teacher, show admin buttons
-        if (currentUserRole === 'teacher') {
-          document.getElementById('createChatBtn').style.display = 'inline-block';
-          document.getElementById('manageParticipantsBtn').style.display = 'inline-block';
+document.addEventListener('DOMContentLoaded', () => { // تأكد أن كل الأكواد التي تعتمد على DOM داخل هذا المستمع
+    // إضافة مستمع حدث لزر تبديل القائمة الجانبية
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', toggleSidebar);
+    }
+    // Adjust textarea height automatically (basic)
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+    }
+
+    // بدء التحقق من حالة المصادقة بعد تحميل DOM
+    auth.onAuthStateChanged(function(user) {
+        // إضافة فئة للجسم لتحديد أن الصفحة هي صفحة دردشة
+        // document.body.classList.add('chat-page'); // هذه الفئة أصبحت مضافة مباشرة في HTML
+
+        if (user) {
+            currentUser = user;
+            firestore.collection('users').doc(user.uid).get().then(doc => {
+                if (doc.exists) {
+                    currentUserRole = doc.data().role;
+                    document.getElementById('currentUserInfo').innerText = `مرحباً، ${doc.data().name || user.email} (${currentUserRole === 'teacher' ? 'معلم' : 'طالب'})`;
+                    
+                    // إظهار أزرار الإدارة للمعلم
+                    if (currentUserRole === 'teacher') {
+                        document.getElementById('createChatBtn').style.display = 'inline-block';
+                        document.getElementById('manageParticipantsBtn').style.display = 'inline-block';
+                        document.getElementById('deleteChatBtn').classList.remove('d-none'); // إظهار زر حذف الدردشة للمعلم
+                    } else {
+                        // إخفاء زر حذف الدردشة إذا لم يكن معلمًا (تأكيد)
+                        document.getElementById('deleteChatBtn').classList.add('d-none');
+                    }
+
+                    loadChatRooms(); // Start loading chat rooms after role is determined
+                    loadAllUsersForModals(); // Load all users for admin modals
+                } else {
+                    console.warn("User data not found in Firestore 'users' collection.");
+                    showToast("خطأ: لم يتم العثور على بيانات المستخدم.", "#e63946");
+                    logout();
+                }
+            }).catch(err => {
+                console.error("Error fetching user role:", err);
+                showToast("خطأ في جلب دور المستخدم: " + err.message, "#e63946");
+                logout();
+            });
+        } else {
+            window.location.href = "login.html"; // Redirect to login page if no user
         }
-        loadChatRooms(); // Start loading chat rooms
-        loadAllUsersForModals(); // Load all users for admin modals
-      } else {
-        // User exists in Auth but not in 'users' collection (shouldn't happen if login.html works correctly)
-        console.warn("User data not found in Firestore 'users' collection.");
-        showToast("خطأ: لم يتم العثور على بيانات المستخدم.", "#e63946");
-        logout();
-      }
-    }).catch(err => {
-      console.error("Error fetching user role:", err);
-      showToast("خطأ في جلب دور المستخدم: " + err.message, "#e63946");
-      logout();
     });
-  } else {
-    // No user is signed in.
-    window.location.href = "login.html"; // Redirect to login page
-  }
 });
+
 
 // --- Chat Room Management ---
 function loadChatRooms() {
@@ -154,6 +190,21 @@ function selectChatRoom(chatRoomId) {
   if (selectedRoomElement) {
     selectedRoomElement.classList.add('active');
   }
+
+  // إغلاق القائمة الجانبية إذا كانت مفتوحة (خاصة بالجوال)
+  const chatListPanel = document.getElementById('chatListPanel');
+  if (chatListPanel && chatListPanel.classList.contains('open')) {
+      chatListPanel.classList.remove('open');
+  }
+
+  // تفعيل زر الحذف إذا كان المستخدم معلمًا
+  const deleteChatBtn = document.getElementById('deleteChatBtn');
+  if (deleteChatBtn && currentUserRole === 'teacher') {
+      deleteChatBtn.onclick = () => confirmDeleteChatRoom(chatRoomId);
+  } else if (deleteChatBtn) {
+      deleteChatBtn.onclick = null; // تعطيل الزر إذا لم يكن معلمًا
+  }
+
 
   firestore.collection('chatRooms').doc(chatRoomId).get().then(doc => {
     if (doc.exists) {
@@ -371,12 +422,6 @@ function sendMessage(fileUrl = null, fileName = null, fileType = 'text') {
     });
 }
 
-// Adjust textarea height automatically (basic)
-document.getElementById('messageInput').addEventListener('input', function() {
-    this.style.height = 'auto';
-    this.style.height = (this.scrollHeight) + 'px';
-});
-
 // --- File Attachment Logic ---
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = [
@@ -496,7 +541,7 @@ function openCreateChatModal() {
   adminUserDiv.dataset.uid = currentUser.uid;
   adminUserDiv.classList.add('selected'); // Admin is always a participant
   adminUserDiv.style.fontWeight = 'bold';
-  adminUserDiv.style.backgroundColor = '#dff0d8'; // Light green background for admin
+  adminUserDiv.style.backgroundColor = 'var(--success-color-light)'; // Light green background for admin
   adminUserDiv.onclick = (e) => e.stopPropagation(); // Prevent unselecting admin
   allUsersListDiv.prepend(adminUserDiv); // Add admin to the top
 }
@@ -618,5 +663,34 @@ function saveParticipantsChanges() {
   });
 }
 
-// --- Initial setup on page load ---
-// You might want to automatically select the first chat or show a welcome message
+// دالة حذف غرفة الدردشة (تستدعي Cloud Function)
+async function confirmDeleteChatRoom(chatRoomId) {
+    if (!confirm("هل أنت متأكد من حذف هذه الدردشة بالكامل؟ سيتم حذف جميع الرسائل والمرفقات! لا يمكن التراجع عن هذا الإجراء.")) {
+        return;
+    }
+
+    showToast("جاري حذف الدردشة بالكامل...", "#4361ee");
+    showLoading(true);
+
+    try {
+        // استدعاء الدالة السحابية لحذف الدردشة
+        const deleteChatRoomCallable = functions.httpsCallable('deleteChatRoom');
+        const result = await deleteChatRoomCallable({ chatRoomId: chatRoomId });
+
+        if (result.data.status === 'success') {
+            showToast("تم حذف الدردشة بالكامل بنجاح!", "#1dad87");
+            // إعادة تحميل قائمة الدردشات أو إعادة التوجيه
+            loadChatRooms();
+            currentChatRoomId = null; // إلغاء تحديد غرفة الدردشة الحالية
+            document.getElementById('messageDisplay').innerHTML = '';
+            document.getElementById('currentChatRoomName').innerText = 'الرجاء اختيار محادثة';
+        } else {
+            showToast("خطأ في حذف الدردشة: " + result.data.message, "#e63946");
+        }
+    } catch (error) {
+        console.error("خطأ أثناء استدعاء Cloud Function:", error);
+        showToast("حدث خطأ غير متوقع أثناء حذف الدردشة: " + error.message, "#e63946");
+    } finally {
+        showLoading(false);
+    }
+}
