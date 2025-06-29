@@ -2,16 +2,16 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>صفحة الدردشة - شفاء</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-  <!-- Firebase Configuration (assumes it's in the same directory or accessible path) -->
+  <title>صفحة الدردشة - شفاء</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage.js"></script>
+
   <script src="firebase-config.js"></script>
-  <!-- Google Fonts for Arabic -->
+
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
@@ -520,7 +520,7 @@
   </header>
 
   <div class="main-container">
-    <div id="chatListOverlay" class="chat-list-panel"> <!-- Removed 'hidden' class here -->
+    <div id="chatListOverlay" class="chat-list-panel">
       <div class="chat-list-header">
         <h5>المحادثات</h5>
         <button class="btn" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openCreateChatModal()">
@@ -540,12 +540,8 @@
         </button>
       </div>
       <div id="messageDisplay">
-        <!-- Messages will be loaded here -->
-      </div>
-      <div class="spinner" id="loadingSpinner"></div> <!-- Main loading spinner -->
-
-      <!-- message-input-area is now fixed to viewport bottom in CSS -->
-    </div>
+        </div>
+      <div class="spinner" id="loadingSpinner"></div> </div>
   </div>
 
   <button id="chatListToggleButton" onclick="toggleChatListPanel()">
@@ -557,12 +553,10 @@
     <button class="btn attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق ملف">
         <i class="fas fa-paperclip"></i>
     </button>
-    <div id="fileUploadSpinner"></div> <!-- Spinner for file upload -->
-    <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
+    <div id="fileUploadSpinner"></div> <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
     <button class="btn" id="sendMessageBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> إرسال</button>
   </div>
 
-  <!-- Create Chat Modal -->
   <div id="createChatModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeCreateChatModal()">&times;</span>
@@ -583,7 +577,6 @@
     </div>
   </div>
 
-  <!-- Manage Participants Modal -->
   <div id="manageParticipantsModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeManageParticipantsModal()">&times;</span>
@@ -591,8 +584,7 @@
 
       <label>المشاركون الحاليون:</label>
       <div id="currentParticipantsList" class="multi-select-list">
-        <!-- Current participants will be loaded here -->
-      </div>
+        </div>
       <p style="font-size:0.8em; color:#888;">* يمكنك الضغط على اسم المستخدم لتحديده/إلغاء تحديده.</p>
 
       <div class="modal-buttons">
@@ -964,17 +956,20 @@
         fileName: fileName // Include file name if present
       };
 
-      firestore.collection('chatRooms').doc(currentChatRoomId).update({ // <-- Updated line
+      firestore.collection('chatRooms').doc(currentChatRoomId).update({
         lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
         lastMessageSender: currentUser.displayName || currentUser.email
-      }).then(() => {
-        firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData); // <-- Original line
       })
-        .then(() => { // This .then() belongs to the update, not the add. It needs to be chained.
+        .then(() => {
+          // IMPORTANT: Return the promise from the add operation so the next .then() waits for it
+          return firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData);
+        })
+        .then(() => {
           messageInput.value = ''; // Clear text input
           messageInput.style.height = 'auto'; // Reset textarea height
           document.getElementById('fileInput').value = ''; // Clear file input
+          showToast("تم إرسال الرسالة بنجاح!", "#1dad87"); // Add a success toast
         })
         .catch(error => {
           console.error("Error sending message:", error);
@@ -1003,8 +998,8 @@
     async function handleFileSelect(event) {
         const file = event.target.files[0];
         if (!file) {
-            showFileUploadSpinner(false); // Hide spinner if no file selected (e.g., user cancels)
-            return;
+            //showFileUploadSpinner(false); // No, handle this in finally or success/error callbacks
+            return; // User cancelled file selection
         }
 
         // 1. Client-side Validation
@@ -1067,8 +1062,6 @@
             showToast("خطأ في بدء عملية رفع الملف: " + error.message, "#e63946");
             showFileUploadSpinner(false);
         } finally {
-            // It's crucial to ensure spinner is hidden even if try/catch blocks don't catch everything
-            // showFileUploadSpinner(false); // This is handled by uploadTask.on('state_changed', ..., error, success)
             document.getElementById('fileInput').value = ''; // Clear file input regardless of success/failure
         }
     }
