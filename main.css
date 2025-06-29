@@ -269,14 +269,31 @@ header, .app-bar {
 /* الحاويات الرئيسية */
 .container {
   max-width: 1200px;
-  margin: 24px auto; /* مسافة موحدة أسفل الهيدر */
+  /* تم إزالة margin-top: 24px هنا لتجنب التداخل، وسنعتمد على تباعد العناصر داخل الكونتينر */
+  margin: 0 auto; 
+  padding: 28px; /* تباعد داخلي للحاوية */
   background: var(--surface-light);
   border-radius: 12px;
-  padding: 28px;
   box-shadow: 0 2px 10px var(--shadow-light);
   flex-grow: 1;
 }
 
+/* لجعل العناصر الأولى داخل الـ container تبتعد عن الرأس (إذا لم يكن هناك عنصر أعلى) */
+.container > *:first-child {
+    margin-top: 24px; /* مسافة أعلى العنصر الأول داخل الكونتينر */
+}
+/* ضبط خاص لصفحة الدردشة حيث main-container هو العنصر الرئيسي */
+.main-container {
+  flex: 1;
+  display: flex;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding-top: 70px; /* هذه المسافة خاصة بـ chat.html لتعويض الهيدر + تباعد داخلي */
+  padding-bottom: 70px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
 
 /* ------------------------------------ */
 /* 4. أنماط البطاقات والجداول والنماذج والإشعارات (المكونات الأساسية) */
@@ -482,8 +499,6 @@ textarea.form-control {
   position: relative;
   font-size: 1.6rem;
   cursor: pointer;
-  /* Adjustments for spacing in header icons */
-  margin-left: 10px; /* Reduced to provide space for other elements */
   color: var(--surface-light);
   transition: color 0.2s ease, transform 0.2s ease;
 }
@@ -1372,7 +1387,6 @@ textarea.summary-text:focus {
 .dark-mode #welcomeBox p {
     color: var(--text-dark);
 }
-
 
 /* ------------------------------------ */
 /* 8. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
