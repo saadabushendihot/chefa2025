@@ -1,0 +1,12 @@
+body { font-family: Tajawal, Arial, sans-serif; background: #f8fafc; margin: 0;}
+    .container { max-width: 800px; margin: 40px auto; }
+    .nav { background: #4361ee; color: #fff; padding: 0; margin: 0; display: flex; gap: 0; }
+    .nav a { color: #fff; text-decoration: none; display: inline-block; padding: 16px 28px; font-size: 1.1rem;}
+    .nav a:hover, .nav .active { background: #23366d; }
+    .box { background: #fff; padding: 30px 24px; border-radius: 8px; box-shadow: 0 2px 8px #ccc2; margin: 40px auto; max-width: 450px;}
+    label { display: block; margin-top: 14px; font-size: 1.1rem;}
+    input[type="email"], input[type="password"] { padding: 10px; width: 96%; border: 1px solid #ccc; border-radius: 4px; margin-top: 8px;}
+    button { background: #4361ee; color: #fff; border: none; padding: 12px 36px; border-radius: 6px; font-size: 1.1rem; margin-top: 24px;}
+    .msg { color: #ef476f; margin-top: 12px;}
+    .logout-btn { background: #eb2f06; color: #fff; padding: 7px 20px; border-radius: 4px; border: none; font-size: 1em; margin-right: 15px;}
+    #student-redirect { color: #4361ee; font-weight:bold; margin-top:24px; font-size:1.1em;}
