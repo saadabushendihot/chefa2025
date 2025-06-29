@@ -83,6 +83,42 @@ let teacherNotificationsListenerUnsubscribe = null; // Listener for teacher noti
 let teacherNotificationsData = []; // Global array to store teacher notifications
 let teacherLoggedInEmail = ''; // To store logged-in teacher's email
 
+// تعريف روابط التنقل لكل دور
+const navLinks = {
+    teacher: [
+        { name: 'لوحة التحكم', href: 'dashboard.html' },
+        { name: 'إدارة الأسئلة', href: 'questions-admin.html' },
+        { name: 'الدردشة', href: 'chat.html' }
+    ],
+    student: [
+        { name: 'لوحة الطالب', href: 'student.html' },
+        { name: 'الاختبار', href: 'student-quiz.html' },
+        { name: 'الدردشة', href: 'chat.html' }
+    ]
+};
+
+// دالة جديدة لرسم روابط التنقل بناءً على الدور
+function renderNavigation(role) {
+    const navContainer = document.getElementById('main-nav-links');
+    if (!navContainer) return;
+
+    navContainer.innerHTML = ''; // مسح الروابط الحالية
+    const linksToRender = navLinks[role] || []; // جلب الروابط بناءً على الدور
+    const currentPath = window.location.pathname.split('/').pop(); // اسم الملف الحالي
+
+    linksToRender.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.href;
+        a.textContent = link.name;
+        a.className = 'nav-link';
+        if (currentPath === link.href) {
+             a.classList.add('active');
+        }
+        navContainer.appendChild(a);
+    });
+}
+
+
 // Get Mark from student_marks collection
 function getMarkForSummary(summaryId, studentEmail) {
   return firestore.collection('student_marks')
@@ -114,6 +150,7 @@ auth.onAuthStateChanged(function(user) {
         loadStudents();
         loadLessons();
         setupTeacherNotificationsListener(); // Setup listener for teacher notifications
+        renderNavigation(doc.data().role); // استدعاء دالة جديدة لرسم التنقل
       }
     }).catch(function(error) {
       console.error("خطأ في جلب دور المستخدم:", error);
@@ -587,7 +624,7 @@ function renderExamsTable(studentId, studentObj) {
     html += `
       <tr>
         <td>المستوى ${i}</td>
-        <td style="color:${passed ? 'var(--secondary-color)' : 'var(--error)'};font-weight:bold;">
+        <td style="color:${passed ? 'var(--secondary-color)' : 'var(--danger-color)'};font-weight:bold;">
           ${passed ? "مجتاز" : "غير مجتاز"}
         </td>
         <td>
@@ -780,7 +817,7 @@ window.updateLevel = function(checkbox) {
     const previousExam = allStudentsData[docId]['exam'+(levelNum-1)];
     if (!previousExam) {
       checkbox.checked = false;
-      document.getElementById('msg').style.color = "var(--error)";
+      document.getElementById('msg').style.color = "var(--danger-color)";
       document.getElementById('msg').innerText = "لا يمكن تفعيل هذا المستوى قبل اجتياز امتحان المستوى السابق.";
       setTimeout(()=>{document.getElementById('msg').innerText='';}, 1500);
       return;
@@ -807,7 +844,7 @@ window.updateLevel = function(checkbox) {
             }
         }
     }
-    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1500);
+    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--danger-color)';}, 1500);
   }).catch(function(err){
     document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
   });
@@ -1312,6 +1349,7 @@ function logout() {
     console.error("خطأ في تسجيل الخروج:", error);
   });
 }
+
 // أكواد JavaScript لإضافة ميزة الرأس المتحرك (Collapsing Header)
 document.addEventListener('DOMContentLoaded', () => {
     const appBar = document.querySelector('.app-bar');
