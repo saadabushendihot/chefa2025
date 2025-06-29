@@ -93,6 +93,41 @@ window.realtimeStudentMarks = {}; // NEW: Global map to store real-time marks
 // [NEW] Hardcoded teacher email for notifications
 const TEACHER_ADMIN_EMAIL = "saad.abushendi@gmail.com";
 
+// تعريف روابط التنقل لكل دور
+const navLinks = {
+    teacher: [
+        { name: 'لوحة التحكم', href: 'dashboard.html' },
+        { name: 'إدارة الأسئلة', href: 'questions-admin.html' },
+        { name: 'الدردشة', href: 'chat.html' }
+    ],
+    student: [
+        { name: 'لوحة الطالب', href: 'student.html' },
+        { name: 'الاختبار', href: 'student-quiz.html' },
+        { name: 'الدردشة', href: 'chat.html' }
+    ]
+};
+
+// دالة رسم روابط التنقل بناءً على الدور
+function renderNavigation(role) {
+    const navContainer = document.getElementById('main-nav-links');
+    if (!navContainer) return;
+
+    navContainer.innerHTML = '';
+    const linksToRender = navLinks[role] || [];
+    const currentPath = window.location.pathname.split('/').pop(); // اسم الملف الحالي
+
+    linksToRender.forEach(link => {
+        const a = document.createElement('a');
+        a.href = link.href;
+        a.textContent = link.name;
+        a.className = 'nav-link';
+        if (currentPath === link.href) {
+             a.classList.add('active');
+        }
+        navContainer.appendChild(a);
+    });
+}
+
 
 // Firebase init
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); } // firebaseConfig يتم جلبه الآن من firebase-config.js
@@ -149,6 +184,7 @@ auth.onAuthStateChanged(function(user) {
         loadStudentData(doc.data().email, doc.data().name);
         setupNotificationsListener(); // [NEW] Setup notifications listener after user data is loaded
         setupRealtimeMarksListener(); // NEW: Setup real-time marks listener
+        renderNavigation(doc.data().role); // استدعاء دالة رسم التنقل
       } else {
         firestore.collection('users').doc(user.uid).set({
           email: user.email, role: "student"
@@ -619,7 +655,7 @@ function loadExamQuestions(level) {
   firestore.collection('questions').where('level', '==', level).get().then(snap=>{
     examQuestions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
     prepareRandomizedExam();
-    renderExamQuestions();
+    renderQuestions();
   }).catch(()=>{ showToast("خطأ في تحميل الأسئلة", "#e63946"); });
 }
 
@@ -645,7 +681,7 @@ function prepareRandomizedExam() {
 }
 
 // عرض الأسئلة
-function renderExamQuestions() {
+function renderQuestions() {
   let html = '';
   randomizedExamQuestions.forEach((q, i) => {
     let multiNote = '';
@@ -734,12 +770,10 @@ function processExamSubmission(isTimerSubmission = false) {
       if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
     }
   });
-
-  // عرض رسالة تحذير للأسئلة الفارغة فقط إذا كان التسليم يدوياً
   if (!isTimerSubmission && empty > 0) {
     showFormMsg('يرجى الإجابة على جميع الأسئلة!');
     showToast("يرجى الإجابة على جميع الأسئلة!", "#e63946");
-    return; // إيقاف التسليم اليدوي إذا كانت هناك أسئلة فارغة
+    return;
   }
 
   gainedMark = Math.round(gainedMark * 100) / 100;
@@ -932,7 +966,7 @@ function loadActiveLessonsAndSummaries(activeLevels) {
 
 // عرض التلاخيص مع العلامة والتاريخ (مُعدلة)
 function renderSummariesLessonsUI(lessons, summariesMap) {
-  let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
+  let html = `<h3 style="color:var(--primary-dark); margin-bottom:10px;">تلخيصات دروسك</h3>`;
   lessons.forEach(function(lesson){
     // Ensure teacher_comment and student_reply_comment are initialized even if null in DB
     let sum = summariesMap[lesson.id] || { docId: `new_draft_${lesson.id}`, summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" };
@@ -971,17 +1005,17 @@ function renderSummariesLessonsUI(lessons, summariesMap) {
             const dateObj = new Date(dateVal);
             if (isNaN(dateObj.getTime())) {
                 console.warn("Invalid Date for summary:", sum.docId, "Timestamp value (raw):", sum.timestamp, "Parsed Date obj:", dateObj);
-                time = `<span style="color:#e63946;font-size:0.97em;">(تاريخ غير صالح)</span>`;
+                time = `<span style="color:var(--danger-color);font-size:0.97em;">(تاريخ غير صالح)</span>`;
             } else {
-                time = `<span style="color:#888;font-size:0.97em;">(${dateObj.toLocaleString('ar-EG')})</span>`;
+                time = `<span style="color:var(--text-muted);font-size:0.97em;">(${dateObj.toLocaleString('ar-EG')})</span>`;
             }
         } catch (e) {
             console.error("Error parsing timestamp for summary:", sum.docId, "Timestamp value:", sum.timestamp, "Error:", e);
-            time = `<span style="color:#e63946;font-size:0.97em;">(خطأ في التاريخ)</span>`;
+            time = `<span style="color:var(--danger-color);font-size:0.97em;">(خطأ في التاريخ)</span>`;
         }
     } else {
         console.warn("Timestamp is missing for summary:", sum.docId);
-        time = `<span style="color:#888;font-size:0.97em;">(لا يوجد تاريخ)</span>`;
+        time = `<span style="color:var(--text-muted);font-size:0.97em;">(لا يوجد تاريخ)</span>`;
     }
 
 
@@ -998,7 +1032,7 @@ function renderSummariesLessonsUI(lessons, summariesMap) {
       <div style="margin-bottom:10px;">
         <a href="${lesson.url || "#"}" class="lesson-link" download target="_blank" style="margin-left:10px;">تحميل المحاضرة 📥</a>
         ${lesson.voice ? `
-        <audio controls style="width:70%;vertical-align:middle;">
+        <audio controls style="width:100%;max-width:300px;vertical-align:middle;">
           <source src="${lesson.voice}" type="audio/mpeg">
           متصفحك لا يدعم تشغيل الصوت.
         </audio>
@@ -1024,7 +1058,7 @@ function renderSummariesLessonsUI(lessons, summariesMap) {
         <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
         <button class="btn submit" onclick="submitSummary(${lesson.id})">تسليم نهائي</button>
       </div>
-      <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:#e63946; font-size:0.97rem;"></div>
+      <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:var(--danger-color); font-size:0.97rem;"></div>
     </div>
     `;
   });
@@ -1134,12 +1168,12 @@ function saveSummary(lessonId) {
   console.log("Summary data to save (draft):", summaryData); // NEW LOG
 
   docRef.set(summaryData, { merge: true }).then(function(){ // Use set with merge for both new and update
-      msg.style.color = "#1dad87";
+      msg.style.color = "var(--success-color)";
       msg.innerText = "تم حفظ المسودة.";
       showToast("تم حفظ المسودة.", "#1dad87");
       console.log("Draft saved to Firestore successfully."); // NEW LOG
       // No need to call loadStudentData, listener will handle refresh
-      setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
+      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
   }).catch((error)=>{ 
       showToast("خطأ أثناء الحفظ: " + error.message, "#e63946"); 
       console.error("Error saving draft to Firestore:", error); // NEW LOG
@@ -1202,7 +1236,7 @@ function submitSummary(lessonId) {
   console.log("Lesson title (for notification):", lessonTitle); // NEW LOG
 
   docRef.set(summaryData, { merge: true }).then(function(){
-      msg.style.color = "#1dad87";
+      msg.style.color = "var(--success-color)";
       msg.innerText = "تم تسليم التلخيص بنجاح.";
       // No need to call loadStudentData, listener will handle refresh
       showToast("تم تسليم التلخيص بنجاح!", "#1dad87");
@@ -1215,7 +1249,7 @@ function submitSummary(lessonId) {
           lessonTitle
       );
       console.log("Teacher notification sent for submission."); // NEW LOG
-      setTimeout(()=>{msg.innerText=''; msg.style.color="#e63946";}, 1500);
+      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
   }).catch((error)=>{ 
       showToast("خطأ أثناء التسليم: " + error.message, "#e63946"); 
       console.error("Error submitting summary to Firestore:", error); // NEW LOG
@@ -1225,7 +1259,7 @@ function submitSummary(lessonId) {
 
 // تسجيل الخروج
 function logout() {
-  // Unsubscribe from listener before logging out
+  // Unsubscribe from listeners before logging out
   if (summariesListenerUnsubscribe) {
     summariesListenerUnsubscribe();
     summariesListenerUnsubscribe = null;
@@ -1238,5 +1272,7 @@ function logout() {
       studentMarksListenerUnsubscribe();
       studentMarksListenerUnsubscribe = null;
   }
-  auth.signOut().then(()=>{window.location.href='login.html';});
+  auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
+    console.error("خطأ في تسجيل الخروج:", error);
+  });
 }
