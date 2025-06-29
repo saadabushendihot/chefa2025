@@ -1,4 +1,4 @@
-/* main.css - ملف التصميم الرئيسي الموحد */
+/* main.css - ملف التصميم الرئيسي الموحد والمحسن */
 
 /* ------------------------------------ */
 /* 1. نظام تصميم أساسي (Core Design System) */
@@ -26,6 +26,7 @@
   --border-color: #e0e4e8;   /* لون الحدود */
   --shadow-light: rgba(0, 0, 0, 0.1); /* ظل خفيف */
   --shadow-medium: rgba(0, 0, 0, 0.15); /* ظل متوسط */
+  --shadow-strong: rgba(0, 0, 0, 0.2); /* ظل أقوى للعناصر البارزة */
 }
 
 /* تعريف متغيرات الألوان للوضع الليلي (Dark Mode) */
@@ -50,6 +51,7 @@
   --border-color: #333333;   /* لون الحدود في الوضع الليلي */
   --shadow-light: rgba(0, 0, 0, 0.3);
   --shadow-medium: rgba(0, 0, 0, 0.5);
+  --shadow-strong: rgba(0, 0, 0, 0.7);
 }
 
 /* ------------------------------------ */
@@ -59,29 +61,28 @@
 html, body {
   height: 100%;
   margin: 0;
-  padding: 0; /* تأكد من عدم وجود padding افتراضي */
-  box-sizing: border-box; /* يجعل حساب الحجم يشمل padding و border */
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  font-family: 'Tajawal', Arial, sans-serif; /* الخط العربي الأساسي */
+  font-family: 'Tajawal', Arial, sans-serif;
   background-color: var(--background-light);
   color: var(--text-dark);
-  direction: rtl; /* اتجاه الكتابة من اليمين لليسار */
-  text-align: right; /* محاذاة النص لليمين افتراضياً */
-  line-height: 1.6; /* تحسين قابلية القراءة */
-  font-size: 16px; /* حجم الخط الأساسي */
-  display: flex; /* لبعض التخطيطات التي تمتد لارتفاع الشاشة */
-  flex-direction: column; /* لتمكين التخطيط العام للصفحة (رأس، محتوى، تذييل) */
-  min-height: 100vh; /* ضمان امتداد الجسم لارتفاع الشاشة بالكامل */
+  direction: rtl;
+  text-align: right;
+  line-height: 1.6;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-/* إعادة تعيين بسيطة للعناصر الشائعة */
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
   margin-bottom: 0.5em;
-  color: var(--primary-dark); /* لون الرؤوس */
-  font-weight: 700; /* تجعله أكثر جرأة */
+  color: var(--primary-dark);
+  font-weight: 700;
 }
 
 p {
@@ -117,7 +118,7 @@ a:hover {
   font-weight: 500;
   cursor: pointer;
   background-color: var(--primary-color);
-  color: var(--surface-light); /* نص أبيض على زر ملون */
+  color: var(--surface-light);
   box-shadow: 0 2px 5px var(--shadow-light);
   transition: all 0.2s ease;
 }
@@ -163,7 +164,7 @@ a:hover {
 
 .btn-warning {
   background-color: var(--warning-color);
-  color: var(--text-dark); /* نص داكن على خلفية فاتحة */
+  color: var(--text-dark);
 }
 .btn-warning:hover {
   background-color: #e0a800;
@@ -178,7 +179,7 @@ a:hover {
 .btn.google-btn img {
   vertical-align: middle;
   width: 22px;
-  margin-left: 8px; /* مسافة بين الأيقونة والنص لـ RTL */
+  margin-left: 8px;
 }
 .btn.google-btn:hover {
   background-color: #f0f0f0;
@@ -196,14 +197,14 @@ header, .app-bar {
   box-shadow: 0 2px 5px var(--shadow-medium);
   z-index: 200;
   flex-shrink: 0;
-  position: fixed; /* لتثبيت الرأس */
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
 }
 
 .app-bar-logo {
-  height: 40px; /* حجم موحد للشعار */
+  height: 40px;
   margin-right: 16px;
 }
 
@@ -215,100 +216,327 @@ header, .app-bar {
 }
 
 .app-bar-spacer {
-  flex-grow: 1; /* للمباعدة بين العناصر في شريط التطبيق */
+  flex-grow: 1;
 }
 
 /* الحاويات الرئيسية */
 .container {
-  max-width: 1200px; /* حجم أقصى موحد للحاويات */
+  max-width: 1200px;
   margin: 70px auto 30px auto; /* مسافة للرأس الثابت */
   background: var(--surface-light);
   border-radius: 12px;
   padding: 28px;
   box-shadow: 0 2px 10px var(--shadow-light);
-  flex-grow: 1; /* للسماح للحاوية بالنمو في الارتفاع */
+  flex-grow: 1;
 }
-
-/* رسائل التوست (Toast Notifications) */
-.toast {
-  visibility: hidden;
-  min-width: 250px;
-  background-color: var(--text-dark); /* خلفية داكنة */
-  color: var(--surface-light);
-  text-align: center;
-  border-radius: 8px;
-  padding: 16px;
-  position: fixed;
-  z-index: 9999;
-  left: 50%;
-  bottom: 30px;
-  transform: translateX(-50%) translateY(100px); /* يبدأ من الأسفل ويزاح للمركز */
-  font-size: 1.05rem;
-  opacity: 0;
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-}
-
-.toast.show {
-  visibility: visible;
-  opacity: 1;
-  transform: translateX(-50%) translateY(0); /* يصعد للأعلى */
-}
-
-/* مؤشر التحميل (Spinner) */
-.spinner {
-  display: none;
-  width: 50px;
-  height: 50px;
-  margin: 30px auto;
-  border: 5px solid var(--border-color); /* لون فاتح */
-  border-top: 5px solid var(--primary-color); /* لون أساسي */
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* الفئات المساعدة (Utility Classes) - لضمان التناسق */
-.d-none { display: none !important; }
-.d-flex { display: flex !important; }
-.align-items-center { align-items: center !important; }
-.justify-content-between { justify-content: space-between !important; }
-.justify-content-end { justify-content: flex-end !important; }
-
-/* الهوامش والمسافات (Unified Spacing System) */
-/* استخدام مضاعفات 8px أو 4px للهوامش والمسافات */
-.mt-0 { margin-top: 0 !important; }
-.mt-1 { margin-top: 8px !important; }
-.mt-2 { margin-top: 16px !important; }
-.mt-3 { margin-top: 24px !important; }
-.mt-4 { margin-top: 32px !important; }
-.mt-5 { margin-top: 40px !important; }
-
-.mb-0 { margin-bottom: 0 !important; }
-.mb-1 { margin-bottom: 8px !important; }
-.mb-2 { margin-bottom: 16px !important; }
-.mb-3 { margin-bottom: 24px !important; }
-.mb-4 { margin-bottom: 32px !important; }
-.mb-5 { margin-bottom: 40px !important; }
-
-/* للمحاذاة RTL */
-.ml-auto { margin-right: auto !important; margin-left: 0 !important; }
-.mr-auto { margin-left: auto !important; margin-right: 0 !important; }
-.ml-1 { margin-right: 8px !important; margin-left: 0 !important; }
-.ml-2 { margin-right: 16px !important; margin-left: 0 !important; }
-.mr-1 { margin-left: 8px !important; margin-right: 0 !important; }
-.mr-2 { margin-left: 16px !important; margin-right: 0 !important; }
-
-.text-center { text-align: center !important; }
-.text-right { text-align: right !important; }
-.text-left { text-align: left !important; }
 
 
 /* ------------------------------------ */
-/* 4. الوضع الليلي (Dark Mode) - قواعد عامة */
+/* 4. أنماط البطاقات والجداول والنماذج والإشعارات (المكونات الأساسية) */
+/* ------------------------------------ */
+
+/* البطاقات (Cards) - توحيد المظهر */
+.card {
+  background-color: var(--surface-light);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px var(--shadow-light); /* ظل أكثر وضوحًا */
+  margin-bottom: 24px;
+  overflow: hidden; /* للحفاظ على حواف مستديرة للمحتوى الداخلي */
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  box-shadow: 0 6px 12px var(--shadow-medium);
+  /* transform: translateY(-2px); /* تأثير رفع خفيف عند التحويم */
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--background-light); /* لون خلفية للرأس يختلف عن محتوى البطاقة */
+  color: var(--primary-dark); /* لون الرأس في البطاقة */
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  font-weight: 600; /* جعل النص في رأس البطاقة أكثر سمكًا */
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.card-actions {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--background-light);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* الجداول (Tables) - مظهر احترافي وموحد */
+.table-container {
+  width: 100%;
+  overflow-x: auto; /* للسماح بالتمرير الأفقي في الجداول الكبيرة */
+  -webkit-overflow-scrolling: touch;
+  margin: 20px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--shadow-light);
+  background-color: var(--surface-light); /* خلفية الجدول */
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse; /* لإزالة الفراغات بين الخلايا */
+  min-width: 700px; /* لضمان عرض جيد على الشاشات الصغيرة */
+}
+
+.table th {
+  background-color: var(--primary-color);
+  color: var(--surface-light);
+  font-weight: 600; /* جعل الرؤوس أكثر سمكًا */
+  text-align: right;
+  padding: 14px 20px;
+  position: sticky; /* لتثبيت رؤوس الجدول عند التمرير */
+  top: 0;
+  white-space: nowrap; /* منع التفاف النص في الرؤوس */
+  border-bottom: 1px solid var(--border-color); /* حدود إضافية للرؤوس */
+}
+
+.table td {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: right;
+  vertical-align: middle; /* محاذاة عمودية للمحتوى */
+}
+
+.table tr:last-child td {
+  border-bottom: none; /* إزالة الحد السفلي للصف الأخير */
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03); /* تأثير تحويم خفيف على الصفوف */
+}
+
+/* أنماط خاصة لخلايا الجدول */
+.summary-text-cell {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 300px;
+  text-align: right;
+}
+
+.table-mark-input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-left: 8px;
+  background-color: var(--background-light);
+  color: var(--text-dark);
+}
+
+.table-mark-button {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  background-color: var(--secondary-color);
+  color: var(--surface-light);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.table-mark-button:hover {
+    background-color: var(--secondary-dark);
+}
+
+
+/* النماذج (Forms) - مظهر موحد */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px; /* زيادة حجم الحقول قليلاً */
+  border: 1px solid var(--border-color);
+  border-radius: 8px; /* حواف مستديرة للمدخلات */
+  font-size: 1rem;
+  background-color: var(--surface-light);
+  color: var(--text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2); /* ظل أزرق خفيف عند التركيز */
+  outline: none;
+}
+
+.form-select {
+  appearance: none; /* إزالة مظهر المتصفح الافتراضي */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000000'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: left 12px center;
+  background-size: 24px;
+  padding-left: 40px;
+  padding-right: 12px;
+}
+.dark-mode .form-select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+}
+
+textarea.form-control {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* شارات الحالة (Status Badges) */
+.summary-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  display: inline-block;
+  white-space: nowrap;
+  text-transform: capitalize;
+}
+.summary-status.submitted {
+  background-color: #e3f6ed; /* Light green */
+  color: #219e4b; /* Dark green */
+}
+.summary-status.draft {
+  background-color: #fff4e0; /* Light yellow */
+  color: #b96d0d; /* Dark orange */
+}
+
+/* صندوق الإشعارات (Notification Panel) - مظهر موحد */
+.notification-bell {
+  position: relative;
+  font-size: 1.6rem; /* حجم أكبر للأيقونة */
+  cursor: pointer;
+  margin-left: 20px;
+  color: var(--surface-light); /* لون الجرس في الشريط العلوي */
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.notification-bell:hover {
+  transform: scale(1.1);
+  color: var(--secondary-light); /* لون ثانوي عند التحويم */
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px; /* ضبط الموضع */
+  right: -8px; /* ضبط الموضع */
+  background-color: var(--danger-color);
+  color: var(--surface-light);
+  border-radius: 50%;
+  padding: 3px 8px; /* حجم أصغر قليلاً للبادج */
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1;
+  min-width: 15px;
+  text-align: center;
+  box-shadow: 0 0 5px var(--shadow-medium);
+  border: 1px solid var(--surface-light); /* حدود بيضاء لتبرز في الوضعين */
+}
+
+.notification-panel {
+  display: none;
+  position: fixed;
+  top: 70px; /* أسفل الهيدر بقليل */
+  right: 15px;
+  width: 350px; /* عرض متوسط */
+  max-height: 450px; /* ارتفاع أقصى */
+  overflow-y: auto;
+  background-color: var(--surface-light);
+  border-radius: 12px; /* حواف مستديرة */
+  box-shadow: 0 8px 16px var(--shadow-medium); /* ظل أقوى */
+  z-index: 1100;
+  padding: 15px;
+  text-align: right;
+  border: 1px solid var(--border-color);
+  box-sizing: border-box;
+  animation: fadeInDown 0.3s ease-out; /* تأثير دخول من الأعلى */
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-panel h5 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--primary-dark);
+  font-size: 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+  font-weight: 600;
+}
+
+.notification-item {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* حد فاصل خفيف */
+  font-size: 0.95rem;
+  color: var(--text-dark);
+  line-height: 1.4;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item.unread {
+  background-color: rgba(var(--primary-color-rgb), 0.08); /* لون أزرق فاتح جداً للخلفية */
+  font-weight: 600;
+  padding: 10px;
+  margin: 0 -15px; /* يمتد ليشمل كامل عرض البانل */
+  border-radius: 8px; /* حواف مستديرة للعنصر غير المقروء */
+}
+
+.notification-item .timestamp {
+  display: block;
+  font-size: 0.8em;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+.notification-item .mark-read-btn {
+    background-color: var(--secondary-color);
+    color: var(--surface-light);
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px; /* حواف مستديرة للأزرار */
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-top: 8px;
+    display: inline-block;
+    transition: background-color 0.2s ease;
+}
+.notification-item .mark-read-btn:hover {
+    background-color: var(--secondary-dark);
+}
+
+
+/* ------------------------------------ */
+/* 5. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
 /* ------------------------------------ */
 
 .dark-mode body {
@@ -340,13 +568,43 @@ header, .app-bar {
 }
 
 .dark-mode header, .dark-mode .app-bar {
-  background-color: #1a1a1a; /* لون داكن أكثر للرأس */
+  background-color: #1a1a1a;
   box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 
-.dark-mode .container {
+.dark-mode .container, .dark-mode .card, .dark-mode .table-container, .dark-mode .modal-content {
   background: var(--surface-light);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+}
+
+.dark-mode .card-header, .dark-mode .card-actions, .dark-mode .table th, .dark-mode .chat-list-header, .dark-mode .chat-header {
+  background-color: #2a2a2a; /* لون داكن أكثر لرؤوس البطاقات والجداول */
+  border-bottom-color: var(--border-color);
+  color: var(--text-dark);
+}
+
+.dark-mode .table td {
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .form-label {
+  color: var(--text-dark);
+}
+
+.dark-mode .form-control {
+  background-color: #2a2a2a;
+  border-color: var(--border-color);
+  color: var(--text-dark);
+}
+
+.dark-mode .form-control:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
 }
 
 .dark-mode .toast {
@@ -359,13 +617,47 @@ header, .app-bar {
   border-top-color: var(--primary-light);
 }
 
+.dark-mode .notification-bell {
+  color: var(--text-dark);
+}
+
+.dark-mode .notification-panel {
+  background-color: var(--surface-light);
+  border-color: var(--border-color);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .notification-panel h5 {
+  color: var(--primary-light);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .notification-item {
+  color: var(--text-dark);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .notification-item.unread {
+  background-color: rgba(var(--primary-color-rgb), 0.15); /* لون أزرق أغمق قليلاً في الوضع الليلي */
+}
+
+.dark-mode .notification-item .timestamp {
+  color: var(--text-muted);
+}
+
+.dark-mode .notification-item .mark-read-btn {
+  background-color: var(--secondary-dark);
+  color: var(--text-dark);
+}
+
+
 /* ------------------------------------ */
-/* 5. التجاوبية (Responsiveness) - قواعد عامة */
+/* 6. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
 /* ------------------------------------ */
 
 @media (max-width: 992px) {
   body {
-    font-size: 15px; /* تصغير الخط قليلاً للشاشات المتوسطة */
+    font-size: 15px;
   }
   .container {
     padding: 20px;
@@ -391,7 +683,7 @@ header, .app-bar {
     margin-left: 10px;
   }
   .container {
-    margin-top: 60px; /* تعديل المسافة العلوية للرأس الأصغر */
+    margin-top: 60px;
     padding: 15px;
   }
   .btn {
@@ -406,7 +698,7 @@ header, .app-bar {
   }
   header, .app-bar {
     font-size: 1.1rem;
-    justify-content: center; /* توسيط العناصر في الرأس */
+    justify-content: center;
     text-align: center;
   }
   .app-bar-logo {
@@ -414,7 +706,7 @@ header, .app-bar {
     margin-right: 10px;
   }
   .app-bar-title {
-    display: none; /* إخفاء العنوان في الشاشات الصغيرة جداً */
+    display: none;
   }
   .container {
     padding: 10px;
@@ -424,6 +716,6 @@ header, .app-bar {
   .toast {
     width: 90%;
     left: 5%;
-    transform: translateX(0%) translateY(100px); /* ضبط للمركز في الشاشات الصغيرة */
+    transform: translateX(0%) translateY(100px);
   }
 }
