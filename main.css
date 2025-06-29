@@ -27,6 +27,7 @@
   --shadow-light: rgba(0, 0, 0, 0.08); /* ظل خفيف جداً */
   --shadow-medium: rgba(0, 0, 0, 0.12); /* ظل متوسط */
   --shadow-strong: rgba(0, 0, 0, 0.18); /* ظل أقوى للعناصر البارزة */
+  --overlay-color: rgba(0, 0, 0, 0.4); /* طبقة التراكب لغطاء القائمة الجانبية */
 }
 
 /* تعريف متغيرات الألوان للوضع الليلي (Dark Mode) */
@@ -52,6 +53,7 @@
   --shadow-light: rgba(0, 0, 0, 0.3);
   --shadow-medium: rgba(0, 0, 0, 0.5);
   --shadow-strong: rgba(0, 0, 0, 0.7);
+  --overlay-color: rgba(0, 0, 0, 0.7);
 }
 
 /* ------------------------------------ */
@@ -168,7 +170,7 @@ a:hover {
 .btn.signout, .btn-danger {
   background-color: var(--danger-color);
 }
-.btn.signout:hover, .btn-danger:hover {
+.btn.signout:hover, .btn.danger:hover {
   background-color: #c82333;
 }
 
