@@ -26,8 +26,7 @@
   </header>
 
   <div class="main-container">
-    <div class="chat-list-panel" id="chatListPanel">
-      <div class="chat-list-header">
+    <div class="chat-list-panel" id="chatListPanel"> <div class="chat-list-header">
         <h5>المحادثات</h5>
         <button class="btn" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openCreateChatModal()">
             <i class="fas fa-plus" style="margin-left: 5px;"></i> إنشاء
@@ -43,6 +42,9 @@
         <span id="currentChatRoomName">الرجاء اختيار محادثة</span>
         <button class="btn" id="manageParticipantsBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openManageParticipantsModal()">
             <i class="fas fa-users" style="margin-left: 5px;"></i> إدارة الأعضاء
+        </button>
+        <button class="btn btn-danger d-none" id="deleteChatBtn" style="font-size:0.85em; padding: 5px 10px; margin-right: 10px;">
+            <i class="fas fa-trash-alt" style="margin-left: 5px;"></i> حذف الدردشة
         </button>
       </div>
       <div id="messageDisplay">
