@@ -62,8 +62,7 @@
 
 html {
   scroll-behavior: smooth;
-  height: 100%; /* مهم لصفحة الدردشة لضبط ارتفاع الأقسام الداخلية */
-  /* overflow: hidden; تم إزالته من هنا، فقط لـ chat-page في الـ media queries */
+  height: 100%; /* مهم لبعض التخطيطات لضبط ارتفاع الأقسام الداخلية */
 }
 
 body {
@@ -185,7 +184,7 @@ a:hover {
   background-color: var(--warning-color);
   color: var(--text-dark);
 }
-.btn-warning:hover {
+.btn.warning:hover {
   background-color: #e0a800;
 }
 
@@ -272,8 +271,8 @@ nav#main-nav-links {
     display: flex;
     align-items: center;
     gap: 15px;
+    margin-right: 20px;
     flex-wrap: wrap;
-    /* تأكد من أن الـ nav-links لن يتقلص */
     flex-shrink: 0;
 }
 
