@@ -1312,3 +1312,16 @@ function logout() {
     console.error("خطأ في تسجيل الخروج:", error);
   });
 }
+// أكواد JavaScript لإضافة ميزة الرأس المتحرك (Collapsing Header)
+document.addEventListener('DOMContentLoaded', () => {
+    const appBar = document.querySelector('.app-bar');
+    if (appBar) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) { // عندما يتجاوز التمرير 50 بكسل
+                appBar.classList.add('scrolled');
+            } else {
+                appBar.classList.remove('scrolled');
+            }
+        });
+    }
+});
