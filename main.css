@@ -59,7 +59,7 @@
 /* ------------------------------------ */
 
 html {
-  scroll-behavior: smooth; /* لتمكين التمرير الناعم عند النقر على الروابط */
+  scroll-behavior: smooth;
 }
 
 body {
@@ -74,7 +74,7 @@ body {
   flex-direction: column;
   min-height: 100vh;
   padding-top: 64px; /* مسافة أعلى الجسم لتجنب التداخل مع الهيدر الثابت */
-  box-sizing: border-box; /* لضمان أن padding لا يزيد من الحجم الكلي */
+  box-sizing: border-box;
 }
 
 /* ضبط padding-top لجسم الصفحة عند تصغير الهيدر في الشاشات الصغيرة */
@@ -135,7 +135,7 @@ a:hover {
   color: var(--surface-light);
   box-shadow: 0 2px 5px var(--shadow-light);
   transition: all 0.2s ease;
-  white-space: nowrap; /* منع التفاف النص داخل الزر */
+  white-space: nowrap;
 }
 
 .btn:hover {
@@ -239,7 +239,7 @@ header, .app-bar {
   color: var(--surface-light);
   text-decoration: none;
   padding: 0 16px;
-  height: 64px; /* نفس ارتفاع شريط التطبيق */
+  height: 64px;
   display: inline-flex;
   align-items: center;
   position: relative;
@@ -259,10 +259,10 @@ header, .app-bar {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 16px; /* من اليسار في RTL */
-  right: 16px; /* من اليمين في RTL */
+  left: 16px;
+  right: 16px;
   height: 2px;
-  background-color: var(--secondary-light); /* خط أصفر أو لون مميز */
+  background-color: var(--secondary-light);
 }
 
 
@@ -290,12 +290,12 @@ header, .app-bar {
   margin-bottom: 24px;
   overflow: hidden;
   transition: all 0.2s ease-in-out;
-  border: 1px solid var(--border-color); /* إضافة حد خفيف */
+  border: 1px solid var(--border-color);
 }
 
 .card:hover {
   box-shadow: 0 6px 12px var(--shadow-medium);
-  transform: translateY(-2px); /* تأثير رفع خفيف عند التحويم */
+  transform: translateY(-2px);
 }
 
 .card-header {
@@ -335,7 +335,7 @@ header, .app-bar {
   border-radius: 12px;
   box-shadow: 0 2px 8px var(--shadow-light);
   background-color: var(--surface-light);
-  border: 1px solid var(--border-color); /* إضافة حد عام للجدول */
+  border: 1px solid var(--border-color);
 }
 
 .table {
@@ -464,7 +464,7 @@ textarea.form-control {
   display: inline-block;
   white-space: nowrap;
   text-transform: capitalize;
-  border: 1px solid; /* إضافة حد للشارة */
+  border: 1px solid;
 }
 .summary-status.submitted {
   background-color: #e3f6ed;
@@ -482,7 +482,8 @@ textarea.form-control {
   position: relative;
   font-size: 1.6rem;
   cursor: pointer;
-  margin-left: 20px;
+  /* Adjustments for spacing in header icons */
+  margin-left: 10px; /* Reduced to provide space for other elements */
   color: var(--surface-light);
   transition: color 0.2s ease, transform 0.2s ease;
 }
@@ -556,7 +557,7 @@ textarea.form-control {
 }
 
 .notification-item.unread {
-  background-color: rgba(66, 103, 178, 0.08); /* استخدام اللون الأساسي بتعتيم */
+  background-color: rgba(66, 103, 178, 0.08);
   font-weight: 600;
   padding: 10px;
   margin: 0 -15px;
@@ -600,7 +601,7 @@ textarea.form-control {
   color: var(--text-dark);
 }
 .info b {
-    color: var(--primary-dark); /* جعل عناوين المعلومات أكثر بروزاً */
+    color: var(--primary-dark);
 }
 
 .admission-status-box {
@@ -664,7 +665,7 @@ textarea.form-control {
     color: var(--text-dark);
 }
 
-.levels-table, .exams-table { /* استخدام هذه القواعد بدلاً من المكررة */
+.levels-table, .exams-table {
   width: 100%; border-collapse: collapse; margin-top: 26px; margin-bottom: 12px;
   background: var(--surface-light); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px var(--shadow-light);
   border: 1px solid var(--border-color);
@@ -674,25 +675,25 @@ textarea.form-control {
   padding: 12px 10px; border-bottom:1px solid var(--border-color); text-align:center; font-size: 1rem;
 }
 .levels-table th, .exams-table th {
-  background: var(--background-light); 
-  color: var(--primary-dark); 
+  background: var(--background-light);
+  color: var(--primary-dark);
   font-weight: bold;
 }
 .level-on {color: var(--success-color); font-weight: bold;}
 .level-off {color: var(--danger-color); font-weight: bold;}
-.exam-label { /* شارات حالة الامتحان */
+.exam-label {
   display: inline-block; padding: 4px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: bold;
   border: 1px solid;
   min-width: 90px;
   text-align: center;
 }
-.exam-label.true, .exam-label.pass { /* اجتاز */
+.exam-label.true, .exam-label.pass {
   background: #e3f6ed; color: #219e4b; border-color: #b7eecd;
 }
-.exam-label.false, .exam-label.fail { /* لم يجتز */
+.exam-label.false, .exam-label.fail {
   background: #ffecec; color: #e63946; border-color: #ffbcbc;
 }
-.exam-label.wait { /* قيد الانتظار */
+.exam-label.wait {
   background: #f5f7fb; color: #555; border-color: #d2d8e6;
 }
 .exams-table tr:last-child td, .levels-table tr:last-child td { border-bottom: none; }
@@ -707,7 +708,7 @@ textarea.form-control {
     font-weight: bold;
     margin: 15px 0;
     text-align: center;
-    background-color: #f8d7da; /* خلفية خفيفة للتحذير */
+    background-color: #f8d7da;
     border: 1px solid #f5c6cb;
     padding: 10px;
     border-radius: 8px;
@@ -735,14 +736,14 @@ textarea.form-control {
 .question-block {
     background: var(--background-light);
     border-radius: 10px;
-    padding: 18px 15px; /* زيادة التباعد الداخلي */
-    margin: 25px 0; /* زيادة التباعد الخارجي */
+    padding: 18px 15px;
+    margin: 25px 0;
     box-shadow: 0 2px 8px var(--shadow-light);
     border: 1px solid var(--border-color);
 }
 .question-title {
     font-weight: bold;
-    margin-bottom: 12px; /* زيادة المسافة */
+    margin-bottom: 12px;
     font-size: 1.1rem;
     color: var(--primary-dark);
 }
@@ -750,7 +751,7 @@ textarea.form-control {
     color: var(--warning-color);
     font-size: 0.95em;
     margin-right: 8px;
-    font-weight: normal; /* لجعلها أقل بروزًا من السؤال */
+    font-weight: normal;
 }
 .question-mark {
     color: var(--secondary-dark);
@@ -761,7 +762,7 @@ textarea.form-control {
     margin-bottom: 15px;
     display: flex;
     flex-direction: column;
-    gap: 8px; /* مسافة بين الخيارات */
+    gap: 8px;
 }
 .choice-row label {
     display: flex;
@@ -771,9 +772,9 @@ textarea.form-control {
     color: var(--text-dark);
 }
 .choice-row input[type="radio"], .choice-row input[type="checkbox"] {
-    margin-left: 10px; /* مسافة بين الراديو/الـ checkbox والنص */
-    transform: scale(1.2); /* تكبير عناصر الاختيار */
-    accent-color: var(--primary-color); /* لون الأزرار المدورة/المربعات */
+    margin-left: 10px;
+    transform: scale(1.2);
+    accent-color: var(--primary-color);
 }
 .msg {
     color: var(--danger-color);
@@ -782,7 +783,7 @@ textarea.form-control {
     font-weight: bold;
 }
 .result {
-    font-size: 1.5rem; /* حجم أكبر للنتيجة النهائية */
+    font-size: 1.5rem;
     color: var(--success-color);
     font-weight: bold;
     text-align: center;
@@ -802,7 +803,7 @@ textarea.form-control {
     border: 1px solid #cce5ff;
 }
 #examForm .btn {
-    margin-left: 10px; /* مسافة بين زر الإرسال وزر الخروج */
+    margin-left: 10px;
     margin-top: 20px;
 }
 #examForm .btn.signout {
@@ -817,10 +818,10 @@ textarea.form-control {
   display:inline-block;
   font-weight:bold;
   border-radius:15px;
-  padding:2px 14px; /* زيادة Padding */
-  font-size:0.95em; /* تصغير الخط قليلاً */
-  margin-right:10px; /* زيادة المسافة */
-  min-width:50px; /* عرض أدنى */
+  padding:2px 14px;
+  font-size:0.95em;
+  margin-right:10px;
+  min-width:50px;
   vertical-align:middle;
   text-align: center;
   border: 1px solid;
@@ -845,7 +846,7 @@ textarea.form-control {
 .lesson-summary-block {
   background: var(--surface-light);
   border-radius: 12px;
-  margin: 25px 0; /* مسافة أكبر */
+  margin: 25px 0;
   padding: 25px;
   box-shadow: 0 4px 15px var(--shadow-medium);
   border: 1px solid var(--border-color);
@@ -861,18 +862,18 @@ textarea.form-control {
     border-bottom: 1px solid var(--border-color);
     color: var(--primary-dark);
     font-size: 1.2rem;
-    display: flex; /* لترتيب العناصر داخل العنوان */
+    display: flex;
     align-items: center;
-    flex-wrap: wrap; /* للسماح بالعناصر بالالتفاف في الشاشات الصغيرة */
+    flex-wrap: wrap;
 }
 .lesson-summary-block h4 span {
-    margin-left: 10px; /* مسافة بين العناصر داخل العنوان */
+    margin-left: 10px;
 }
 .lesson-summary-block .lesson-student-name {
     font-size: 0.9rem;
     color: var(--text-muted);
     margin-bottom: 10px;
-    text-align: left; /* محاذاة لليسار في RTL */
+    text-align: left;
     padding-bottom: 5px;
     border-bottom: 1px dashed var(--border-color);
 }
@@ -887,8 +888,8 @@ textarea.form-control {
     text-decoration: underline;
 }
 .lesson-summary-block audio {
-    width: 100%; /* استخدام عرض 100% لمشغل الصوت */
-    max-width: 300px; /* حد أقصى للحجم */
+    width: 100%;
+    max-width: 300px;
     margin-top: 10px;
     vertical-align: middle;
 }
@@ -906,11 +907,11 @@ textarea.summary-text:focus {
 .summary-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px; /* مسافة بين الأزرار */
+    gap: 10px;
     margin-top: 15px;
 }
 .summary-actions .summary-status {
-    margin-left: auto; /* لدفع الشارة إلى أقصى اليمين في RTL */
+    margin-left: auto;
     align-self: center;
 }
 
@@ -930,7 +931,7 @@ textarea.summary-text:focus {
 .teacher-comment-display strong, .student-reply-display strong {
   color: var(--primary-dark);
   display: block;
-  margin-bottom: 8px; /* مسافة أكبر للعنوان */
+  margin-bottom: 8px;
   font-size: 1rem;
 }
 
@@ -949,7 +950,7 @@ textarea.summary-text:focus {
 }
 .reply-area textarea {
     width: 100%;
-    height: 80px; /* ارتفاع أكبر */
+    height: 80px;
     padding: 10px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -962,24 +963,24 @@ textarea.summary-text:focus {
 }
 .reply-area .btn {
     margin-top: 12px;
-    padding: 8px 18px; /* حجم أكبر للزر */
+    padding: 8px 18px;
     font-size: 0.95rem;
 }
 
 /* أنماط خاصة بصفحة تسجيل الدخول */
 .login-container {
-    max-width: 420px; /* عرض أوسع قليلاً */
-    margin: 80px auto; /* توسيط في الصفحة */
+    max-width: 420px;
+    margin: 80px auto;
     background: var(--surface-light);
     border-radius: 12px;
-    padding: 35px 30px; /* تباعد داخلي أكبر */
+    padding: 35px 30px;
     box-shadow: 0 4px 15px var(--shadow-medium);
     border: 1px solid var(--border-color);
 }
 .login-container h2 {
     text-align: center;
     color: var(--primary-dark);
-    margin-bottom: 25px; /* مسافة أكبر بعد العنوان */
+    margin-bottom: 25px;
     font-size: 1.8rem;
 }
 .login-container label {
@@ -995,20 +996,20 @@ textarea.summary-text:focus {
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    margin-bottom: 20px; /* مسافة أكبر بين حقول الإدخال */
+    margin-bottom: 20px;
     font-size: 1.05rem;
     background-color: var(--background-light);
     color: var(--text-dark);
 }
 .login-container .btn {
     width: 100%;
-    margin-top: 15px; /* مسافة أعلى الزر */
+    margin-top: 15px;
     padding: 12px 0;
     font-size: 1.1rem;
     border-radius: 8px;
 }
 .login-container .google-btn {
-    margin-top: 20px; /* مسافة أكبر لزر جوجل */
+    margin-top: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1016,7 +1017,7 @@ textarea.summary-text:focus {
     background-color: var(--surface-light);
     color: var(--text-dark);
     border: 1px solid var(--border-color);
-    box-shadow: none; /* إزالة الظل الافتراضي للأزرار */
+    box-shadow: none;
 }
 .login-container .google-btn:hover {
     background-color: #f0f0f0;
@@ -1039,7 +1040,7 @@ textarea.summary-text:focus {
     border-radius: 6px;
     border: none;
     font-size: 1em;
-    margin-right: 15px; /* مسافة لـ RTL */
+    margin-right: 15px;
 }
 .logout-btn:hover {
     background: #c82333;
@@ -1051,7 +1052,7 @@ textarea.summary-text:focus {
     font-size: 1.1em;
     text-align: center;
 }
-#welcomeBox { /* صندوق الترحيب في index.html */
+#welcomeBox {
     background: var(--surface-light);
     padding: 30px 24px;
     border-radius: 12px;
@@ -1071,9 +1072,8 @@ textarea.summary-text:focus {
     margin-bottom: 20px;
 }
 
-
 /* ------------------------------------ */
-/* 6. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
+/* 7. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
 /* ------------------------------------ */
 
 .dark-mode body {
@@ -1143,8 +1143,8 @@ textarea.summary-text:focus {
   border-bottom-color: var(--border-color);
   color: var(--text-dark);
 }
-.dark-mode .exams-title-bar, .dark-mode .exams-table th {
-    color: var(--primary-light); /* رؤوس الجداول في الوضع الليلي */
+.dark-mode .exams-title-bar, .dark-mode .levels-table th, .dark-mode .exams-table th {
+    color: var(--primary-light);
 }
 
 .dark-mode .table td {
@@ -1201,7 +1201,7 @@ textarea.summary-text:focus {
 }
 
 .dark-mode .notification-item.unread {
-  background-color: rgba(137, 180, 245, 0.15); /* لون أزرق أغمق قليلاً في الوضع الليلي */
+  background-color: rgba(137, 180, 245, 0.15);
 }
 
 .dark-mode .notification-item .timestamp {
@@ -1373,8 +1373,9 @@ textarea.summary-text:focus {
     color: var(--text-dark);
 }
 
+
 /* ------------------------------------ */
-/* 7. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
+/* 8. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
 /* ------------------------------------ */
 
 @media (max-width: 992px) {
@@ -1445,7 +1446,7 @@ textarea.summary-text:focus {
   }
   header, .app-bar {
     font-size: 1.1rem;
-    justify-content: space-around; /* توزيع العناصر بالتساوي */
+    justify-content: space-around;
     text-align: center;
     padding: 10px 8px;
   }
@@ -1460,18 +1461,18 @@ textarea.summary-text:focus {
     padding: 10px;
     margin-left: 8px;
     margin-right: 8px;
-    margin-top: 55px; /* ضبط مسافة الرأس للهواتف */
+    margin-top: 55px;
   }
   .toast {
     width: 90%;
     left: 50%;
     transform: translateX(-50%) translateY(100px);
-    bottom: 15px; /* أقرب إلى الأسفل */
+    bottom: 15px;
   }
   .notification-panel {
-    width: calc(100% - 30px); /* عرض أكبر في الشاشات الصغيرة */
+    width: calc(100% - 30px);
     right: 15px;
-    left: 15px; /* توسيط البانل */
+    left: 15px;
   }
   .table-mark-input {
     width: 50px;
