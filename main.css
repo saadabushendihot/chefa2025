@@ -216,11 +216,39 @@ header, .app-bar {
   top: 0;
   left: 0;
   right: 0;
+  height: 64px; /* الارتفاع الافتراضي للرأس */
+  transition: all 0.3s ease-in-out; /* إضافة انتقال سلس لتغييرات الارتفاع/الحجم */
 }
+/* نمط الرأس عند التمرير (للسكربت) */
+.app-bar.scrolled {
+  height: 50px; /* ارتفاع أصغر عند التمرير لأسفل */
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 8px var(--shadow-strong); /* ظل أقوى عند التمرير */
+}
+.app-bar.scrolled .app-bar-logo {
+  height: 30px; /* تصغير الشعار */
+}
+.app-bar.scrolled .app-bar-title {
+  font-size: 1rem; /* تصغير عنوان التطبيق */
+}
+.app-bar.scrolled .nav-link {
+  height: 50px; /* تصغير روابط التنقل */
+}
+.app-bar.scrolled .notification-bell {
+  font-size: 1.3rem; /* تصغير أيقونة الجرس */
+}
+.app-bar.scrolled .btn {
+  padding: 5px 12px; /* تصغير الأزرار في الرأس */
+  font-size: 0.8rem;
+}
+
 
 .app-bar-logo {
   height: 40px;
   margin-right: 16px;
+  transition: height 0.3s ease-in-out;
 }
 
 .app-bar-title {
@@ -228,6 +256,7 @@ header, .app-bar {
   font-weight: 700;
   margin-left: 16px;
   white-space: nowrap;
+  transition: font-size 0.3s ease-in-out;
 }
 
 .app-bar-spacer {
@@ -243,7 +272,7 @@ header, .app-bar {
   display: inline-flex;
   align-items: center;
   position: relative;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s ease;
   font-weight: 500;
 }
 
@@ -269,9 +298,9 @@ header, .app-bar {
 /* الحاويات الرئيسية */
 .container {
   max-width: 1200px;
-  /* تم إزالة margin-top: 24px هنا لتجنب التداخل، وسنعتمد على تباعد العناصر داخل الكونتينر */
-  margin: 0 auto; 
-  padding: 28px; /* تباعد داخلي للحاوية */
+  /* تم إزالة margin-top هنا بشكل كامل. المسافة ستُدار بواسطة padding-top على body */
+  margin: 24px auto; /* حافظ على هامش 24px من الأعلى للعناصر التي تتبع مباشرة الـ body */
+  padding: 28px;
   background: var(--surface-light);
   border-radius: 12px;
   box-shadow: 0 2px 10px var(--shadow-light);
@@ -279,16 +308,17 @@ header, .app-bar {
 }
 
 /* لجعل العناصر الأولى داخل الـ container تبتعد عن الرأس (إذا لم يكن هناك عنصر أعلى) */
-.container > *:first-child {
-    margin-top: 24px; /* مسافة أعلى العنصر الأول داخل الكونتينر */
-}
+/* ملاحظة: هذا النمط قد لا يكون ضرورياً إذا كان الـ body padding-top كافياً */
+/* .container > *:first-child {
+    margin-top: 24px;
+} */
 /* ضبط خاص لصفحة الدردشة حيث main-container هو العنصر الرئيسي */
 .main-container {
   flex: 1;
   display: flex;
   max-width: 1200px;
   width: 100%;
-  margin: 0 auto;
+  margin: 0 auto; /* لا هوامش علوية هنا، body padding-top هو المسؤول */
   padding-top: 70px; /* هذه المسافة خاصة بـ chat.html لتعويض الهيدر + تباعد داخلي */
   padding-bottom: 70px;
   box-sizing: border-box;
