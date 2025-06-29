@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>صفحة الدردشة - شفاء</title>
+  <title>صفحة الدردشة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -87,14 +87,17 @@
       flex-direction: column;
       flex-shrink: 0;
       overflow: hidden;
-      transition: transform 0.3s ease-out, opacity 0.3s ease-out; /* For sliding in/out */
+      transition: transform 0.3s ease-out, opacity 0.3s ease-out, width 0.3s ease-out; /* For sliding in/out */
     }
-    .chat-list-panel.hidden {
+    /* Default visibility on desktop, hide on mobile */
+    .chat-list-panel.hidden-desktop { /* Class for hiding on mobile when not active */
         transform: translateX(100%); /* Slide out to the right (RTL) */
         opacity: 0;
         pointer-events: none; /* Disable interactions when hidden */
-        width: 0; /* Collapse width */
+        width: 0; /* Collapse width completely */
+        /* To make display work with transitions, we manage it in JS */
     }
+
     .chat-list-header {
       padding: 15px;
       font-size: 1.1rem; /* Slightly smaller */
@@ -158,6 +161,7 @@
       flex-direction: column;
       gap: 10px;
       background: #fdfdfd; /* Lighter background for messages */
+      padding-bottom: 75px; /* Ensure last message is not hidden by fixed input area */
     }
     .message-input-area {
       flex-shrink: 0;
@@ -477,12 +481,14 @@
         transform: translateX(100%); /* Initially off-screen to the right */
         opacity: 0;
         pointer-events: none;
-        display: flex; /* Override hidden class later with JS toggle */
+        display: none; /* Start as completely hidden on mobile */
+        flex-direction: column; /* Keep flex-direction for content layout */
       }
       .chat-list-panel.active-panel { /* Class toggled by JS */
           transform: translateX(0); /* Slide into view */
           opacity: 1;
           pointer-events: auto;
+          display: flex; /* Make visible and flexible */
       }
       .chat-list-header {
         font-size: 1rem;
@@ -514,7 +520,7 @@
   </header>
 
   <div class="main-container">
-    <div id="chatListOverlay" class="chat-list-panel hidden"> <!-- Initially hidden on mobile via CSS/JS -->
+    <div id="chatListOverlay" class="chat-list-panel"> <!-- Removed 'hidden' class here -->
       <div class="chat-list-header">
         <h5>المحادثات</h5>
         <button class="btn" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openCreateChatModal()">
@@ -958,14 +964,14 @@
         fileName: fileName // Include file name if present
       };
 
-      firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData)
-        .then(() => {
-          // Update lastMessageTimestamp in chat room for sorting
-          firestore.collection('chatRooms').doc(currentChatRoomId).update({
-            lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
-            lastMessageSender: currentUser.displayName || currentUser.email
-          });
+      firestore.collection('chatRooms').doc(currentChatRoomId).update({ // <-- Updated line
+        lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
+        lastMessageSender: currentUser.displayName || currentUser.email
+      }).then(() => {
+        firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData); // <-- Original line
+      })
+        .then(() => { // This .then() belongs to the update, not the add. It needs to be chained.
           messageInput.value = ''; // Clear text input
           messageInput.style.height = 'auto'; // Reset textarea height
           document.getElementById('fileInput').value = ''; // Clear file input
@@ -1227,33 +1233,61 @@
         const chatListPanel = document.getElementById('chatListOverlay');
         const toggleIcon = document.getElementById('chatListToggleIcon');
         if (chatListPanel.classList.contains('active-panel')) {
+            // Hide panel
             chatListPanel.classList.remove('active-panel');
             toggleIcon.classList.replace('fa-times', 'fa-bars'); // Change icon to bars
+            // After transition, set display to none to make it completely non-interactive
+            chatListPanel.addEventListener('transitionend', function handler() {
+                chatListPanel.style.display = 'none';
+                chatListPanel.removeEventListener('transitionend', handler);
+            });
         } else {
-            chatListPanel.classList.add('active-panel');
-            toggleIcon.classList.replace('fa-bars', 'fa-times'); // Change icon to X
+            // Show panel
+            chatListPanel.style.display = 'flex'; // Make it visible for transition
+            // Small delay to ensure display:flex applies before transform starts
+            setTimeout(() => {
+                chatListPanel.classList.add('active-panel');
+                toggleIcon.classList.replace('fa-bars', 'fa-times'); // Change icon to X
+            }, 10);
         }
     }
     // Set initial state based on screen size on load and resize
-    window.addEventListener('load', () => {
+    function initializeChatListPanelVisibility() {
+        const chatListPanel = document.getElementById('chatListOverlay');
+        const toggleButton = document.getElementById('chatListToggleButton');
+
         if (window.innerWidth <= 768) {
-            document.getElementById('chatListOverlay').classList.add('hidden'); // Ensure it's hidden
-            document.getElementById('chatListToggleButton').style.display = 'flex'; // Show FAB
-        } else {
-            document.getElementById('chatListOverlay').classList.remove('hidden'); // Show panel normally
-            document.getElementById('chatListToggleButton').style.display = 'none'; // Hide FAB
-        }
-    });
-    window.addEventListener('resize', () => {
-        if (window.innerWidth <= 768) {
-            document.getElementById('chatListOverlay').classList.add('hidden'); // Hide on resize
-            document.getElementById('chatListToggleButton').style.display = 'flex'; // Show FAB
+            chatListPanel.style.display = 'none'; // Ensure hidden on mobile
+            chatListPanel.classList.remove('active-panel'); // Ensure not active
+            toggleButton.style.display = 'flex'; // Show FAB
             document.getElementById('chatListToggleIcon').classList.replace('fa-times', 'fa-bars'); // Reset icon
         } else {
-            document.getElementById('chatListOverlay').classList.remove('hidden'); // Show panel
-            document.getElementById('chatListToggleButton').style.display = 'none'; // Hide FAB
+            chatListPanel.style.display = 'flex'; // Show panel normally on desktop
+            chatListPanel.classList.remove('active-panel'); // Ensure not in active mobile state
+            toggleButton.style.display = 'none'; // Hide FAB
+        }
+    }
+
+    // NEW: Close chat list panel when clicking outside of it on mobile
+    document.addEventListener('click', function(event) {
+        const chatListPanel = document.getElementById('chatListOverlay');
+        const chatListToggleButton = document.getElementById('chatListToggleButton');
+
+        // Only act if on mobile view and panel is active
+        if (window.innerWidth <= 768 && chatListPanel.classList.contains('active-panel')) {
+            const isClickInsidePanel = chatListPanel.contains(event.target);
+            const isClickOnToggleButton = chatListToggleButton.contains(event.target);
+            
+            // If click is outside panel and outside toggle button
+            if (!isClickInsidePanel && !isClickOnToggleButton) {
+                toggleChatListPanel(); // Close the panel
+            }
         }
     });
+
+
+    window.addEventListener('load', initializeChatListPanelVisibility);
+    window.addEventListener('resize', initializeChatListPanelVisibility);
 
   </script>
 </body>
