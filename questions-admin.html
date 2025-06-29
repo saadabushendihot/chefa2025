@@ -4,17 +4,15 @@
   <meta charset="UTF-8">
   <title>إدارة الأسئلة وإعدادات الامتحان - لوحة المعلم</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <!-- ملف إعدادات firebase الخاص بك -->
   <script src="firebase-config.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
         font-family: 'Tajawal', Arial, sans-serif;
-        background: #f8fafc;
+        background: #f5f7fa; /* تم تحديث لون الخلفية */
         margin: 0;
         padding-top: 70px; /* لتجنب اختباء المحتوى خلف شريط التنقل الثابت */
         color: #23272f; /* لون نص افتراضي */
@@ -297,6 +295,11 @@
       visibility: visible; /* Show the toast */
       opacity: 1; /* Fade in */
     }
+    /* Spinner */
+    .spinner {
+      border: 4px solid #eee; border-top: 4px solid #3b5cb8; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 30px auto; display: none;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -316,8 +319,8 @@
     </div>
   </nav>
 <div class="container">
+  <div class="spinner" id="loadingSpinner"></div>
 
-  <!-- إعدادات عدد الأسئلة لكل مستوى -->
   <div class="question-form-block" style="margin-bottom:18px;">
     <h3>ضبط عدد الأسئلة في الامتحان لكل مستوى</h3>
     <form id="settingsForm" onsubmit="return false;">
@@ -335,12 +338,8 @@
           <tr><td colspan="5" style="color:#888">جاري التحميل...</td></tr>
         </tbody>
       </table>
-      <!-- تم إزالة div.settings-msg من هنا -->
-    </form>
+      </form>
   </div>
-  <!-- نهاية إعدادات عدد الأسئلة -->
-
-  <!-- نموذج إضافة سؤال (الكود الأصلي - بدون تعديل) -->
   <div class="question-form-block">
     <h3 id="formTitle">إضافة سؤال جديد</h3>
     <form id="questionForm">
@@ -407,7 +406,6 @@
   </table>
 </div>
 
-<!-- Toast element for messages -->
 <div id="toast" class="toast"></div>
 
 <script>
