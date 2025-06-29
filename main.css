@@ -272,7 +272,6 @@ nav#main-nav-links {
     display: flex;
     align-items: center;
     gap: 15px;
-    margin-right: 20px;
     flex-wrap: wrap;
     /* تأكد من أن الـ nav-links لن يتقلص */
     flex-shrink: 0;
