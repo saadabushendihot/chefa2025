@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <title>صفحة الدردشة - شفاء</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <!-- Firebase Configuration (assumes it's in the same directory or accessible path) -->
   <script src="firebase-config.js"></script>
+  <!-- Google Fonts for Arabic -->
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
@@ -259,7 +262,7 @@
     .spinner {
       border: 4px solid #eee; border-top: 4px solid #4361ee; border-radius: 50%;
       width: 38px; height: 38px; animation: spin 1s linear infinite; margin: 60px auto;
-      display: none;
+      display: none; /* This hides it by default */
     }
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
@@ -316,8 +319,9 @@
         </button>
       </div>
       <div id="messageDisplay">
-        <div class="spinner" id="loadingSpinner"></div>
+        <!-- Messages will be loaded here -->
       </div>
+      <div class="spinner" id="loadingSpinner"></div> <!-- Spinner moved here to be managed globally -->
       <div class="message-input-area">
         <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
         <button class="btn" id="sendMessageBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> إرسال</button>
@@ -325,6 +329,7 @@
     </div>
   </div>
 
+  <!-- Create Chat Modal -->
   <div id="createChatModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeCreateChatModal()">&times;</span>
@@ -345,6 +350,7 @@
     </div>
   </div>
 
+  <!-- Manage Participants Modal -->
   <div id="manageParticipantsModal" class="modal">
     <div class="modal-content">
       <span class="close-btn" onclick="closeManageParticipantsModal()">&times;</span>
@@ -352,7 +358,8 @@
 
       <label>المشاركون الحاليون:</label>
       <div id="currentParticipantsList" class="multi-select-list">
-        </div>
+        <!-- Current participants will be loaded here -->
+      </div>
       <p style="font-size:0.8em; color:#888;">* يمكنك الضغط على اسم المستخدم لتحديده/إلغاء تحديده.</p>
 
       <div class="modal-buttons">
@@ -393,7 +400,13 @@
     }
 
     function showLoading(show) {
-      document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+      // Ensure the element exists before trying to access its style property
+      const spinner = document.getElementById('loadingSpinner');
+      if (spinner) {
+        spinner.style.display = show ? 'block' : 'none';
+      } else {
+        console.warn("Loading spinner element not found!");
+      }
     }
 
     function sanitizeText(text) {
@@ -492,13 +505,14 @@
     }
 
     function selectChatRoom(chatRoomId) {
-      if (currentChatRoomId === chatRoomId) return; // Already selected
+      if (currentChatRoomId === chatRoomId) return;
 
-      // Unsubscribe from previous messages listener
-      if (messagesListenerUnsubscribe) messagesListenerUnsubscribe();
+      if (messagesListenerUnsubscribe) messagesListenerUnsubscribe(); // Unsubscribe previous listener
 
       currentChatRoomId = chatRoomId;
-      document.getElementById('messageDisplay').innerHTML = '<div class="spinner" id="loadingSpinner"></div>'; // Show loading spinner
+      document.getElementById('messageDisplay').innerHTML = ''; // Clear previous messages (but not the spinner which is now outside)
+      showLoading(true); // Show spinner
+
       document.getElementById('currentChatRoomName').innerText = 'جاري التحميل...';
 
       // Update active class in chat list
@@ -510,45 +524,65 @@
         selectedRoomElement.classList.add('active');
       }
 
-      // Fetch chat room details to get name
       firestore.collection('chatRooms').doc(chatRoomId).get().then(doc => {
         if (doc.exists) {
           document.getElementById('currentChatRoomName').innerText = sanitizeText(doc.data().name);
-          loadMessages(chatRoomId);
+          loadMessages(chatRoomId); // loadMessages will handle showing/hiding spinner and rendering messages
         } else {
           console.error("Chat room not found:", chatRoomId);
           showToast("تعذر العثور على غرفة الدردشة.", "#e63946");
           document.getElementById('currentChatRoomName').innerText = 'المحادثة غير موجودة';
           document.getElementById('messageDisplay').innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">المحادثة غير موجودة.</p>';
-          showLoading(false);
+          showLoading(false); // Hide spinner
         }
       }).catch(error => {
         console.error("Error fetching chat room details:", error);
         showToast("خطأ في جلب تفاصيل المحادثة: " + error.message, "#e63946");
         document.getElementById('currentChatRoomName').innerText = 'خطأ في التحميل';
         document.getElementById('messageDisplay').innerHTML = '<p style="text-align: center; color: #e63946; padding: 20px;">خطأ في تحميل تفاصيل المحادثة.</p>';
-        showLoading(false);
+        showLoading(false); // Hide spinner
       });
     }
 
     // --- Message Management ---
     function loadMessages(chatRoomId) {
       const messageDisplay = document.getElementById('messageDisplay');
-      messageDisplay.innerHTML = ''; // Clear previous messages
-      showLoading(true);
+      // showLoading(true) is already called in selectChatRoom
 
       messagesListenerUnsubscribe = firestore.collection('chatRooms').doc(chatRoomId).collection('messages')
         .orderBy('timestamp', 'asc')
         .limit(50) // Load initial 50 messages, implement pagination for more
         .onSnapshot(snapshot => {
-          showLoading(false);
-          // Only add new messages, don't re-render all to prevent flickering
+          showLoading(false); // Hide spinner once initial messages are loaded
+
+          // Clear messages and re-render only if it's the first load or a full refresh is needed
+          // To prevent flickering with real-time updates, handle docChanges
+          // Let's refine this to clear only on the first snapshot, then append
+          if (messageDisplay.innerHTML === '' && snapshot.size > 0) { // Check if empty for initial load
+              messageDisplay.innerHTML = '';
+          }
+          
+          // Process changes to messages
           snapshot.docChanges().forEach(change => {
             if (change.type === "added") {
               const message = { id: change.doc.id, ...change.doc.data() };
               renderMessage(message);
+            } else if (change.type === "modified") {
+                // Optional: update existing message (e.g., read status)
+                const updatedMessage = { id: change.doc.id, ...change.doc.data() };
+                const existingBubble = messageDisplay.querySelector(`[data-message-id="${updatedMessage.id}"]`);
+                if (existingBubble) {
+                    // Example: update readBy status visually
+                    // existingBubble.querySelector('.message-timestamp').innerText = `${updatedMessage.timestamp.toDate().toLocaleString('ar-EG', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'numeric' })} (read by ${updatedMessage.readBy.length})`;
+                }
+            } else if (change.type === "removed") {
+                // Optional: remove message from UI
+                const removedMessageId = change.doc.id;
+                const removedBubble = messageDisplay.querySelector(`[data-message-id="${removedMessageId}"]`);
+                if (removedBubble) {
+                    removedBubble.remove();
+                }
             }
-            // You can add logic for "modified" (e.g., read receipts) or "removed" here
           });
           messageDisplay.scrollTop = messageDisplay.scrollHeight; // Scroll to bottom
         }, error => {
@@ -567,6 +601,7 @@
 
       const messageDiv = document.createElement('div');
       messageDiv.className = `message-bubble ${isSentByMe ? 'sent' : 'received'}`;
+      messageDiv.dataset.messageId = message.id; // Add data attribute for easier identification
       messageDiv.innerHTML = `
         <div class="message-sender">${sanitizeText(senderName)}</div>
         <div class="message-text">${sanitizeText(message.text)}</div>
@@ -642,7 +677,7 @@
         allUsersListDiv.appendChild(userDiv);
       });
 
-      // Automatically select the current admin if they are to be included
+      // Automatically add and select the current admin
       const adminUserDiv = document.createElement('div');
       adminUserDiv.innerText = sanitizeText(currentUser.displayName || currentUser.email) + " (أنت - المدير)";
       adminUserDiv.dataset.uid = currentUser.uid;
