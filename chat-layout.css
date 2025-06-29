@@ -1,0 +1,818 @@
+/* chat-layout.css - أنماط التخطيط الخاصة بصفحة الدردشة */
+
+/* ------------------------------------ */
+/* 1. التخطيط العام لصفحة الدردشة */
+/* ------------------------------------ */
+
+/* هذه الأنماط تضمن أن جسم الصفحة يمتد على كامل الارتفاع */
+html, body {
+  height: 100%;
+  overflow: hidden; /* لمنع شريط التمرير العام للصفحة والتعامل مع التمرير داخل مناطق محددة */
+}
+
+body.chat-page {
+  /* هذه الفئة تُضاف لتمييز صفحة الدردشة */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  /* padding-top يتم التعامل معه في main.css */
+}
+
+.main-container {
+  flex: 1; /* يجعل هذا العنصر يمتد ليأخذ المساحة المتاحة عموديا بين الرأس ومنطقة الإدخال */
+  display: flex; /* لترتيب chat-list-panel و chat-area جنباً إلى جنب */
+  max-width: 1200px; /* لتحديد أقصى عرض */
+  width: 100%;
+  margin: 0 auto; /* توسيط أفقيا */
+  padding-top: 0; /* تم إزالة padding-top هنا، لأن body هو من يتعامل مع مسافة الرأس الثابت */
+  padding-bottom: 70px; /* مسافة لمنطقة إدخال الرسائل الثابتة في الأسفل */
+  box-sizing: border-box;
+  overflow: hidden; /* لمنع ظهور شريط التمرير الرئيسي */
+  position: relative; /* لتحديد سياق التمركز المطلق للقائمة الجانبية في الجوال (غطاء التراكب) */
+}
+
+/* ------------------------------------ */
+/* 2. القائمة الجانبية (Chat List Panel / Sidebar) */
+/* ------------------------------------ */
+
+.chat-list-panel {
+  width: 300px; /* عرض القائمة الجانبية في الشاشات الكبيرة */
+  border-left: 1px solid var(--border-color);
+  background: var(--background-light);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0; /* لمنع القائمة الجانبية من التقلص */
+  overflow: hidden; /* لمنع ظهور شريط التمرير الرئيسي، وسنسمح لـ #chatRoomsList بالتمرير داخلياً */
+}
+
+.chat-list-header {
+  padding: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0; /* لمنع تقلص الرأس الداخلي للقائمة */
+}
+
+#chatRoomsList {
+  flex: 1; /* يأخذ المساحة المتاحة ويسمح بالتمرير الداخلي */
+  overflow-y: auto; /* للسماح بالتمرير داخل قائمة المحادثات */
+  padding: 10px 0;
+}
+
+.chat-room-item {
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  white-space: nowrap; /* منع التفاف اسم المحادثة */
+  overflow: hidden; /* إخفاء أي تجاوز */
+  text-overflow: ellipsis; /* إضافة نقاط (...) إذا كان النص طويلاً */
+}
+
+.chat-room-item:last-child {
+  border-bottom: none;
+}
+
+.chat-room-item:hover {
+  background-color: rgba(var(--primary-color-rgb), 0.05); /* تأثير تحويم خفيف باستخدام لون أساسي */
+}
+
+.chat-room-item.active {
+  background-color: rgba(var(--primary-color-rgb), 0.15); /* لون مميز للعنصر النشط */
+  font-weight: bold;
+}
+
+/* ------------------------------------ */
+/* 3. منطقة الدردشة الرئيسية (Chat Area) */
+/* ------------------------------------ */
+
+.chat-area {
+  flex: 1; /* يأخذ المساحة الأفقية المتاحة */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* لمنع شريط التمرير الرئيسي، وسنسمح لـ #messageDisplay بالتمرير داخلياً */
+}
+
+.chat-header {
+  padding: 15px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--background-light); /* خلفية رأس الدردشة */
+  flex-shrink: 0;
+}
+
+#messageDisplay {
+  flex: 1; /* يأخذ المساحة المتاحة عموديا ويسمح بالتمرير */
+  padding: 20px;
+  overflow-y: auto; /* للسماح بمنطقة عرض الرسائل بالتمرير */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface-light); /* خلفية منطقة عرض الرسائل */
+  padding-bottom: 20px;
+}
+
+/* ------------------------------------ */
+/* 4. منطقة إدخال الرسائل (Message Input Area) */
+/* ------------------------------------ */
+
+.message-input-area {
+  flex-shrink: 0; /* لمنع هذه المنطقة من التقلص */
+  background: var(--background-light);
+  border-top: 1px solid var(--border-color);
+  padding: 10px 15px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 -2px 5px var(--shadow-light); /* ظل علوي */
+  z-index: 50;
+  position: fixed; /* لتثبيتها في الجزء السفلي من الشاشة */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%; /* تأكد من العرض الكامل */
+}
+
+#messageInput {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 20px; /* لجعلها بيضاوية الشكل */
+  font-size: 1rem;
+  resize: none; /* لمنع المستخدم من تغيير حجم حقل النص يدوياً */
+  min-height: 40px;
+  margin-left: 10px; /* مسافة بين حقل النص وزر الإرسال في RTL */
+  direction: rtl; /* لضمان صحة اتجاه النص */
+  background-color: var(--surface-light);
+  color: var(--text-dark);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+#messageInput:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
+    outline: none;
+}
+
+.attach-btn {
+    background-color: var(--info-color); /* لون مميز لزر الإرفاق */
+    color: var(--surface-light);
+    margin-right: 10px;
+    padding: 10px 15px;
+    border-radius: 20px;
+}
+.attach-btn:hover {
+    background-color: var(--info-color); /* لون أغمق عند التحويم */
+}
+
+#fileUploadSpinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
+
+/* ------------------------------------ */
+/* 5. فقاعات الرسائل (Message Bubbles) */
+/* ------------------------------------ */
+
+.message-bubble {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 15px;
+  word-wrap: break-word; /* لكسر الكلمات الطويلة */
+  line-height: 1.5;
+  position: relative;
+  box-shadow: 0 1px 2px var(--shadow-light); /* ظل خفيف للفقاعة */
+}
+.message-bubble.sent {
+  background-color: rgba(var(--primary-color-rgb), 0.1); /* لون فاتح للرسائل المرسلة */
+  align-self: flex-end; /* لترتيب الرسائل المرسلة إلى اليمين */
+  text-align: right;
+  border: 1px solid rgba(var(--primary-color-rgb), 0.2);
+}
+.message-bubble.received {
+  background-color: var(--background-light); /* لون خلفية للرسائل المستلمة */
+  align-self: flex-start; /* لترتيب الرسائل المستلمة إلى اليسار */
+  text-align: right;
+  border: 1px solid var(--border-color);
+}
+.message-header-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+.message-sender {
+  font-weight: bold;
+  font-size: 0.9em;
+  color: var(--text-muted); /* لون خافت لاسم المرسل */
+}
+.message-text {
+  font-size: 1.05em;
+  color: var(--text-dark);
+}
+.message-timestamp {
+  font-size: 0.75em;
+  color: var(--text-muted);
+  margin-top: 5px;
+  text-align: left; /* وقت الرسالة لليسار */
+}
+.attachment-link {
+    display: block;
+    padding: 8px 10px;
+    background-color: rgba(0,0,0,0.05); /* خلفية خفيفة للمرفق */
+    border-radius: 8px;
+    margin-top: 5px;
+    text-decoration: none;
+    color: var(--secondary-dark); /* لون للرابط */
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.attachment-link:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+.attachment-link i {
+    font-size: 1.2em;
+}
+.attachment-preview {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin-top: 5px;
+    display: block;
+    border: 1px solid var(--border-color);
+}
+.delete-message-btn {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 0.9em;
+    padding: 0 5px;
+    transition: color 0.2s ease;
+}
+.delete-message-btn:hover {
+    color: var(--danger-color); /* لون أغمق عند التحويم */
+}
+
+/* ------------------------------------ */
+/* 6. أنماط Modals (لـ Admin) */
+/* ------------------------------------ */
+
+.modal {
+  display: none; /* مخفي افتراضيا */
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: var(--overlay-color); /* طبقة تراكب شبه شفافة */
+  justify-content: center;
+  align-items: center;
+}
+.modal.show {
+    display: flex; /* لإظهار المودال */
+}
+.modal-content {
+  background-color: var(--surface-light);
+  margin: auto;
+  padding: 25px;
+  border-radius: 12px; /* حواف مستديرة */
+  box-shadow: 0 4px 15px var(--shadow-medium);
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  border: 1px solid var(--border-color);
+}
+.close-btn {
+  color: var(--text-muted);
+  float: left; /* ليكون في الزاوية العلوية اليسرى في RTL */
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+.close-btn:hover,
+.close-btn:focus {
+  color: var(--text-dark);
+}
+.modal-content label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text-dark); }
+.modal-content input[type="text"], .modal-content select {
+  width: calc(100% - 22px);
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background-color: var(--background-light);
+  color: var(--text-dark);
+}
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+.multi-select-list {
+    border: 1px solid var(--border-color);
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background-color: var(--background-light);
+}
+.multi-select-list div {
+    padding: 5px;
+    cursor: pointer;
+    color: var(--text-dark);
+}
+.multi-select-list div:hover {
+    background-color: rgba(var(--primary-color-rgb), 0.05);
+}
+.multi-select-list div.selected {
+    background-color: rgba(var(--primary-color-rgb), 0.15);
+    font-weight: bold;
+    color: var(--primary-dark);
+}
+
+/* ------------------------------------ */
+/* 7. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
+/* ------------------------------------ */
+
+.dark-mode body {
+  background-color: var(--background-light);
+  color: var(--text-dark);
+}
+
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 {
+  color: var(--primary-light);
+}
+
+.dark-mode a {
+  color: var(--secondary-light);
+}
+
+.dark-mode a:hover {
+  color: var(--secondary-color);
+}
+
+.dark-mode .btn {
+  background-color: var(--primary-dark);
+  color: var(--text-dark);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .btn:hover {
+  background-color: var(--primary-color);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+}
+
+.dark-mode header, .dark-mode .app-bar {
+  background-color: #1a1a1a;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.dark-mode .container,
+.dark-mode .card,
+.dark-mode .table-container,
+.dark-mode .modal-content,
+.dark-mode #examBox,
+.dark-mode .login-container,
+.dark-mode #welcomeBox {
+  background: var(--surface-light);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-color);
+}
+
+.dark-mode .card-header,
+.dark-mode .card-actions,
+.dark-mode .table th,
+.dark-mode .chat-list-header,
+.dark-mode .chat-header,
+.dark-mode .info,
+.dark-mode .student-info,
+.dark-mode .level-info,
+.dark-mode .question-block,
+.dark-mode textarea.summary-text,
+.dark-mode .teacher-comment-display,
+.dark-mode .student-reply-display,
+.dark-mode .reply-area textarea,
+.dark-mode .scoring-note,
+.dark-mode .exams-title,
+.dark-mode .exams-title-bar,
+.dark-mode .levels-table th,
+.dark-mode .exams-table th {
+  background-color: #2a2a2a;
+  border-bottom-color: var(--border-color);
+  color: var(--text-dark);
+}
+.dark-mode .exams-title-bar, .dark-mode .levels-table th, .dark-mode .exams-table th {
+    color: var(--primary-light);
+}
+
+.dark-mode .table td {
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark-mode .form-label {
+  color: var(--text-dark);
+}
+
+.dark-mode .form-control {
+  background-color: #2a2a2a;
+  border-color: var(--border-color);
+  color: var(--text-dark);
+}
+
+.dark-mode .form-control:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
+}
+
+.dark-mode .toast {
+  background-color: var(--text-dark);
+  color: var(--surface-light);
+}
+
+.dark-mode .spinner {
+  border-color: var(--border-color);
+  border-top-color: var(--primary-light);
+}
+
+.dark-mode .notification-bell {
+  color: var(--text-dark);
+}
+
+.dark-mode .notification-panel {
+  background-color: var(--surface-light);
+  border-color: var(--border-color);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode .notification-panel h5 {
+  color: var(--primary-light);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .notification-item {
+  color: var(--text-dark);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-mode .notification-item.unread {
+  background-color: rgba(137, 180, 245, 0.15);
+}
+
+.dark-mode .notification-item .timestamp {
+  color: var(--text-muted);
+}
+
+.dark-mode .notification-item .mark-read-btn {
+  background-color: var(--secondary-dark);
+  color: var(--text-dark);
+}
+
+/* الوضع الليلي لأنماط صفحة الطالب */
+.dark-mode .info {
+    background: #2a2a2a;
+    border-color: var(--border-color);
+}
+.dark-mode .info b {
+    color: var(--primary-light);
+}
+.dark-mode .admission-status-box.admission-pending {
+    background-color: #4a3a0e;
+    color: #e0d08a;
+    border-color: #a09060;
+}
+.dark-mode .admission-status-box.admission-accepted {
+    background-color: #2a5a3a;
+    color: #8acb9e;
+    border-color: #6a9b7e;
+}
+.dark-mode .admission-status-box.admission-rejected {
+    background-color: #6a2a2a;
+    color: #f0a0a0;
+    border-color: #c06060;
+}
+.dark-mode .exams-box {
+    background: var(--surface-light);
+    border-color: var(--border-color);
+}
+.dark-mode .exams-title {
+    color: var(--primary-light);
+    border-bottom-color: var(--border-color);
+}
+.dark-mode .exam-row {
+    border-bottom-color: var(--border-color);
+}
+.dark-mode .exam-row b {
+    color: var(--text-dark);
+}
+.dark-mode .exam-row:last-child {
+    color: var(--secondary-light);
+}
+
+.dark-mode #examWarnMsg {
+    background-color: #4a2a2a;
+    color: #f0a0a0;
+    border-color: #6a3a3a;
+}
+.dark-mode #examBox h2 {
+    color: var(--primary-light);
+}
+.dark-mode .question-title {
+    color: var(--primary-light);
+}
+.dark-mode .multi-note {
+    color: var(--warning-color);
+}
+.dark-mode .question-mark {
+    color: var(--secondary-light);
+}
+.dark-mode .choice-row label {
+    color: var(--text-dark);
+}
+.dark-mode .result {
+    background-color: #2a5a3a;
+    color: var(--success-color);
+    border-color: #6a9b7e;
+}
+.dark-mode .scoring-note {
+    background-color: #2a3a5a;
+    color: var(--info-color);
+    border-color: #4a6a9a;
+}
+.dark-mode .lesson-mark-badge.positive-mark {
+    background:#2a5a3a;
+    color:#69f0ae;
+    border-color:#6a9b7e;
+}
+.dark-mode .lesson-mark-badge.zero-mark {
+    background:#6a2a2a;
+    color:#ef9a9a;
+    border-color:#c06060;
+}
+.dark-mode .lesson-mark-badge.no-mark {
+    background:#3a3a3a;
+    color:#aaaaaa;
+    border-color:#5a5a5a;
+}
+.dark-mode .lesson-summary-block {
+  background: var(--surface-light);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+.dark-mode .lesson-summary-block:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+.dark-mode .lesson-summary-block h4 {
+    color: var(--primary-light);
+    border-bottom-color: var(--border-color);
+}
+.dark-mode .lesson-summary-block .lesson-link {
+    color: var(--secondary-light);
+}
+.dark-mode textarea.summary-text {
+    background: #2a2a2a;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+.dark-mode textarea.summary-text:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
+}
+.dark-mode .teacher-comment-display, .dark-mode .student-reply-display {
+  background: #2a2a2a;
+  color: var(--text-dark);
+  border-color: var(--border-color);
+}
+.dark-mode .teacher-comment-display strong, .dark-mode .student-reply-display strong {
+  color: var(--primary-light);
+}
+.dark-mode .reply-area label {
+    color: var(--primary-light);
+}
+.dark-mode .reply-area textarea {
+    background: #2a2a2a;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+.dark-mode .login-container {
+    background: var(--surface-light);
+    border-color: var(--border-color);
+}
+.dark-mode .login-container h2 {
+    color: var(--primary-light);
+}
+.dark-mode .login-container label {
+    color: var(--text-dark);
+}
+.dark-mode .login-container input {
+    background-color: #2a2a2a;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+.dark-mode .login-container .google-btn {
+    background-color: var(--surface-light);
+    color: var(--text-dark);
+    border-color: var(--border-color);
+}
+.dark-mode .login-container #msg {
+    color: var(--danger-color);
+}
+.dark-mode #welcomeBox {
+    background: var(--surface-light);
+    border-color: var(--border-color);
+}
+.dark-mode #welcomeBox h2 {
+    color: var(--primary-light);
+}
+.dark-mode #welcomeBox p {
+    color: var(--text-dark);
+    font-size: 1.05rem;
+    margin-bottom: 20px;
+}
+
+/* ------------------------------------ */
+/* 8. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
+/* ------------------------------------ */
+
+@media (max-width: 992px) {
+  body {
+    font-size: 15px;
+  }
+  .container {
+    padding: 20px;
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+  .btn {
+    padding: 8px 16px;
+    font-size: 0.95rem;
+  }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+
+  .nav-link {
+    height: 56px;
+    padding: 0 12px;
+    font-size: 0.875rem;
+  }
+  .notification-bell {
+    font-size: 1.4rem;
+    margin-left: 15px;
+  }
+  .notification-badge {
+    top: -5px;
+    right: -5px;
+    padding: 2px 6px;
+    font-size: 0.65rem;
+  }
+  .notification-panel {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  header, .app-bar {
+    padding: 12px 15px;
+    font-size: 1.2rem;
+  }
+  .app-bar-title {
+    font-size: 1.1rem;
+    margin-left: 10px;
+  }
+  .container {
+    margin-top: 60px;
+    padding: 15px;
+  }
+  .btn {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+  .table th, .table td {
+    padding: 10px 14px;
+  }
+  .login-container {
+    margin: 40px auto;
+  }
+
+  /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
+  body.chat-page .main-container {
+    padding-top: 0;
+    flex-direction: column;
+  }
+  body.chat-page .chat-list-panel {
+    position: fixed;
+    top: 0;
+    right: -250px; /* لإخفائها خارج الشاشة في البداية (لجهة اليمين في RTL) */
+    width: 250px;
+    height: 100%;
+    background: var(--surface-light);
+    box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+    z-index: 500;
+    transition: all 0.3s ease-in-out;
+    border-left: 1px solid var(--border-color);
+    flex-shrink: unset;
+  }
+  body.chat-page .chat-list-panel.open {
+    right: 0;
+    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+  }
+  body.chat-page .chat-area {
+    width: 100%;
+    flex: 1;
+    overflow-y: auto;
+  }
+  body.chat-page .sidebar-toggle-btn {
+    display: flex;
+  }
+  body.chat-page .app-bar-title {
+    margin-right: auto;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 576px) {
+  body {
+    font-size: 14px;
+  }
+  header, .app-bar {
+    font-size: 1.1rem;
+    justify-content: space-around;
+    text-align: center;
+    padding: 10px 8px;
+  }
+  .app-bar-logo {
+    height: 35px;
+    margin-right: 8px;
+  }
+  .app-bar-title {
+    display: none;
+  }
+  .container {
+    padding: 10px;
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-top: 55px;
+  }
+  .toast {
+    width: 90%;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    bottom: 15px;
+  }
+  .notification-panel {
+    width: calc(100% - 30px);
+    right: 15px;
+    left: 15px;
+  }
+  .table-mark-input {
+    width: 50px;
+    font-size: 0.8rem;
+    padding: 5px 6px;
+  }
+  .table-mark-button {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+  }
+  .lesson-summary-block {
+    padding: 15px;
+  }
+  .lesson-summary-block h4 {
+      font-size: 1.05rem;
+  }
+  .lesson-summary-block audio {
+      max-width: 100%;
+  }
+  .reply-area .btn {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+  }
+  .login-container {
+    padding: 20px;
+    margin: 30px auto;
+  }
+}
