@@ -6,7 +6,7 @@
 
 /* تعريف متغيرات الألوان (Material Design inspired palette) */
 :root {
-  --primary-color: #4267B2; /* لون أزرق جذاب للعلامة التجارية */
+  --primary-color: #4267B2; /* لون أزرق جذاب للعلامة التجارية (مثل Facebook Blue) */
   --primary-dark: #365899;
   --primary-light: #6a8bbf;
 
@@ -19,14 +19,14 @@
   --warning-color: #ffc107; /* أصفر للتحذير */
   --info-color: #17a2b8;   /* أزرق فاتح للمعلومات */
 
-  --background-light: #f8fafc; /* خلفية فاتحة */
-  --surface-light: #ffffff;    /* أسطح العناصر (البطاقات، النماذج) */
+  --background-light: #f8fafc; /* خلفية فاتحة موحدة */
+  --surface-light: #ffffff;    /* أسطح العناصر (البطاقات، النماذج) في الوضع الفاتح */
   --text-dark: #212529;      /* لون النص الأساسي الداكن */
   --text-muted: #6c757d;     /* لون النص الثانوي/الخافت */
-  --border-color: #e0e4e8;   /* لون الحدود */
-  --shadow-light: rgba(0, 0, 0, 0.1); /* ظل خفيف */
-  --shadow-medium: rgba(0, 0, 0, 0.15); /* ظل متوسط */
-  --shadow-strong: rgba(0, 0, 0, 0.2); /* ظل أقوى للعناصر البارزة */
+  --border-color: #e0e4e8;   /* لون الحدود الفاتح */
+  --shadow-light: rgba(0, 0, 0, 0.08); /* ظل خفيف جداً */
+  --shadow-medium: rgba(0, 0, 0, 0.12); /* ظل متوسط */
+  --shadow-strong: rgba(0, 0, 0, 0.18); /* ظل أقوى للعناصر البارزة */
 }
 
 /* تعريف متغيرات الألوان للوضع الليلي (Dark Mode) */
@@ -58,11 +58,8 @@
 /* 2. القواعد الأساسية (Base Styles) */
 /* ------------------------------------ */
 
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+html {
+  scroll-behavior: smooth; /* لتمكين التمرير الناعم عند النقر على الروابط */
 }
 
 body {
@@ -76,7 +73,17 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding-top: 64px; /* مسافة أعلى الجسم لتجنب التداخل مع الهيدر الثابت */
+  box-sizing: border-box; /* لضمان أن padding لا يزيد من الحجم الكلي */
 }
+
+/* ضبط padding-top لجسم الصفحة عند تصغير الهيدر في الشاشات الصغيرة */
+@media (max-width: 960px) {
+  body {
+    padding-top: 56px; /* ارتفاع الهيدر المصغر */
+  }
+}
+
 
 h1, h2, h3, h4, h5, h6 {
   margin-top: 0;
@@ -101,6 +108,13 @@ a:hover {
   text-decoration: underline;
 }
 
+/* إعادة تعيين بسيطة للعناصر الشائعة لتوحيد المظهر */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 /* ------------------------------------ */
 /* 3. المكونات المشتركة (Common Components) */
 /* ------------------------------------ */
@@ -121,6 +135,7 @@ a:hover {
   color: var(--surface-light);
   box-shadow: 0 2px 5px var(--shadow-light);
   transition: all 0.2s ease;
+  white-space: nowrap; /* منع التفاف النص داخل الزر */
 }
 
 .btn:hover {
@@ -219,10 +234,42 @@ header, .app-bar {
   flex-grow: 1;
 }
 
+/* Navigation Links (لصفحات المعلم) */
+.nav-link {
+  color: var(--surface-light);
+  text-decoration: none;
+  padding: 0 16px;
+  height: 64px; /* نفس ارتفاع شريط التطبيق */
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px; /* من اليسار في RTL */
+  right: 16px; /* من اليمين في RTL */
+  height: 2px;
+  background-color: var(--secondary-light); /* خط أصفر أو لون مميز */
+}
+
+
 /* الحاويات الرئيسية */
 .container {
   max-width: 1200px;
-  margin: 70px auto 30px auto; /* مسافة للرأس الثابت */
+  margin: 24px auto; /* مسافة موحدة أسفل الهيدر */
   background: var(--surface-light);
   border-radius: 12px;
   padding: 28px;
@@ -239,15 +286,16 @@ header, .app-bar {
 .card {
   background-color: var(--surface-light);
   border-radius: 12px;
-  box-shadow: 0 4px 8px var(--shadow-light); /* ظل أكثر وضوحًا */
+  box-shadow: 0 4px 8px var(--shadow-light);
   margin-bottom: 24px;
-  overflow: hidden; /* للحفاظ على حواف مستديرة للمحتوى الداخلي */
+  overflow: hidden;
   transition: all 0.2s ease-in-out;
+  border: 1px solid var(--border-color); /* إضافة حد خفيف */
 }
 
 .card:hover {
   box-shadow: 0 6px 12px var(--shadow-medium);
-  /* transform: translateY(-2px); /* تأثير رفع خفيف عند التحويم */
+  transform: translateY(-2px); /* تأثير رفع خفيف عند التحويم */
 }
 
 .card-header {
@@ -256,11 +304,11 @@ header, .app-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--background-light); /* لون خلفية للرأس يختلف عن محتوى البطاقة */
-  color: var(--primary-dark); /* لون الرأس في البطاقة */
+  background-color: var(--background-light);
+  color: var(--primary-dark);
   border-top-left-radius: 12px;
   border-top-right-radius: 12px;
-  font-weight: 600; /* جعل النص في رأس البطاقة أكثر سمكًا */
+  font-weight: 600;
 }
 
 .card-content {
@@ -281,45 +329,46 @@ header, .app-bar {
 /* الجداول (Tables) - مظهر احترافي وموحد */
 .table-container {
   width: 100%;
-  overflow-x: auto; /* للسماح بالتمرير الأفقي في الجداول الكبيرة */
+  overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin: 20px 0;
   border-radius: 12px;
   box-shadow: 0 2px 8px var(--shadow-light);
-  background-color: var(--surface-light); /* خلفية الجدول */
+  background-color: var(--surface-light);
+  border: 1px solid var(--border-color); /* إضافة حد عام للجدول */
 }
 
 .table {
   width: 100%;
-  border-collapse: collapse; /* لإزالة الفراغات بين الخلايا */
-  min-width: 700px; /* لضمان عرض جيد على الشاشات الصغيرة */
+  border-collapse: collapse;
+  min-width: 700px;
 }
 
 .table th {
   background-color: var(--primary-color);
   color: var(--surface-light);
-  font-weight: 600; /* جعل الرؤوس أكثر سمكًا */
+  font-weight: 600;
   text-align: right;
   padding: 14px 20px;
-  position: sticky; /* لتثبيت رؤوس الجدول عند التمرير */
+  position: sticky;
   top: 0;
-  white-space: nowrap; /* منع التفاف النص في الرؤوس */
-  border-bottom: 1px solid var(--border-color); /* حدود إضافية للرؤوس */
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .table td {
   padding: 12px 20px;
   border-bottom: 1px solid var(--border-color);
   text-align: right;
-  vertical-align: middle; /* محاذاة عمودية للمحتوى */
+  vertical-align: middle;
 }
 
 .table tr:last-child td {
-  border-bottom: none; /* إزالة الحد السفلي للصف الأخير */
+  border-bottom: none;
 }
 
 .table tbody tr:hover {
-  background-color: rgba(0, 0, 0, 0.03); /* تأثير تحويم خفيف على الصفوف */
+  background-color: rgba(0, 0, 0, 0.03);
 }
 
 /* أنماط خاصة لخلايا الجدول */
@@ -372,9 +421,9 @@ header, .app-bar {
 
 .form-control {
   width: 100%;
-  padding: 12px; /* زيادة حجم الحقول قليلاً */
+  padding: 12px;
   border: 1px solid var(--border-color);
-  border-radius: 8px; /* حواف مستديرة للمدخلات */
+  border-radius: 8px;
   font-size: 1rem;
   background-color: var(--surface-light);
   color: var(--text-dark);
@@ -384,12 +433,12 @@ header, .app-bar {
 
 .form-control:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2); /* ظل أزرق خفيف عند التركيز */
+  box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
   outline: none;
 }
 
 .form-select {
-  appearance: none; /* إزالة مظهر المتصفح الافتراضي */
+  appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000000'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: left 12px center;
@@ -415,65 +464,68 @@ textarea.form-control {
   display: inline-block;
   white-space: nowrap;
   text-transform: capitalize;
+  border: 1px solid; /* إضافة حد للشارة */
 }
 .summary-status.submitted {
-  background-color: #e3f6ed; /* Light green */
-  color: #219e4b; /* Dark green */
+  background-color: #e3f6ed;
+  color: #219e4b;
+  border-color: #b7eecd;
 }
 .summary-status.draft {
-  background-color: #fff4e0; /* Light yellow */
-  color: #b96d0d; /* Dark orange */
+  background-color: #fff4e0;
+  color: #b96d0d;
+  border-color: #ffda8d;
 }
 
 /* صندوق الإشعارات (Notification Panel) - مظهر موحد */
 .notification-bell {
   position: relative;
-  font-size: 1.6rem; /* حجم أكبر للأيقونة */
+  font-size: 1.6rem;
   cursor: pointer;
   margin-left: 20px;
-  color: var(--surface-light); /* لون الجرس في الشريط العلوي */
+  color: var(--surface-light);
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .notification-bell:hover {
   transform: scale(1.1);
-  color: var(--secondary-light); /* لون ثانوي عند التحويم */
+  color: var(--secondary-light);
 }
 
 .notification-badge {
   position: absolute;
-  top: -8px; /* ضبط الموضع */
-  right: -8px; /* ضبط الموضع */
+  top: -8px;
+  right: -8px;
   background-color: var(--danger-color);
   color: var(--surface-light);
   border-radius: 50%;
-  padding: 3px 8px; /* حجم أصغر قليلاً للبادج */
+  padding: 3px 8px;
   font-size: 0.7rem;
   font-weight: bold;
   line-height: 1;
   min-width: 15px;
   text-align: center;
   box-shadow: 0 0 5px var(--shadow-medium);
-  border: 1px solid var(--surface-light); /* حدود بيضاء لتبرز في الوضعين */
+  border: 1px solid var(--surface-light);
 }
 
 .notification-panel {
   display: none;
   position: fixed;
-  top: 70px; /* أسفل الهيدر بقليل */
+  top: 70px;
   right: 15px;
-  width: 350px; /* عرض متوسط */
-  max-height: 450px; /* ارتفاع أقصى */
+  width: 350px;
+  max-height: 450px;
   overflow-y: auto;
   background-color: var(--surface-light);
-  border-radius: 12px; /* حواف مستديرة */
-  box-shadow: 0 8px 16px var(--shadow-medium); /* ظل أقوى */
+  border-radius: 12px;
+  box-shadow: 0 8px 16px var(--shadow-medium);
   z-index: 1100;
   padding: 15px;
   text-align: right;
   border: 1px solid var(--border-color);
   box-sizing: border-box;
-  animation: fadeInDown 0.3s ease-out; /* تأثير دخول من الأعلى */
+  animation: fadeInDown 0.3s ease-out;
 }
 
 @keyframes fadeInDown {
@@ -493,7 +545,7 @@ textarea.form-control {
 
 .notification-item {
   padding: 10px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05); /* حد فاصل خفيف */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   font-size: 0.95rem;
   color: var(--text-dark);
   line-height: 1.4;
@@ -504,11 +556,11 @@ textarea.form-control {
 }
 
 .notification-item.unread {
-  background-color: rgba(var(--primary-color-rgb), 0.08); /* لون أزرق فاتح جداً للخلفية */
+  background-color: rgba(66, 103, 178, 0.08); /* استخدام اللون الأساسي بتعتيم */
   font-weight: 600;
   padding: 10px;
-  margin: 0 -15px; /* يمتد ليشمل كامل عرض البانل */
-  border-radius: 8px; /* حواف مستديرة للعنصر غير المقروء */
+  margin: 0 -15px;
+  border-radius: 8px;
 }
 
 .notification-item .timestamp {
@@ -523,7 +575,7 @@ textarea.form-control {
     color: var(--surface-light);
     border: none;
     padding: 6px 12px;
-    border-radius: 6px; /* حواف مستديرة للأزرار */
+    border-radius: 6px;
     font-size: 0.85rem;
     cursor: pointer;
     margin-top: 8px;
@@ -534,9 +586,494 @@ textarea.form-control {
     background-color: var(--secondary-dark);
 }
 
+/* ------------------------------------ */
+/* 5. أنماط خاصة بصفحة الطالب (student.html) وبعض الأنماط المشابهة في صفحات أخرى */
+/* ------------------------------------ */
+
+.info {
+  background: var(--background-light);
+  border-radius: 9px;
+  padding: 15px 20px;
+  margin: 16px 0;
+  box-shadow: 0 2px 5px var(--shadow-light);
+  border: 1px solid var(--border-color);
+  color: var(--text-dark);
+}
+.info b {
+    color: var(--primary-dark); /* جعل عناوين المعلومات أكثر بروزاً */
+}
+
+.admission-status-box {
+    padding: 10px 18px;
+    border-radius: 7px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 20px;
+    border: 1px solid;
+    box-shadow: 0 1px 3px var(--shadow-light);
+}
+.admission-status-box.admission-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffeeba;
+}
+.admission-status-box.admission-accepted {
+    background-color: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+.admission-status-box.admission-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+/* مربعات الامتحان العامة */
+.exams-box {
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 8px var(--shadow-light);
+    margin-top: 30px;
+    border: 1px solid var(--border-color);
+}
+.exams-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: var(--primary-dark);
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+.exam-row {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.05rem;
+}
+.exam-row:last-child {
+    border-bottom: none;
+    font-weight: bold;
+    font-size: 1.15rem;
+    color: var(--secondary-dark);
+}
+.exam-row b {
+    color: var(--text-dark);
+}
+
+.levels-table, .exams-table { /* استخدام هذه القواعد بدلاً من المكررة */
+  width: 100%; border-collapse: collapse; margin-top: 26px; margin-bottom: 12px;
+  background: var(--surface-light); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px var(--shadow-light);
+  border: 1px solid var(--border-color);
+}
+.levels-table th, .levels-table td,
+.exams-table th, .exams-table td {
+  padding: 12px 10px; border-bottom:1px solid var(--border-color); text-align:center; font-size: 1rem;
+}
+.levels-table th, .exams-table th {
+  background: var(--background-light); 
+  color: var(--primary-dark); 
+  font-weight: bold;
+}
+.level-on {color: var(--success-color); font-weight: bold;}
+.level-off {color: var(--danger-color); font-weight: bold;}
+.exam-label { /* شارات حالة الامتحان */
+  display: inline-block; padding: 4px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: bold;
+  border: 1px solid;
+  min-width: 90px;
+  text-align: center;
+}
+.exam-label.true, .exam-label.pass { /* اجتاز */
+  background: #e3f6ed; color: #219e4b; border-color: #b7eecd;
+}
+.exam-label.false, .exam-label.fail { /* لم يجتز */
+  background: #ffecec; color: #e63946; border-color: #ffbcbc;
+}
+.exam-label.wait { /* قيد الانتظار */
+  background: #f5f7fb; color: #555; border-color: #d2d8e6;
+}
+.exams-table tr:last-child td, .levels-table tr:last-child td { border-bottom: none; }
+.exams-title-bar {
+  font-size: 1.25rem; background: var(--background-light); padding: 10px 0;
+  border-radius: 12px 12px 0 0; color: var(--primary-dark); border-bottom: 2px solid var(--border-color); font-weight:bold;
+  text-align:center; letter-spacing: 1px;
+}
+.exams-table {margin-bottom: 26px; margin-top: 18px;}
+#examWarnMsg {
+    color: var(--danger-color);
+    font-weight: bold;
+    margin: 15px 0;
+    text-align: center;
+    background-color: #f8d7da; /* خلفية خفيفة للتحذير */
+    border: 1px solid #f5c6cb;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* مربعات الاختبار */
+#examBox {
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 28px 20px;
+    box-shadow: 0 2px 10px var(--shadow-light);
+    margin-top: 30px;
+    border: 1px solid var(--border-color);
+}
+.student-info, .level-info {
+    background: var(--background-light);
+    padding: 12px 18px;
+    border-radius: 9px;
+    margin-bottom: 20px;
+    display: inline-block;
+    font-size: 1.05em;
+    border: 1px solid var(--border-color);
+    color: var(--text-dark);
+}
+.question-block {
+    background: var(--background-light);
+    border-radius: 10px;
+    padding: 18px 15px; /* زيادة التباعد الداخلي */
+    margin: 25px 0; /* زيادة التباعد الخارجي */
+    box-shadow: 0 2px 8px var(--shadow-light);
+    border: 1px solid var(--border-color);
+}
+.question-title {
+    font-weight: bold;
+    margin-bottom: 12px; /* زيادة المسافة */
+    font-size: 1.1rem;
+    color: var(--primary-dark);
+}
+.multi-note {
+    color: var(--warning-color);
+    font-size: 0.95em;
+    margin-right: 8px;
+    font-weight: normal; /* لجعلها أقل بروزًا من السؤال */
+}
+.question-mark {
+    color: var(--secondary-dark);
+    margin-right: 12px;
+    font-weight: normal;
+}
+.choices-list {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* مسافة بين الخيارات */
+}
+.choice-row label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+.choice-row input[type="radio"], .choice-row input[type="checkbox"] {
+    margin-left: 10px; /* مسافة بين الراديو/الـ checkbox والنص */
+    transform: scale(1.2); /* تكبير عناصر الاختيار */
+    accent-color: var(--primary-color); /* لون الأزرار المدورة/المربعات */
+}
+.msg {
+    color: var(--danger-color);
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: bold;
+}
+.result {
+    font-size: 1.5rem; /* حجم أكبر للنتيجة النهائية */
+    color: var(--success-color);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e3f6ed;
+    border-radius: 8px;
+    border: 1px solid #b7eecd;
+}
+.scoring-note {
+    color: var(--info-color);
+    font-size: 0.9em;
+    margin-top: 10px;
+    padding: 8px;
+    background-color: #e6f2ff;
+    border-radius: 6px;
+    border: 1px solid #cce5ff;
+}
+#examForm .btn {
+    margin-left: 10px; /* مسافة بين زر الإرسال وزر الخروج */
+    margin-top: 20px;
+}
+#examForm .btn.signout {
+    background: var(--danger-color);
+}
+#examForm .btn.signout:hover {
+    background: #c82333;
+}
+
+/* تنسيق شارات العلامات (Lesson Mark Badges) */
+.lesson-mark-badge {
+  display:inline-block;
+  font-weight:bold;
+  border-radius:15px;
+  padding:2px 14px; /* زيادة Padding */
+  font-size:0.95em; /* تصغير الخط قليلاً */
+  margin-right:10px; /* زيادة المسافة */
+  min-width:50px; /* عرض أدنى */
+  vertical-align:middle;
+  text-align: center;
+  border: 1px solid;
+}
+.lesson-mark-badge.positive-mark {
+    background:#e3f6ed;
+    color:#219e4b;
+    border-color:#b7eecd;
+}
+.lesson-mark-badge.zero-mark {
+    background:#ffecf0;
+    color:#e63946;
+    border-color:#ffbcbc;
+}
+.lesson-mark-badge.no-mark {
+    background:#f5f7fb;
+    color:#555;
+    border-color:#d2d8e6;
+}
+
+/* تحسينات تصميم مربع التلخيص (Lesson Summary Block) */
+.lesson-summary-block {
+  background: var(--surface-light);
+  border-radius: 12px;
+  margin: 25px 0; /* مسافة أكبر */
+  padding: 25px;
+  box-shadow: 0 4px 15px var(--shadow-medium);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+.lesson-summary-block:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow-strong);
+}
+.lesson-summary-block h4 {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--primary-dark);
+    font-size: 1.2rem;
+    display: flex; /* لترتيب العناصر داخل العنوان */
+    align-items: center;
+    flex-wrap: wrap; /* للسماح بالعناصر بالالتفاف في الشاشات الصغيرة */
+}
+.lesson-summary-block h4 span {
+    margin-left: 10px; /* مسافة بين العناصر داخل العنوان */
+}
+.lesson-summary-block .lesson-student-name {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    text-align: left; /* محاذاة لليسار في RTL */
+    padding-bottom: 5px;
+    border-bottom: 1px dashed var(--border-color);
+}
+.lesson-summary-block .lesson-link {
+    font-weight: bold;
+    margin-left: 15px;
+    color: var(--secondary-dark);
+    transition: color 0.2s ease;
+}
+.lesson-summary-block .lesson-link:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+.lesson-summary-block audio {
+    width: 100%; /* استخدام عرض 100% لمشغل الصوت */
+    max-width: 300px; /* حد أقصى للحجم */
+    margin-top: 10px;
+    vertical-align: middle;
+}
+textarea.summary-text {
+  width:100%;height:120px;padding:12px;border-radius:8px;border:1px solid var(--border-color);
+  resize:vertical;font-size:1rem; box-sizing: border-box; background:var(--background-light);
+  font-family: 'Tajawal',Arial,sans-serif; color: var(--text-dark); line-height: 1.7;
+  transition: border-color 0.15s, box-shadow 0.15s; direction: rtl;
+}
+textarea.summary-text:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
+    outline: none;
+}
+.summary-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px; /* مسافة بين الأزرار */
+    margin-top: 15px;
+}
+.summary-actions .summary-status {
+    margin-left: auto; /* لدفع الشارة إلى أقصى اليمين في RTL */
+    align-self: center;
+}
+
+/* New styles for teacher comment display */
+.teacher-comment-display, .student-reply-display {
+  background: var(--background-light);
+  padding: 15px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-size: 0.98rem;
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+  line-height: 1.6;
+  word-break: break-word;
+  box-shadow: 0 1px 3px var(--shadow-light);
+}
+.teacher-comment-display strong, .student-reply-display strong {
+  color: var(--primary-dark);
+  display: block;
+  margin-bottom: 8px; /* مسافة أكبر للعنوان */
+  font-size: 1rem;
+}
+
+/* Style for reply textarea */
+.reply-area {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border-color);
+}
+.reply-area label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary-dark);
+    font-size: 1rem;
+}
+.reply-area textarea {
+    width: 100%;
+    height: 80px; /* ارتفاع أكبر */
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    resize: vertical;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: var(--background-light);
+    font-family: 'Tajawal',Arial,sans-serif;
+    color: var(--text-dark);
+}
+.reply-area .btn {
+    margin-top: 12px;
+    padding: 8px 18px; /* حجم أكبر للزر */
+    font-size: 0.95rem;
+}
+
+/* أنماط خاصة بصفحة تسجيل الدخول */
+.login-container {
+    max-width: 420px; /* عرض أوسع قليلاً */
+    margin: 80px auto; /* توسيط في الصفحة */
+    background: var(--surface-light);
+    border-radius: 12px;
+    padding: 35px 30px; /* تباعد داخلي أكبر */
+    box-shadow: 0 4px 15px var(--shadow-medium);
+    border: 1px solid var(--border-color);
+}
+.login-container h2 {
+    text-align: center;
+    color: var(--primary-dark);
+    margin-bottom: 25px; /* مسافة أكبر بعد العنوان */
+    font-size: 1.8rem;
+}
+.login-container label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+.login-container input[type="email"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 20px; /* مسافة أكبر بين حقول الإدخال */
+    font-size: 1.05rem;
+    background-color: var(--background-light);
+    color: var(--text-dark);
+}
+.login-container .btn {
+    width: 100%;
+    margin-top: 15px; /* مسافة أعلى الزر */
+    padding: 12px 0;
+    font-size: 1.1rem;
+    border-radius: 8px;
+}
+.login-container .google-btn {
+    margin-top: 20px; /* مسافة أكبر لزر جوجل */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px;
+    background-color: var(--surface-light);
+    color: var(--text-dark);
+    border: 1px solid var(--border-color);
+    box-shadow: none; /* إزالة الظل الافتراضي للأزرار */
+}
+.login-container .google-btn:hover {
+    background-color: #f0f0f0;
+    box-shadow: none;
+}
+.login-container .google-btn img {
+    margin-left: 10px;
+}
+.login-container #msg {
+    color: var(--danger-color);
+    text-align: center;
+    margin-top: 20px;
+    font-weight: bold;
+}
+/* إعادة توحيد زر الخروج في صفحة index.html الأصلية */
+.logout-btn {
+    background: var(--danger-color);
+    color: var(--surface-light);
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    font-size: 1em;
+    margin-right: 15px; /* مسافة لـ RTL */
+}
+.logout-btn:hover {
+    background: #c82333;
+}
+#student-redirect {
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-top: 24px;
+    font-size: 1.1em;
+    text-align: center;
+}
+#welcomeBox { /* صندوق الترحيب في index.html */
+    background: var(--surface-light);
+    padding: 30px 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-light);
+    margin: 40px auto;
+    max-width: 450px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+#welcomeBox h2 {
+    color: var(--primary-dark);
+    margin-bottom: 15px;
+}
+#welcomeBox p {
+    color: var(--text-dark);
+    font-size: 1.05rem;
+    margin-bottom: 20px;
+}
+
 
 /* ------------------------------------ */
-/* 5. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
+/* 6. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
 /* ------------------------------------ */
 
 .dark-mode body {
@@ -572,16 +1109,42 @@ textarea.form-control {
   box-shadow: 0 2px 5px rgba(0,0,0,0.4);
 }
 
-.dark-mode .container, .dark-mode .card, .dark-mode .table-container, .dark-mode .modal-content {
+.dark-mode .container,
+.dark-mode .card,
+.dark-mode .table-container,
+.dark-mode .modal-content,
+.dark-mode #examBox,
+.dark-mode .login-container,
+.dark-mode #welcomeBox {
   background: var(--surface-light);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
+  border-color: var(--border-color);
 }
 
-.dark-mode .card-header, .dark-mode .card-actions, .dark-mode .table th, .dark-mode .chat-list-header, .dark-mode .chat-header {
-  background-color: #2a2a2a; /* لون داكن أكثر لرؤوس البطاقات والجداول */
+.dark-mode .card-header,
+.dark-mode .card-actions,
+.dark-mode .table th,
+.dark-mode .chat-list-header,
+.dark-mode .chat-header,
+.dark-mode .info,
+.dark-mode .student-info,
+.dark-mode .level-info,
+.dark-mode .question-block,
+.dark-mode textarea.summary-text,
+.dark-mode .teacher-comment-display,
+.dark-mode .student-reply-display,
+.dark-mode .reply-area textarea,
+.dark-mode .scoring-note,
+.dark-mode .exams-title,
+.dark-mode .exams-title-bar,
+.dark-mode .levels-table th,
+.dark-mode .exams-table th {
+  background-color: #2a2a2a;
   border-bottom-color: var(--border-color);
   color: var(--text-dark);
+}
+.dark-mode .exams-title-bar, .dark-mode .exams-table th {
+    color: var(--primary-light); /* رؤوس الجداول في الوضع الليلي */
 }
 
 .dark-mode .table td {
@@ -638,7 +1201,7 @@ textarea.form-control {
 }
 
 .dark-mode .notification-item.unread {
-  background-color: rgba(var(--primary-color-rgb), 0.15); /* لون أزرق أغمق قليلاً في الوضع الليلي */
+  background-color: rgba(137, 180, 245, 0.15); /* لون أزرق أغمق قليلاً في الوضع الليلي */
 }
 
 .dark-mode .notification-item .timestamp {
@@ -650,9 +1213,168 @@ textarea.form-control {
   color: var(--text-dark);
 }
 
+/* الوضع الليلي لأنماط صفحة الطالب */
+.dark-mode .info {
+    background: #2a2a2a;
+    border-color: var(--border-color);
+}
+.dark-mode .info b {
+    color: var(--primary-light);
+}
+.dark-mode .admission-status-box.admission-pending {
+    background-color: #4a3a0e;
+    color: #e0d08a;
+    border-color: #a09060;
+}
+.dark-mode .admission-status-box.admission-accepted {
+    background-color: #2a5a3a;
+    color: #8acb9e;
+    border-color: #6a9b7e;
+}
+.dark-mode .admission-status-box.admission-rejected {
+    background-color: #6a2a2a;
+    color: #f0a0a0;
+    border-color: #c06060;
+}
+.dark-mode .exams-box {
+    background: var(--surface-light);
+    border-color: var(--border-color);
+}
+.dark-mode .exams-title {
+    color: var(--primary-light);
+    border-bottom-color: var(--border-color);
+}
+.dark-mode .exam-row {
+    border-bottom-color: var(--border-color);
+}
+.dark-mode .exam-row b {
+    color: var(--text-dark);
+}
+.dark-mode .exam-row:last-child {
+    color: var(--secondary-light);
+}
+
+.dark-mode #examWarnMsg {
+    background-color: #4a2a2a;
+    color: #f0a0a0;
+    border-color: #6a3a3a;
+}
+.dark-mode #examBox h2 {
+    color: var(--primary-light);
+}
+.dark-mode .question-title {
+    color: var(--primary-light);
+}
+.dark-mode .multi-note {
+    color: var(--warning-color);
+}
+.dark-mode .question-mark {
+    color: var(--secondary-light);
+}
+.dark-mode .choice-row label {
+    color: var(--text-dark);
+}
+.dark-mode .result {
+    background-color: #2a5a3a;
+    color: var(--success-color);
+    border-color: #6a9b7e;
+}
+.dark-mode .scoring-note {
+    background-color: #2a3a5a;
+    color: var(--info-color);
+    border-color: #4a6a9a;
+}
+.dark-mode .lesson-mark-badge.positive-mark {
+    background:#2a5a3a;
+    color:#69f0ae;
+    border-color:#6a9b7e;
+}
+.dark-mode .lesson-mark-badge.zero-mark {
+    background:#6a2a2a;
+    color:#ef9a9a;
+    border-color:#c06060;
+}
+.dark-mode .lesson-mark-badge.no-mark {
+    background:#3a3a3a;
+    color:#aaaaaa;
+    border-color:#5a5a5a;
+}
+.dark-mode .lesson-summary-block {
+  background: var(--surface-light);
+  border-color: var(--border-color);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+.dark-mode .lesson-summary-block:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+}
+.dark-mode .lesson-summary-block h4 {
+    color: var(--primary-light);
+    border-bottom-color: var(--border-color);
+}
+.dark-mode .lesson-summary-block .lesson-link {
+    color: var(--secondary-light);
+}
+.dark-mode textarea.summary-text {
+    background: #2a2a2a;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+.dark-mode textarea.summary-text:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
+}
+.dark-mode .teacher-comment-display, .dark-mode .student-reply-display {
+  background: #2a2a2a;
+  color: var(--text-dark);
+  border-color: var(--border-color);
+}
+.dark-mode .teacher-comment-display strong, .dark-mode .student-reply-display strong {
+  color: var(--primary-light);
+}
+.dark-mode .reply-area label {
+    color: var(--primary-light);
+}
+.dark-mode .reply-area textarea {
+    background: #2a2a2a;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+.dark-mode .login-container {
+    background: var(--surface-light);
+    border-color: var(--border-color);
+}
+.dark-mode .login-container h2 {
+    color: var(--primary-light);
+}
+.dark-mode .login-container label {
+    color: var(--text-dark);
+}
+.dark-mode .login-container input {
+    background-color: #2a2a2a;
+    border-color: var(--border-color);
+    color: var(--text-dark);
+}
+.dark-mode .login-container .google-btn {
+    background-color: var(--surface-light);
+    color: var(--text-dark);
+    border-color: var(--border-color);
+}
+.dark-mode .login-container #msg {
+    color: var(--danger-color);
+}
+.dark-mode #welcomeBox {
+    background: var(--surface-light);
+    border-color: var(--border-color);
+}
+.dark-mode #welcomeBox h2 {
+    color: var(--primary-light);
+}
+.dark-mode #welcomeBox p {
+    color: var(--text-dark);
+}
 
 /* ------------------------------------ */
-/* 6. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
+/* 7. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
 /* ------------------------------------ */
 
 @media (max-width: 992px) {
@@ -671,6 +1393,25 @@ textarea.form-control {
   h1 { font-size: 2rem; }
   h2 { font-size: 1.5rem; }
   h3 { font-size: 1.25rem; }
+
+  .nav-link {
+    height: 56px;
+    padding: 0 12px;
+    font-size: 0.875rem;
+  }
+  .notification-bell {
+    font-size: 1.4rem;
+    margin-left: 15px;
+  }
+  .notification-badge {
+    top: -5px;
+    right: -5px;
+    padding: 2px 6px;
+    font-size: 0.65rem;
+  }
+  .notification-panel {
+    width: 300px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -690,6 +1431,12 @@ textarea.form-control {
     padding: 6px 12px;
     font-size: 0.9rem;
   }
+  .table th, .table td {
+    padding: 10px 14px;
+  }
+  .login-container {
+    margin: 40px auto;
+  }
 }
 
 @media (max-width: 576px) {
@@ -698,24 +1445,58 @@ textarea.form-control {
   }
   header, .app-bar {
     font-size: 1.1rem;
-    justify-content: center;
+    justify-content: space-around; /* توزيع العناصر بالتساوي */
     text-align: center;
+    padding: 10px 8px;
   }
   .app-bar-logo {
     height: 35px;
-    margin-right: 10px;
+    margin-right: 8px;
   }
   .app-bar-title {
     display: none;
   }
   .container {
     padding: 10px;
-    margin-left: 5px;
-    margin-right: 5px;
+    margin-left: 8px;
+    margin-right: 8px;
+    margin-top: 55px; /* ضبط مسافة الرأس للهواتف */
   }
   .toast {
     width: 90%;
-    left: 5%;
-    transform: translateX(0%) translateY(100px);
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    bottom: 15px; /* أقرب إلى الأسفل */
+  }
+  .notification-panel {
+    width: calc(100% - 30px); /* عرض أكبر في الشاشات الصغيرة */
+    right: 15px;
+    left: 15px; /* توسيط البانل */
+  }
+  .table-mark-input {
+    width: 50px;
+    font-size: 0.8rem;
+    padding: 5px 6px;
+  }
+  .table-mark-button {
+    font-size: 0.7rem;
+    padding: 5px 10px;
+  }
+  .lesson-summary-block {
+    padding: 15px;
+  }
+  .lesson-summary-block h4 {
+      font-size: 1.05rem;
+  }
+  .lesson-summary-block audio {
+      max-width: 100%;
+  }
+  .reply-area .btn {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+  }
+  .login-container {
+    padding: 20px;
+    margin: 30px auto;
   }
 }
