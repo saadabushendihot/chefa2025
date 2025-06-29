@@ -92,30 +92,35 @@ function renderNavigation(role) {
 
 
 // حماية الصفحة - فقط للمعلمين
-auth.onAuthStateChanged(function(user) {
-  console.log("auth.onAuthStateChanged: حالة المصادقة تغيرت. المستخدم:", user); // رسالة تصحيح
-  if (user) {
-    firestore.collection('users').doc(user.uid).get().then(function(doc) {
-      console.log("auth.onAuthStateChanged: تم جلب مستند المستخدم."); // رسالة تصحيح
-      if (!doc.exists || doc.data().role !== "teacher") {
-        console.warn("auth.onAuthStateChanged: المستخدم ليس معلماً أو لا يوجد لديه دور. إعادة التوجيه إلى صفحة تسجيل الدخول."); // رسالة تحذير
-        window.location.href = "login.html";
+// تم نقل هذا الجزء بالكامل داخل DOMContentLoaded لضمان تحميل DOM أولاً
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOMContentLoaded: تم تحميل DOM. جاري التحقق من حالة المصادقة."); // رسالة تصحيح
+    auth.onAuthStateChanged(function(user) {
+      console.log("auth.onAuthStateChanged: حالة المصادقة تغيرت. المستخدم:", user); // رسالة تصحيح
+      if (user) {
+        firestore.collection('users').doc(user.uid).get().then(function(doc) {
+          console.log("auth.onAuthStateChanged: تم جلب مستند المستخدم."); // رسالة تصحيح
+          if (!doc.exists || doc.data().role !== "teacher") {
+            console.warn("auth.onAuthStateChanged: المستخدم ليس معلماً أو لا يوجد لديه دور. إعادة التوجيه إلى صفحة تسجيل الدخول."); // رسالة تحذير
+            window.location.href = "login.html";
+          } else {
+            const userRole = doc.data().role;
+            console.log("auth.onAuthStateChanged: دور المستخدم:", userRole); // رسالة تصحيح
+            startQuestionsAdmin();
+            loadSettingsTable();
+            renderNavigation(userRole); // استدعاء دالة رسم التنقل
+          }
+        }).catch(function(error) {
+          console.error("auth.onAuthStateChanged: خطأ في جلب دور المستخدم:", error); // رسالة خطأ
+          window.location.href = "login.html";
+        });
       } else {
-        const userRole = doc.data().role;
-        console.log("auth.onAuthStateChanged: دور المستخدم:", userRole); // رسالة تصحيح
-        startQuestionsAdmin();
-        loadSettingsTable();
-        renderNavigation(userRole); // استدعاء دالة رسم التنقل
+        console.log("auth.onAuthStateChanged: لا يوجد مستخدم مسجل الدخول. إعادة التوجيه إلى صفحة تسجيل الدخول."); // رسالة تصحيح
+        window.location.href = "login.html";
       }
-    }).catch(function(error) {
-      console.error("auth.onAuthStateChanged: خطأ في جلب دور المستخدم:", error); // رسالة خطأ
-      window.location.href = "login.html";
     });
-  } else {
-    console.log("auth.onAuthStateChanged: لا يوجد مستخدم مسجل الدخول. إعادة التوجيه إلى صفحة تسجيل الدخول."); // رسالة تصحيح
-    window.location.href = "login.html";
-  }
 });
+
 
 function logout() {
   auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
