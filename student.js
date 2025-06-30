@@ -393,8 +393,16 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
     } else {
       const data = querySnapshot.docs[0].data();
       currentStudentName = data.name || userNameFromUserDoc || "";
-      // Store full student data globally for use by other functions (e.g., onclick handlers)
-      window.currentStudentFullData = data; 
+      window.currentStudentFullData = data; // Store full student data globally
+
+      // Calculate lastActiveLevelIndex here explicitly
+      lastActiveLevelIndex = 0; // Reset
+      for (let i = 1; i <= 7; i++) {
+          if(data['level'+i]) {
+              lastActiveLevelIndex = i;
+          }
+      }
+      console.log("Calculated lastActiveLevelIndex on load:", lastActiveLevelIndex);
 
       const studentNameEl = document.getElementById('studentName');
       const studentNameInfoEl = document.getElementById('studentNameInfo');
@@ -408,7 +416,6 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
       if (msgEl) msgEl.innerText = "";
       
       // لا توجد حاجة للتعامل مع examsBox هنا لأنها أزيلت من HTML
-
 
       // حالة القبول
       const admissionBox = document.getElementById('admissionStatusBox');
@@ -435,16 +442,36 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
         }
       }
 
-
-      // جدول المستويات/الامتحانات
-      renderLevelsExamsMergedTable(data);
-
-      // الامتحانات العامة - تم إزالة هذا الجزء بالكامل
-
-
-      // تحميل الدروس والتلاخيص (مع التعديل الجديد)
-      const allowedLevels = getAllowedLevels(data);
-      loadActiveLessonsAndSummaries(allowedLevels);
+      // Check for existing exam result on page load BEFORE rendering levels/eligibility
+      if (lastActiveLevelIndex > 0 && (data.accepted === true || data.accepted === "مقبول" || data.accepted === "accepted")) {
+          currentExamLevel = lastActiveLevelIndex; // Set global currentExamLevel
+          
+          firestore.collection('exam_results')
+              .where('student_email', '==', currentStudentEmail)
+              .where('level', '==', lastActiveLevelIndex)
+              .get()
+              .then(function(examResultsSnap){
+                  if (!examResultsSnap.empty) {
+                      console.log("Existing exam result found for level", lastActiveLevelIndex, ". Displaying result.");
+                      showExamResultOnly(examResultsSnap.docs[0].data());
+                      // No need to call renderLevelsExamsMergedTable or loadActiveLessonsAndSummaries here,
+                      // as showExamResultOnly handles the display for already submitted exams.
+                  } else {
+                      console.log("No existing exam result found for level", lastActiveLevelIndex, ". Proceeding with eligibility check.");
+                      renderLevelsExamsMergedTable(data); // This will call performExamEligibilityCheckAndProceed(data, false)
+                      loadActiveLessonsAndSummaries(getAllowedLevels(data)); // Call this after levels table render
+                  }
+              }).catch(err => {
+                  console.error("Error checking for existing exam results on load:", err);
+                  // Fallback to normal rendering even on error
+                  renderLevelsExamsMergedTable(data);
+                  loadActiveLessonsAndSummaries(getAllowedLevels(data));
+              });
+      } else {
+          console.log("Initial conditions (active level or accepted status) not met. Proceeding with eligibility check.");
+          renderLevelsExamsMergedTable(data);
+          loadActiveLessonsAndSummaries(getAllowedLevels(data));
+      }
     }
   }).catch(function(err) {
     showLoading(false);
@@ -485,6 +512,9 @@ function renderExamEligibilityStatus(eligibilityObject) {
     } else {
         overallStatusHtml += `<p style="color: var(--danger-color);">❌ ${eligibilityObject.overall_message}</p>`;
         startExamBtn.style.display = 'none'; // إخفاء زر الاختبار
+        overallStatusHtml += `<button class="btn" style="margin-top: 10px; background-color: var(--danger-color);" disabled>
+                                <i class="fas fa-times-circle"></i> الاختبار غير متاح
+                              </button>`; // زر معطل
         examWarnMsgEl.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
         examWarnMsgEl.style.borderColor = 'var(--danger-color)';
     }
@@ -724,8 +754,7 @@ function renderLevelsExamsMergedTable(data) {
 
   levelsExamsTableArea.innerHTML = html;
 
-  // عند تحميل الصفحة، نقوم بالتحقق الأولي من الأهلية (لا نتقدم للامتحان تلقائياً)
-  performExamEligibilityCheckAndProceed(data, false);
+  // عند تحميل الصفحة، يتم التحقق الأولي من الأهلية بواسطة loadStudentData التي تستدعي performExamEligibilityCheckAndProceed
 }
 
 
@@ -1527,17 +1556,11 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log("Initial state: startExamBtn hidden.");
 
       startExamBtn.onclick = function() {
-          // هنا يجب التأكد من أن studentData متاح. 
-          // performExamEligibilityCheckAndProceed تعتمد على `studentData` الذي تم جلبه في `loadStudentData`
-          // ويجب أن يكون الكائن `studentData` كاملاً.
-          // لإعادة استدعائها عند النقر، يجب أن يكون `window.currentStudentFullData` متاحاً.
           if (window.currentStudentFullData) {
               performExamEligibilityCheckAndProceed(window.currentStudentFullData, true);
           } else {
               console.error("Student data not available for exam launch!");
               showToast("بيانات الطالب غير متاحة. يرجى تحديث الصفحة.", "var(--danger-color)");
-              // إذا لم تكن البيانات متاحة، يمكن إعادة تحميل بيانات الطالب ثم إعادة المحاولة
-              // loadStudentData(currentStudentEmail, currentStudentName); // قد يؤدي إلى حلقة لا نهائية أو استدعاءات متكررة
           }
       };
       console.log("Event listener attached to startExamBtn.");
