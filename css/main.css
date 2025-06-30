@@ -1,0 +1,1178 @@
+/* main.css - ملف التصميم الرئيسي الموحد والمحسن */
+
+/* ------------------------------------ */
+/* 1. نظام تصميم أساسي (Core Design System) */
+/* ------------------------------------ */
+
+/* تعريف متغيرات الألوان (Material Design inspired palette) */
+:root {
+  --primary-color: #4267B2; /* لون أزرق جذاب للعلامة التجارية (مثل Facebook Blue) */
+  --primary-dark: #365899;
+  --primary-light: #6a8bbf;
+
+  --secondary-color: #1a73e8; /* لون ثانوي للأعمال، أقرب لأزرق جوجل */
+  --secondary-dark: #0f62d1;
+  --secondary-light: #5e9bff;
+
+  --success-color: #28a745; /* أخضر للنجاح */
+  --danger-color: #dc3545; /* أحمر للخطر/الأخطاء */
+  --warning-color: #ffc107; /* أصفر للتحذير */
+  --info-color: #17a2b8;   /* أزرق فاتح للمعلومات */
+
+  --background-light: #f8fafc; /* خلفية فاتحة موحدة */
+  --surface-light: #ffffff;    /* أسطح العناصر (البطاقات، النماذج) في الوضع الفاتح */
+  --text-dark: #212529;      /* لون النص الأساسي الداكن */
+  --text-muted: #6c757d;     /* لون النص الثانوي/الخافت */
+  --border-color: #e0e4e8;   /* لون الحدود الفاتح */
+  --shadow-light: rgba(0, 0, 0, 0.08); /* ظل خفيف جداً */
+  --shadow-medium: rgba(0, 0, 0, 0.12); /* ظل متوسط */
+  --shadow-strong: rgba(0, 0, 0, 0.18); /* ظل أقوى للعناصر البارزة */
+  --overlay-color: rgba(0, 0, 0, 0.4); /* طبقة التراكب لغطاء القائمة الجانبية */
+}
+
+/* تعريف متغيرات الألوان للوضع الليلي (Dark Mode) */
+.dark-mode {
+  --primary-color: #89b4f5; /* Primary light for dark mode */
+  --primary-dark: #669df6;
+  --primary-light: #a6cbf9;
+
+  --secondary-color: #81c995; /* Secondary light for dark mode */
+  --secondary-dark: #62b378;
+  --secondary-light: #a0e0ae;
+
+  --success-color: #69f0ae;
+  --danger-color: #ef9a9a;
+  --warning-color: #ffd54f;
+  --info-color: #4dd0e1;
+
+  --background-light: #121212; /* خلفية داكنة جداً */
+  --surface-light: #1e1e1e;    /* أسطح العناصر في الوضع الليلي */
+  --text-dark: #e0e0e0;      /* لون النص الأساسي الفاتح */
+  --text-muted: #aaaaaa;     /* لون النص الثانوي في الوضع الليلي */
+  --border-color: #333333;   /* لون الحدود في الوضع الليلي */
+  --shadow-light: rgba(0, 0, 0, 0.3);
+  --shadow-medium: rgba(0, 0, 0, 0.5);
+  --shadow-strong: rgba(0, 0, 0, 0.7);
+  --overlay-color: rgba(0, 0, 0, 0.7);
+}
+
+/* ------------------------------------ */
+/* 2. القواعد الأساسية (Base Styles) */
+/* ------------------------------------ */
+
+html {
+  scroll-behavior: smooth;
+  height: 100%; /* مهم لبعض التخطيطات لضبط ارتفاع الأقسام الداخلية */
+  /* overflow: hidden; تم إزالته من هنا، فقط لـ chat-page في الـ media queries */
+}
+
+body {
+  font-family: 'Tajawal', Arial, sans-serif;
+  background-color: var(--background-light);
+  color: var(--text-dark);
+  direction: rtl;
+  text-align: right;
+  line-height: 1.6;
+  font-size: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 64px; /* مسافة أعلى الجسم لتجنب التداخل مع الهيدر الثابت */
+  box-sizing: border-box;
+}
+
+/* ضبط padding-top لجسم الصفحة عند تصغير الهيدر في الشاشات الصغيرة */
+@media (max-width: 960px) {
+  body {
+    padding-top: 56px; /* ارتفاع الهيدر المصغر */
+  }
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  color: var(--primary-dark);
+  font-weight: 700;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 1em;
+}
+
+a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: var(--secondary-dark);
+  text-decoration: underline;
+}
+
+/* إعادة تعيين بسيطة للعناصر الشائعة لتوحيد المظهر */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ------------------------------------ */
+/* 3. المكونات المشتركة (Common Components) */
+/* ------------------------------------ */
+
+/* الأزرار (Buttons) - تصميم موحد */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px; /* حواف أكثر استدارة */
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  background-color: var(--primary-color);
+  color: var(--surface-light);
+  box-shadow: 0 2px 5px var(--shadow-light);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background-color: var(--primary-dark);
+  box-shadow: 0 4px 8px var(--shadow-medium);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  background-color: #bdbdbd;
+  color: #888888;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* أزرار الأنماط المختلفة */
+.btn.submit, .btn-success {
+  background-color: var(--success-color);
+}
+.btn.submit:hover, .btn-success:hover {
+  background-color: #218838;
+}
+
+.btn.signout, .btn-danger {
+  background-color: var(--danger-color);
+}
+.btn.signout:hover, .btn.danger:hover {
+  background-color: #c82333;
+}
+
+.btn-info {
+  background-color: var(--info-color);
+}
+.btn-info:hover {
+  background-color: #138496;
+}
+
+.btn-warning {
+  background-color: var(--warning-color);
+  color: var(--text-dark);
+}
+.btn.warning:hover {
+  background-color: #e0a800;
+}
+
+/* زر Google (مثال: في صفحة الدخول) */
+.btn.google-btn {
+  background-color: var(--surface-light);
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+}
+.btn.google-btn img {
+  vertical-align: middle;
+  width: 22px;
+  margin-left: 8px;
+}
+.btn.google-btn:hover {
+  background-color: #f0f0f0;
+}
+
+/* الرؤوس المشتركة (Header / App Bar) */
+header, .app-bar {
+  background-color: var(--primary-color);
+  color: var(--surface-light);
+  padding: 15px 25px;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px var(--shadow-medium);
+  z-index: 200;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  transition: all 0.3s ease-in-out;
+}
+/* نمط الرأس عند التمرير (للسكربت) */
+.app-bar.scrolled {
+  height: 50px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 8px var(--shadow-strong);
+}
+.app-bar.scrolled .app-bar-logo {
+  height: 30px;
+}
+.app-bar.scrolled .app-bar-title {
+  font-size: 1rem;
+}
+.app-bar.scrolled .nav-link {
+  height: 50px;
+}
+.app-bar.scrolled .notification-bell {
+  font-size: 1.3rem;
+}
+.app-bar.scrolled .btn {
+  padding: 5px 12px;
+  font-size: 0.8rem;
+}
+
+
+.app-bar-logo {
+  height: 40px;
+  margin-right: 16px;
+  transition: height 0.3s ease-in-out;
+}
+
+.app-bar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-left: 16px;
+  white-space: nowrap;
+  transition: font-size 0.3s ease-in-out;
+}
+
+.app-bar-spacer {
+  flex-grow: 1;
+}
+
+/* Navigation Links Container */
+nav#main-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-right: 20px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+
+/* Navigation Links (لصفحات المعلم) */
+.nav-link {
+  color: var(--surface-light);
+  text-decoration: none;
+  padding: 0 16px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+/* New: Nav link icon spacing */
+.nav-link i {
+    margin-left: 8px; /* Space between icon and text for RTL */
+}
+
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.nav-link.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16px;
+  right: 16px;
+  height: 2px;
+  background-color: var(--secondary-light);
+}
+
+
+/* الحاويات الرئيسية */
+.container {
+  /* تم تعديل هذا الجزء لزيادة عرض الحاوية */
+  max-width: 1400px; /* زيادة عرض الحاوية */
+  width: 95vw;       /* استخدام عرض النافذة لمرونة أكبر */
+  margin: 24px auto;
+  padding: 28px;
+  background: var(--surface-light);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px var(--shadow-light);
+  flex-grow: 1;
+}
+
+/* لجعل العناصر الأولى داخل الـ container تبتعد عن الرأس (إذا لم يكن هناك عنصر أعلى) */
+.container > *:first-child {
+    margin-top: 24px;
+}
+
+/* ------------------------------------ */
+/* 4. أنماط البطاقات والجداول والنماذج والإشعارات (المكونات الأساسية) */
+/* ------------------------------------ */
+
+/* البطاقات (Cards) - توحيد المظهر */
+.card {
+  background-color: var(--surface-light);
+  border-radius: 12px;
+  box-shadow: 0 4px 8px var(--shadow-light);
+  margin-bottom: 24px;
+  overflow: hidden;
+  transition: all 0.2s ease-in-out;
+  border: 1px solid var(--border-color);
+}
+
+.card:hover {
+  box-shadow: 0 6px 12px var(--shadow-medium);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--background-light);
+  color: var(--primary-dark);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  font-weight: 600;
+}
+
+.card-content {
+  padding: 20px;
+}
+
+.card-actions {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--background-light);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* الجداول (Tables) - مظهر احترافي وموحد */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 20px 0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--shadow-light);
+  background-color: var(--surface-light);
+  border: 1px solid var(--border-color);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.table th {
+  background-color: var(--primary-color);
+  color: var(--surface-light);
+  font-weight: 600;
+  text-align: right;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table td {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: right;
+  vertical-align: middle;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* أنماط خاصة لخلايا الجدول */
+.summary-text-cell {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 300px;
+  text-align: right;
+}
+
+.table-mark-input {
+  width: 80px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.95rem;
+  text-align: center;
+  margin-left: 8px;
+  background-color: var(--background-light);
+  color: var(--text-dark);
+}
+
+.table-mark-button {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  background-color: var(--secondary-color);
+  color: var(--surface-light);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+    }
+    .table-mark-button:hover {
+        background-color: var(--secondary-dark);
+    }
+
+
+    /* النماذج (Forms) - مظهر موحد */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background-color: var(--surface-light);
+      color: var(--text-dark);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
+      outline: none;
+    }
+
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000000'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3csvg%3e");
+      background-repeat: no-repeat;
+      background-position: left 12px center;
+      background-size: 24px;
+      padding-left: 40px;
+      padding-right: 12px;
+    }
+    .dark-mode .form-select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3csvg%3e");
+    }
+
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
+    /* New: Readonly textarea style for summaries */
+    textarea.summary-text[readonly] {
+        background-color: var(--background-light); /* Lighter background for readonly */
+        border-color: var(--border-color);
+        cursor: default;
+    }
+
+
+    /* شارات الحالة (Status Badges) */
+    .summary-status {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      display: inline-block;
+      white-space: nowrap;
+      text-transform: capitalize;
+      border: 1px solid;
+    }
+    .summary-status.submitted {
+      background-color: #e3f6ed;
+      color: #219e4b;
+      border-color: #b7eecd;
+    }
+    .summary-status.draft {
+      background-color: #fff4e0;
+      color: #b96d0d;
+      border-color: #ffda8d;
+    }
+
+    /* صندوق الإشعارات (Notification Panel) - مظهر موحد */
+    .notification-bell {
+      position: relative;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: var(--surface-light);
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    .notification-bell:hover {
+      transform: scale(1.1);
+      color: var(--secondary-light);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: var(--danger-color);
+      color: var(--surface-light);
+      border-radius: 50%;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      line-height: 1;
+      min-width: 15px;
+      text-align: center;
+      box-shadow: 0 0 5px var(--shadow-medium);
+      border: 1px solid var(--surface-light);
+    }
+
+    .notification-panel {
+      display: none;
+      position: fixed;
+      top: 70px;
+      right: 15px;
+      width: 350px;
+      max-height: 450px;
+      overflow-y: auto;
+      background-color: var(--surface-light); /* Changed to surface-light for consistency */
+      border-radius: 12px;
+      box-shadow: 0 4px 15px var(--shadow-medium); /* Adjusted shadow */
+      z-index: 1100;
+      padding: 15px;
+      text-align: right;
+      border: 1px solid var(--border-color);
+      box-sizing: border-box;
+      animation: fadeInDown 0.3s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-panel h5 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: var(--primary-dark);
+      font-size: 1.125rem;
+      border-bottom: 1px solid var(--border-color); /* Changed to border-color */
+      padding-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .notification-item {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-color); /* Changed to border-color */
+      font-size: 0.95rem;
+    }
+
+    .notification-item.unread {
+      background-color: rgba(98, 0, 238, 0.08); /* More noticeable unread background */
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .notification-timestamp {
+      font-size: 0.8rem;
+      color: var(--text-muted); /* Changed to text-muted */
+      margin-top: 6px;
+      text-align: right;
+      display: block;
+    }
+    .notification-item .mark-read-btn {
+        background-color: var(--secondary-color);
+        color: var(--surface-light); /* Changed to surface-light for consistency */
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-top: 10px;
+        display: inline-block;
+        transition: background-color 0.2s ease;
+    }
+    .notification-item .mark-read-btn:hover {
+        background-color: var(--secondary-dark);
+    }
+
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 28px; /* Increased padding */
+      background-color: #323232;
+      color: white;
+      border-radius: 8px; /* Consistent border radius */
+      box-shadow: 0 8px 16px var(--shadow-strong); /* Adjusted shadow */
+      z-index: 1200;
+      opacity: 0;
+      transform: translateY(100px);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* More engaging animation */
+      font-size: 1rem; /* Larger font */
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 50px; /* Larger spinner */
+      height: 50px; /* Larger spinner */
+      margin: 30px auto; /* More margin */
+      border: 5px solid rgba(0, 0, 0, 0.1); /* Thicker border */
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 0.8s ease-in-out infinite; /* Slightly faster animation */
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Utility Classes */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .text-left { text-align: left; }
+    .mt-1 { margin-top: 8px; } /* Increased base margin units */
+    .mt-2 { margin-top: 12px; }
+    .mt-3 { margin-top: 20px; }
+    .mt-4 { margin-top: 28px; }
+    .mt-5 { margin-top: 36px; }
+    .mb-1 { margin-bottom: 8px; }
+    .mb-2 { margin-bottom: 12px; }
+    .mb-3 { margin-bottom: 20px; }
+    .mb-4 { margin-bottom: 28px; }
+    .mb-5 { margin-bottom: 36px; }
+    .d-none { display: none; }
+    .d-flex { display: flex; }
+    .align-items-center { align-items: center; }
+    .justify-content-between { justify-content: space-between; }
+    .ml-2 { margin-right: 12px; margin-left: 0; } /* For RTL, this means space to the right of the element */
+    .mr-1 { margin-left: 8px; margin-right: 0; } /* Adjusted for RTL icon spacing */
+
+
+    /* Student Page Specific Styles */
+    /* Info box for student details */
+    .info {
+      background-color: var(--background-light); /* Consistent with card header background */
+      border: 1px solid var(--border-color);
+      border-radius: 8px; /* Consistent with other rounded elements */
+      padding: 15px 20px;
+      margin-bottom: 15px; /* Spacing below info box */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 10px 20px; /* Gap between grid items */
+    }
+    .info b {
+        color: var(--primary-dark);
+    }
+
+    /* Admission status box */
+    .admission-status-box {
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 15px;
+      border: 1px solid;
+    }
+    .admission-status-box.admission-pending {
+      background-color: #fffbe6;
+      color: #7a6a00;
+      border-color: #ffe082;
+    }
+    .admission-status-box.admission-accepted {
+      background-color: #e6ffed;
+      color: #2e7d32;
+      border-color: #a5d6a7;
+    }
+    .admission-status-box.admission-rejected {
+      background-color: #ffe6e6;
+      color: #b71c1c;
+      border-color: #ef9a9a;
+    }
+
+    /* Exams general box (was #examsBox) */
+    .exams-box {
+        padding: 15px 20px;
+        background-color: var(--background-light); /* Consistent with card header background */
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        margin-top: 15px;
+    }
+    .exams-title {
+        font-size: 1.15rem;
+        font-weight: bold;
+        color: var(--primary-dark);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .exam-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--border-color); /* Dashed border for rows */
+    }
+    .exam-row:last-child {
+        border-bottom: none;
+    }
+    .exam-row b {
+        color: var(--text-dark);
+    }
+    .exam-row span {
+        font-weight: 500;
+        color: var(--secondary-dark); /* Highlight results */
+    }
+    #fExam {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: var(--success-color);
+    }
+
+    /* Levels & Exams Table Area (from dashboard.js) */
+    .levels-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+    .levels-table th, .levels-table td {
+        padding: 12px 15px;
+        border: 1px solid var(--border-color);
+        text-align: right;
+    }
+    .levels-table th {
+        background-color: var(--primary-color);
+        color: var(--surface-light);
+    }
+    .levels-table tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.03);
+    }
+    .level-on {
+        color: var(--success-color);
+        font-weight: bold;
+    }
+    .level-off {
+        color: var(--danger-color);
+        font-weight: bold;
+    }
+    .exam-label {
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 0.9em;
+    }
+    .exam-label.fail {
+        background-color: #ffe6e6;
+        color: #b71c1c;
+    }
+    .exam-label.wait {
+        background-color: #f0f0f0;
+        color: #6c757d;
+    }
+
+    /* Lesson Summaries Area */
+    .lesson-summary-block {
+        background-color: var(--surface-light);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 5px var(--shadow-light);
+        transition: all 0.2s ease-in-out;
+    }
+    .lesson-summary-block:hover {
+        box-shadow: 0 4px 10px var(--shadow-medium);
+        transform: translateY(-2px);
+    }
+    .lesson-summary-block h4 {
+        margin-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .lesson-summary-block h4 span {
+        font-size: 0.8em;
+        font-weight: normal;
+        color: var(--text-muted);
+    }
+    .lesson-student-name {
+        font-size: 0.9em;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+    }
+    .lesson-link {
+        margin-left: 10px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .lesson-summary-block audio {
+        margin-top: 10px;
+        width: 100%;
+        max-width: 400px;
+    }
+    .summary-text {
+        width: 100%;
+        min-height: 120px;
+        padding: 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        font-size: 1rem;
+        background-color: var(--background-light);
+        color: var(--text-dark);
+        resize: vertical;
+        transition: all 0.2s ease;
+    }
+    .summary-text:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
+        outline: none;
+    }
+    .summary-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 15px;
+        gap: 10px; /* Added gap for button spacing */
+    }
+    .summary-actions .btn {
+        padding: 8px 16px;
+        font-size: 0.9em;
+    }
+
+    /* Teacher Comment Display */
+    .teacher-comment-display {
+      background-color: #e8f0fe; /* Light blue for teacher comment */
+      border-right: 4px solid var(--primary-color); /* Highlight with primary color */
+      padding: 10px 15px;
+      margin-top: 15px;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+    }
+    .teacher-comment-display strong {
+      color: var(--primary-dark);
+      margin-left: 5px;
+    }
+
+    /* Student Reply Area */
+    .reply-area {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px dashed var(--border-color);
+    }
+    .reply-area label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 8px;
+        color: var(--primary-dark);
+    }
+    .reply-area textarea {
+        min-height: 80px;
+        background-color: var(--background-light); /* Lighter background for reply input */
+    }
+
+    /* Exam Box Specific Styles */
+    .warn-message {
+      background-color: #fff3cd; /* Light yellow for warnings */
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 12px 20px;
+      font-weight: bold;
+      text-align: center;
+      color: #856404;
+      margin-top: 20px;
+    }
+    .question-block {
+      background-color: var(--background-light);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .question-title {
+      font-size: 1.15rem;
+      font-weight: bold;
+      color: var(--primary-dark);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .multi-note {
+      font-size: 0.85em;
+      color: var(--warning-color);
+      margin-right: 10px;
+    }
+    .question-mark {
+      font-size: 0.85em;
+      color: var(--secondary-color);
+      margin-right: auto; /* Push to left in RTL */
+    }
+    .choices-list {
+      margin-top: 10px;
+    }
+    .choice-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .choice-row label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text-dark);
+    }
+    .choice-row input[type="radio"],
+    .choice-row input[type="checkbox"] {
+      margin-left: 10px; /* Space from text in RTL */
+      width: 20px;
+      height: 20px;
+      accent-color: var(--primary-color); /* Highlight color for checkboxes/radios */
+    }
+    .scoring-note {
+      background-color: #e0f2f7; /* Light cyan for info notes */
+      border-left: 4px solid var(--info-color);
+      padding: 10px 15px;
+      margin-top: 15px;
+      border-radius: 5px;
+      font-size: 0.85rem;
+      color: #006064;
+    }
+    .result {
+      background-color: #e8ffe8; /* Light green for success */
+      border: 1px solid var(--success-color);
+      border-radius: 8px;
+      padding: 15px 20px;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--success-color);
+      margin-top: 20px;
+    }
+    .result.fail { /* Added style for failed exams */
+        background-color: #ffe8e8;
+        border-color: var(--danger-color);
+        color: var(--danger-color);
+    }
+
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+      body {
+        font-size: 15px;
+      }
+      .container {
+        /* تم تعديل هذا الجزء ليتناسب مع التعديل الأكبر */
+        max-width: 90vw;
+        padding: 20px;
+        margin-left: 15px;
+        margin-right: 15px;
+      }
+      .btn {
+        padding: 8px 16px;
+        font-size: 0.95rem;
+      }
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.3rem; }
+      h3 { font-size: 1.1rem; }
+
+      .nav-link {
+        height: 56px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+      }
+      .notification-bell {
+        font-size: 1.4rem;
+        margin-left: 15px;
+      }
+      .notification-badge {
+        top: -5px;
+        right: -5px;
+        padding: 2px 6px;
+        font-size: 0.65rem;
+      }
+      .notification-panel {
+        width: 300px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header, .app-bar {
+        padding: 12px 15px;
+        font-size: 1.2rem;
+      }
+      .app-bar-title {
+        font-size: 1.1rem;
+        margin-left: 10px;
+      }
+      .container {
+        /* تم تعديل هذا الجزء ليتناسب مع التعديل الأكبر */
+        max-width: unset; /* إزالة الحد الأقصى للعرض للسماح بملء الشاشة تقريبًا */
+        margin-top: 60px;
+        padding: 15px;
+        margin-left: 8px;
+        margin-right: 8px;
+      }
+      .btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+      }
+      .table th, .table td {
+        padding: 10px 14px;
+      }
+      .login-container {
+        margin: 40px auto;
+      }
+
+      /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
+      body.chat-page .main-container {
+        padding-top: 0;
+        flex-direction: column;
+      }
+      body.chat-page .chat-list-panel {
+        position: fixed;
+        top: 0;
+        right: -250px;
+        width: 250px;
+        height: 100%;
+        background: var(--surface);
+        box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+        z-index: 500;
+        transition: all 0.3s ease-in-out;
+        border-left: 1px solid var(--border-color);
+        flex-shrink: unset;
+      }
+      body.chat-page .chat-list-panel.open {
+        right: 0;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+      }
+      body.chat-page .chat-area {
+        width: 100%;
+        flex: 1;
+        overflow-y: auto;
+      }
+      body.chat-page .sidebar-toggle-btn {
+        display: flex;
+      }
+      body.chat-page .app-bar-title {
+        margin-right: auto;
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 576px) {
+      body {
+        font-size: 14px;
+      }
+      header, .app-bar {
+        font-size: 1.1rem;
+        justify-content: space-around;
+        text-align: center;
+        padding: 10px 8px;
+      }
+      .app-bar-logo {
+        height: 35px;
+        margin-right: 8px;
+      }
+      .app-bar-title {
+        display: none;
+      }
+      .container {
+        padding: 10px;
+        margin-left: 8px;
+        margin-right: 8px;
+        margin-top: 55px;
+      }
+      .toast {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        bottom: 15px;
+      }
+      .notification-panel {
+        width: calc(100% - 30px);
+        right: 15px;
+        left: 15px;
+      }
+      .table-mark-input {
+        width: 50px;
+        font-size: 0.8rem;
+        padding: 5px 6px;
+      }
+      .table-mark-button {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+      }
+      .lesson-summary-block {
+        padding: 15px;
+      }
+      .lesson-summary-block h4 {
+          font-size: 1.05rem;
+      }
+      .lesson-summary-block audio {
+          max-width: 100%;
+      }
+      .reply-area .btn {
+          padding: 6px 12px;
+          font-size: 0.85rem;
+      }
+      .login-container {
+        padding: 20px;
+        margin: 30px auto;
+      }
+    }
