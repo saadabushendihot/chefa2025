@@ -451,182 +451,230 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
   });
 }
 
-// دالة مساعدة للتحقق من أهلية الامتحان والمتابعة
-function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = false) {
-  const startExamBtn = document.getElementById('startExamBtn'); // تم تغيير goToExamBtn إلى startExamBtn
+/**
+ * دالة لعرض حالة أهلية الطالب للاختبار بشكل مفصل.
+ * يتم استدعاؤها من performExamEligibilityCheckAndProceed
+ * @param {object} eligibilityObject - كائن يحتوي على تفاصيل الأهلية.
+ * @param {boolean} eligibilityObject.overall_ready - هل الطالب جاهز لتقديم الاختبار.
+ * @param {string} eligibilityObject.overall_message - رسالة الحالة العامة.
+ * @param {object} eligibilityObject.checks - تفاصيل حالة كل شرط.
+ * @param {object} eligibilityObject.debug_info - معلومات تصحيح إضافية عن قيم الحقول.
+ */
+function renderExamEligibilityStatus(eligibilityObject) {
+    const examWarnMsgEl = document.getElementById('examWarnMsg');
+    const startExamBtn = document.getElementById('startExamBtn');
+
+    if (!examWarnMsgEl || !startExamBtn) {
+        console.error("renderExamEligibilityStatus: examWarnMsg or startExamBtn element not found!");
+        return;
+    }
+
+    let htmlContent = `<div style="padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid;">`;
+
+    if (eligibilityObject.overall_ready) {
+        htmlContent += `<p style="color: var(--success-color);">✅ ${eligibilityObject.overall_message}</p>`;
+        startExamBtn.style.display = ''; // إظهار زر الاختبار
+        examWarnMsgEl.style.display = 'block'; // إظهار هذا القسم لأنه يحتوي على الرسالة الإيجابية
+        examWarnMsgEl.style.backgroundColor = 'var(--success-color-light)'; // خلفية خضراء فاتحة
+        examWarnMsgEl.style.borderColor = 'var(--success-color)';
+    } else {
+        htmlContent += `<p style="color: var(--danger-color);">❌ ${eligibilityObject.overall_message}</p>`;
+        startExamBtn.style.display = 'none'; // إخفاء زر الاختبار
+        examWarnMsgEl.style.display = 'block'; // إظهار هذا القسم لأنه يحتوي على رسائل الخطأ
+        examWarnMsgEl.style.backgroundColor = 'var(--danger-color-light)'; // خلفية حمراء فاتحة
+        examWarnMsgEl.style.borderColor = 'var(--danger-color)';
+    }
+
+    htmlContent += `<div style="margin-top: 15px; text-align: right;">`;
+    htmlContent += `<h4 style="color: var(--primary-dark); margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px;">تفاصيل التحقق:</h4>`;
+    htmlContent += `<table style="width: 100%; border-collapse: collapse;">`;
+
+    // قبول الطالب
+    htmlContent += `<tr>
+        <td style="padding: 5px 0;"><strong>حالة القبول:</strong></td>
+        <td style="padding: 5px 0;">${eligibilityObject.checks.accepted_status.ready ? '✅ مقبول' : '❌ ' + eligibilityObject.checks.accepted_status.message}</td>
+        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.accepted_status.value}</td>
+    </tr>`;
+
+    // المستوى النشط
+    htmlContent += `<tr>
+        <td style="padding: 5px 0;"><strong>المستوى النشط:</strong></td>
+        <td style="padding: 5px 0;">${eligibilityObject.checks.level_active.ready ? '✅ مفعل: المستوى ' + eligibilityObject.checks.level_active.value : '❌ ' + eligibilityObject.checks.level_active.message}</td>
+        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.level_active.value}</td>
+    </tr>`;
+
+    // توفر الدروس
+    htmlContent += `<tr>
+        <td style="padding: 5px 0;"><strong>توفر الدروس:</strong></td>
+        <td style="padding: 5px 0;">${eligibilityObject.checks.lessons_available.ready ? '✅ متوفرة (' + eligibilityObject.checks.lessons_available.count + ' درس)' : '❌ ' + eligibilityObject.checks.lessons_available.message}</td>
+        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">تم البحث عن دروس المستوى: ${eligibilityObject.debug_info.active_level_index || 'غير محدد'}</td>
+    </tr>`;
+
+    // تلاخيص الدروس والعلامات
+    htmlContent += `<tr>
+        <td style="padding: 5px 0;"><strong>حالة التلاخيص والعلامات:</strong></td>
+        <td style="padding: 5px 0;">${eligibilityObject.checks.summaries_complete.ready ? '✅ مكتملة وبعلامات إيجابية (' + eligibilityObject.checks.summaries_complete.marked_positive_count + '/' + eligibilityObject.checks.summaries_complete.total_lessons + ' درس)' : '❌ ' + eligibilityObject.checks.summaries_complete.message}</td>
+        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">عدد التلاخيص التي تم فحصها: ${eligibilityObject.checks.summaries_complete.submitted_count}</td>
+    </tr>`;
+    
+    htmlContent += `</table>`;
+    htmlContent += `</div>`; // نهاية تفاصيل التحقق
+    htmlContent += `</div>`; // نهاية الصندوق الرئيسي
+
+
+    examWarnMsgEl.innerHTML = htmlContent;
+    // تم نقل التحكم في startExamBtn.style.display إلى هنا
+    // تم نقل التحكم في examWarnMsgEl.style.display إلى هنا
+}
+
+/**
+ * دالة مساعدة للتحقق من أهلية الطالب لتقديم الاختبار.
+ * @param {object} studentData - بيانات الطالب من Firestore.
+ * @param {boolean} proceedIfEligible - إذا كانت true، سيتم محاولة عرض الاختبار مباشرة في حال الأهلية الكاملة.
+ * @returns {Promise<object>} - يعود بكائن الأهلية المفصل.
+ */
+async function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = false) {
+  const startExamBtn = document.getElementById('startExamBtn');
   const warn = document.getElementById('examWarnMsg');
+
+  // تهيئة كائن الأهلية
+  const eligibility = {
+    overall_ready: true,
+    overall_message: "جاري التحقق من الأهلية...",
+    checks: {
+        accepted_status: { ready: true, value: studentData.accepted, message: "" },
+        level_active: { ready: true, value: lastActiveLevelIndex, message: "" },
+        lessons_available: { ready: true, count: 0, total: 0, message: "" },
+        summaries_complete: { ready: true, submitted_count: 0, marked_positive_count: 0, total_lessons: 0, message: "" }
+    },
+    debug_info: {
+        student_data: studentData,
+        active_level_index: lastActiveLevelIndex,
+        current_student_email: currentStudentEmail
+    }
+  };
 
   console.log("--- performExamEligibilityCheckAndProceed Started ---");
   console.log("lastActiveLevelIndex:", lastActiveLevelIndex);
   console.log("studentData.accepted:", studentData.accepted);
 
-  // إذا لم يكن المستوى نشطًا أو الطالب غير مقبول
-  if (!lastActiveLevelIndex || !studentData.accepted) {
-    if (startExamBtn) { // استخدم startExamBtn هنا
-      startExamBtn.style.display = "none";
-      console.log("performExamEligibilityCheckAndProceed: Button 'startExamBtn' hidden due to initial conditions.");
-    }
-    if (warn) {
-        if (typeof lastActiveLevelIndex !== 'number' || lastActiveLevelIndex <= 0) {
-            warn.innerText = 'لا يوجد مستوى نشط للطالب. يرجى تفعيل مستوى واحد على الأقل للطالب عبر لوحة تحكم المعلم.';
-        } else if (studentData.accepted !== true) {
-            warn.innerText = 'حالة قبول الطالب في الدورة غير "مقبول". يرجى مراجعة حالة القبول عبر لوحة تحكم المعلم.';
-        } else {
-            warn.innerText = 'خطأ غير معروف في التحقق الأولي. الرجاء التأكد من تفعيل مستوى الطالب وحالة القبول.';
-        }
-        warn.style.display = 'block';
-        warn.style.color = 'var(--danger-color)';
-        warn.style.fontWeight = 'bold';
-        console.log("performExamEligibilityCheckAndProceed: Warning displayed due to initial conditions.");
-    }
-    console.log("Condition 1 (lastActiveLevelIndex or studentData.accepted) not met. Exiting.");
-    return;
+  // Check 1: Initial eligibility (accepted, active level)
+  if (typeof lastActiveLevelIndex !== 'number' || lastActiveLevelIndex <= 0) {
+      eligibility.overall_ready = false;
+      eligibility.checks.level_active.ready = false;
+      eligibility.checks.level_active.message = 'لا يوجد مستوى نشط للطالب.';
+      eligibility.overall_message = 'الطالب غير جاهز: لا يوجد مستوى نشط.';
+  }
+  if (studentData.accepted !== true && studentData.accepted !== "مقبول" && studentData.accepted !== "accepted") {
+      eligibility.overall_ready = false;
+      eligibility.checks.accepted_status.ready = false;
+      eligibility.checks.accepted_status.message = 'حالة قبول الطالب غير "مقبول".';
+      // دمج رسالة القبول إذا كان هناك بالفعل رسالة عامة
+      if(eligibility.overall_message.includes("جاهز") || eligibility.overall_message.includes("جاري التحقق")) {
+        eligibility.overall_message = 'الطالب غير جاهز: حالة القبول ليست "مقبول".';
+      } else if (eligibility.overall_message) {
+        eligibility.overall_message += ' و حالة القبول ليست "مقبول".';
+      }
+      
   }
 
-  const levelText = getLevelText(lastActiveLevelIndex);
-  showLoading(true);
-
-  firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
-    let lessons = [];
-    lessonQuery.forEach(doc => lessons.push(doc.data()));
-    const lessonIds = lessons.map(l=>l.id);
-
-    console.log("Lessons for level", levelText, ":", lessons);
-    console.log("Lesson IDs:", lessonIds);
-
-    if(!lessonIds.length) {
-      if (startExamBtn) startExamBtn.style.display = "none"; // استخدم startExamBtn هنا
-      if (warn) {
-        warn.innerText = 'لا توجد دروس في هذا المستوى.';
-        warn.style.display = 'block';
-      }
+  // إذا فشلت الشروط الأولية، نعرض الحالة ونخرج.
+  if (!eligibility.checks.level_active.ready || !eligibility.checks.accepted_status.ready) {
+      renderExamEligibilityStatus(eligibility);
       showLoading(false);
-      console.log("Condition 2 (no lessons for this level) met.");
-      return;
-    }
+      console.log("Initial conditions not met. Exiting performExamEligibilityCheckAndProceed.");
+      return eligibility;
+  }
 
-    let summaryAndMarkPromises = [];
-    firestore.collection('summaries')
-      .where('student_email', '==', currentStudentEmail)
-      .where('lesson_id', 'in', lessonIds)
-      .get()
-      .then(function(summariesSnap){
-        let summariesMapForExamCheck = {};
-        summariesSnap.forEach(doc => {
-            let s = { ...doc.data(), docId: doc.id };
-            summariesMapForExamCheck[s.lesson_id] = s;
-            console.log("Fetched summary for lesson_id", s.lesson_id, ":", s);
-            if (s.status === 'submitted') {
-                summaryAndMarkPromises.push(
-                    firestore.collection('student_marks')
-                    .where('summary_id', '==', s.docId)
-                    .where('student_email', '==', currentStudentEmail)
-                    .limit(1)
-                    .get()
-                    .then(markSnap => {
-                        if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark > 0) {
-                            s.mark_from_student_marks = markSnap.docs[0].data().mark;
-                            console.log("Mark for summary", s.docId, "is valid:", s.mark_from_student_marks);
-                            return true;
-                        }
-                        s.mark_from_student_marks = null;
-                        console.log("Mark for summary", s.docId, "is NOT valid (null, 0 or less):", markSnap.empty ? "no mark doc" : markSnap.docs[0].data().mark);
-                        return false;
-                    }).catch(error => {
-                        console.error("Error fetching mark for summary in exam check:", s.docId, error);
-                        s.mark_from_student_marks = null;
-                        return false;
-                    })
-                );
-            } else {
-                s.mark_from_student_marks = null;
-                console.log("Summary for lesson_id", s.lesson_id, "is not submitted:", s.status);
-                summaryAndMarkPromises.push(Promise.resolve(false));
-            }
-        });
-        console.log("Number of summaries fetched:", summariesSnap.size);
+  // إذا كانت الشروط الأولية مستوفاة، نواصل التحققات التفصيلية
+  try {
+      const levelText = getLevelText(lastActiveLevelIndex);
+      showLoading(true);
 
-        Promise.all(summaryAndMarkPromises).then(() => {
-          let allRequiredSummariesPresentAndMarked = true;
+      const lessonQuerySnapshot = await firestore.collection('lessons').where('level', '==', levelText).get();
+      const lessons = lessonQuerySnapshot.docs.map(doc => doc.data());
+      
+      eligibility.checks.lessons_available.count = lessons.length;
+      eligibility.checks.lessons_available.total = lessons.length;
 
-          if (lessons.length === 0) {
-            allRequiredSummariesPresentAndMarked = true;
-            console.log("No lessons found for this level, assuming eligible.");
-          } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) {
-            allRequiredSummariesPresentAndMarked = false;
-            console.log("Condition 3 (not all summaries fetched for all lessons) failed. Summaries fetched:", Object.keys(summariesMapForExamCheck).length, "Lessons total:", lessons.length);
-          } else {
-            for (let i = 0; i < lessons.length; i++) {
-              const lessonId = lessons[i].id;
-              const summary = summariesMapForExamCheck[lessonId];
-              if (!summary || summary.status !== 'submitted' || summary.mark_from_student_marks === null || summary.mark_from_student_marks <= 0) {
-                allRequiredSummariesPresentAndMarked = false;
-                console.log("Condition 4 (summary not submitted or mark invalid) failed for lesson_id:", lessonId, "Summary:", summary);
-                break;
-              }
-            }
-          }
-          
-          console.log("Final allRequiredSummariesPresentAndMarked:", allRequiredSummariesPresentAndMarked);
-
-          if(allRequiredSummariesPresentAndMarked){
-              if (startExamBtn) { // استخدم startExamBtn هنا
-                startExamBtn.style.display="";
-                console.log("Exam button 'startExamBtn' set to display: '' (visible). Button element:", startExamBtn);
-              } else {
-                console.warn("Exam button (startExamBtn) not found in DOM when eligibility met!");
-              }
-              if (warn) {
-                warn.innerText = '';
-                warn.style.display = 'none';
-                console.log("Warn message cleared and hidden.");
-              }
-              console.log("Exam button activated.");
-              if (proceedIfEligible) {
-                  currentExamLevel = lastActiveLevelIndex;
-                  checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
-                  setTimeout(function(){
-                      const examBoxEl = document.getElementById('examBox');
-                      if (examBoxEl) examBoxEl.scrollIntoView({behavior: 'smooth'});
-                  }, 300);
-              }
-          } else {
-              if (startExamBtn) startExamBtn.style.display="none"; // استخدم startExamBtn هنا
-              if (warn) {
-                warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
-                warn.style.display = 'block';
-              }
-              console.log("Exam button deactivated, warning shown.");
-          }
+      if (lessons.length === 0) {
+          eligibility.overall_ready = false;
+          eligibility.checks.lessons_available.ready = false;
+          eligibility.checks.lessons_available.message = 'لا توجد دروس في هذا المستوى.';
+          eligibility.overall_message = 'الطالب غير جاهز: لا توجد دروس للمستوى النشط.';
+          renderExamEligibilityStatus(eligibility);
           showLoading(false);
-          console.log("--- performExamEligibilityCheckAndProceed Finished ---");
-        }).catch(error => {
-            console.error("Error in Promise.all for summary/mark check:", error);
-            if (startExamBtn) startExamBtn.style.display="none"; // استخدم startExamBtn هنا
-            if (warn) {
-              warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
-              warn.style.display = 'block';
-            }
-            showLoading(false);
-        });
-      }).catch(error => {
-          console.error("Error fetching summaries for exam check:", error);
-          if (startExamBtn) startExamBtn.style.display="none"; // استخدم startExamBtn هنا
-          if (warn) {
-            warn.innerText = 'حدث خطأ في جلب التلاخيص.';
-            warn.style.display = 'block';
-          }
-          showLoading(false);
+          console.log("No lessons for this level. Exiting performExamEligibilityCheckAndProceed.");
+          return eligibility;
+      }
+
+      let summaryAndMarkPromises = [];
+      const summariesSnap = await firestore.collection('summaries')
+          .where('student_email', '==', currentStudentEmail)
+          .where('lesson_id', 'in', lessons.map(l => l.id))
+          .get();
+
+      let summariesMapForExamCheck = {};
+      summariesSnap.forEach(doc => {
+          let s = { ...doc.data(), docId: doc.id };
+          summariesMapForExamCheck[s.lesson_id] = s;
       });
-  }).catch(error => {
-      console.error("Error fetching lessons for exam check:", error);
-      if (startExamBtn) startExamBtn.style.display="none"; // استخدم startExamBtn هنا
-      if (warn) {
-        warn.innerText = 'حدث خطأ في جلب الدروس.';
-        warn.style.display = 'block';
+
+      let submittedCount = 0;
+      let markedPositiveCount = 0;
+
+      for (const lesson of lessons) {
+          const summary = summariesMapForExamCheck[lesson.id];
+          if (summary && summary.status === 'submitted') {
+              submittedCount++;
+              const markSnap = await firestore.collection('student_marks')
+                  .where('summary_id', '==', summary.docId)
+                  .where('student_email', '==', currentStudentEmail)
+                  .limit(1)
+                  .get();
+
+              if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark > 0) {
+                  markedPositiveCount++;
+              }
+          }
       }
+
+      eligibility.checks.summaries_complete.submitted_count = submittedCount;
+      eligibility.checks.summaries_complete.marked_positive_count = markedPositiveCount;
+      eligibility.checks.summaries_complete.total_lessons = lessons.length;
+
+      if (submittedCount !== lessons.length || markedPositiveCount !== lessons.length) {
+          eligibility.overall_ready = false;
+          eligibility.checks.summaries_complete.ready = false;
+          eligibility.checks.summaries_complete.message = 'يجب تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+          eligibility.overall_message = 'الطالب غير جاهز: التلاخيص غير مكتملة أو لم يتم تصحيحها بشكل إيجابي.';
+      } else {
+          eligibility.overall_message = 'جاهز لتقديم الاختبار!'; // رسالة عامة إذا كان كل شيء جاهز
+      }
+
+      renderExamEligibilityStatus(eligibility);
+
+      if (eligibility.overall_ready && proceedIfEligible) {
+          currentExamLevel = lastActiveLevelIndex;
+          checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+          setTimeout(() => {
+              const examBoxEl = document.getElementById('examBox');
+              if (examBoxEl) examBoxEl.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
+      }
+
       showLoading(false);
-  });
+      console.log("--- performExamEligibilityCheckAndProceed Finished ---");
+      return eligibility;
+
+  } catch (error) {
+      console.error("Error in performExamEligibilityCheckAndProceed:", error);
+      eligibility.overall_ready = false;
+      eligibility.overall_message = `حدث خطأ أثناء التحقق: ${error.message}`;
+      renderExamEligibilityStatus(eligibility);
+      showLoading(false);
+      return eligibility;
+  }
 }
 
 // المستويات + الامتحانات (مع تحسينات عرض)
@@ -671,18 +719,13 @@ function renderLevelsExamsMergedTable(data) {
   }
   html += "</tbody></table></div>";
 
-  // زر الانتقال للاختبار (startExamBtn) يتم التحكم فيه الآن بواسطة JS وليس هنا
-  // تأكد من أن هذا الـ div يبقى فارغاً في HTML لـ startExamBtn
-  // levelsExamsTableArea.innerHTML = html; // لا نضع الزر هنا بعد الآن
-  
+  // زر الانتقال للاختبار (startExamBtn) موجود في HTML بشكل ثابت الآن
+  // ولا يتم وضعه ديناميكياً هنا بعد الآن
+
   levelsExamsTableArea.innerHTML = html; // يجب تحديث محتوى الجدول فقط
 
-  // يتم التحكم في visibility of startExamBtn الآن بواسطة performExamEligibilityCheckAndProceed
-  // وتتم إضافة event listener له في DOMContentLoaded
-  // لذلك لا يوجد كود هنا لإضافة الزر ديناميكيًا أو ربط onclick به بعد الآن.
-  // فقط نتأكد من أن performExamEligibilityCheckAndProceed يتم استدعاؤها في الوقت الصحيح.
-
-  // عند تحميل الصفحة، نقوم بالتحقق الأولي (لا نتقدم للامتحان تلقائياً)
+  // عند تحميل الصفحة، نقوم بالتحقق الأولي من الأهلية (لا نتقدم للامتحان تلقائياً)
+  // this is handled by DOMContentLoaded -> loadStudentData -> renderLevelsExamsMergedTable -> performExamEligibilityCheckAndProceed
   if(lastActiveLevelIndex && data.accepted === true){
       performExamEligibilityCheckAndProceed(data, false);
   }
@@ -713,7 +756,6 @@ function showExamResultOnly(result) {
   const examStudentInfoEl = document.getElementById('examStudentInfo');
   const examLevelInfoEl = document.getElementById('examLevelInfo');
   const resultAreaEl = document.getElementById('resultArea');
-  // const goToExamBtnEl = document.getElementById('goToExamBtn'); // لم يعد موجودًا
   const submitBtn = document.querySelector("#examForm button[type=submit]");
   const exitExamBtnEl = document.getElementById('exitExamBtn');
   const startExamBtn = document.getElementById('startExamBtn'); // الزر الجديد
@@ -725,16 +767,15 @@ function showExamResultOnly(result) {
     `<b>اسم الطالب:</b> ${currentStudentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${currentStudentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${result.level}`;
   if (examLevelInfoEl) examLevelInfoEl.innerText = '';
   
-  let passed = (result.score >= result.total * 0.5);
+  let passed = (result.score >= result.total_marks_possible * 0.5); // استخدام total_marks_possible
   if (resultAreaEl) resultAreaEl.className = `result ${passed ? '' : 'fail'}`;
 
   if (resultAreaEl) resultAreaEl.innerHTML = `<div style="font-size:1.3rem;font-weight:bold;">
-    لقد سبق لك تقديم اختبار هذا المستوى.<br>درجتك: ${result.score} من ${result.total}
+    لقد سبق لك تقديم اختبار هذا المستوى.<br>درجتك: ${result.score} من ${result.total_marks_possible}
     </div>`;
-  // if (goToExamBtnEl) goToExamBtnEl.style.display = "none"; // لم يعد موجودًا
   if (submitBtn) submitBtn.style.display = "none";
   if (exitExamBtnEl) exitExamBtnEl.style.display = "none";
-  if (startExamBtn) startExamBtn.style.display = "none"; // إخفاء زر بدء الاختبار
+  if (startExamBtn) startExamBtn.style.display = "none";
   clearInterval(examTimerInterval); updateExamTimer();
 }
 
@@ -749,7 +790,7 @@ function showExamBox(studentName, studentEmail, level) {
   const exitExamBtnEl = document.getElementById('exitExamBtn');
   const startExamBtn = document.getElementById('startExamBtn'); // الزر الجديد
 
-  if (startExamBtn) startExamBtn.style.display = "none"; // إخفاء زر بدء الاختبار
+  if (startExamBtn) startExamBtn.style.display = "none";
 
   if (examBoxEl) examBoxEl.style.display = '';
   if (examStudentInfoEl) examStudentInfoEl.innerHTML =
@@ -935,7 +976,7 @@ function processExamSubmission(isTimerSubmission = false) {
           const resultAreaEl = document.getElementById('resultArea');
           const submitBtn = document.querySelector("#examForm button[type=submit]");
           const exitExamBtnEl = document.getElementById('exitExamBtn');
-          const startExamBtn = document.getElementById('startExamBtn'); // الزر الجديد
+          const startExamBtn = document.getElementById('startExamBtn');
 
           if (questionsAreaEl) questionsAreaEl.innerHTML = '';
           if (formMsgEl) formMsgEl.innerText = '';
@@ -947,7 +988,7 @@ function processExamSubmission(isTimerSubmission = false) {
             </div>`;
           if (submitBtn) submitBtn.style.display = "none";
           if (exitExamBtnEl) exitExamBtnEl.style.display = "none";
-          if (startExamBtn) startExamBtn.style.display = "none"; // إخفاء زر بدء الاختبار
+          if (startExamBtn) startExamBtn.style.display = "none";
           updateLevelExamTable(currentExamLevel, resultDoc);
           showToast("تم إرسال الإجابات بنجاح", "var(--success-color)");
           clearInterval(examTimerInterval); updateExamTimer();
@@ -973,10 +1014,10 @@ function showResult(msg) {
 
 // تحديث جدول الامتحان
 function updateLevelExamTable(level, result) {
-  let passed = (result.score >= result.total * 0.5);
+  let passed = (result.score >= result.total_marks_possible * 0.5); // استخدام total_marks_possible
   let label = passed
-    ? `<span class="exam-label">✅ اجتاز الامتحان (${result.score} من ${result.total})</span>`
-    : `<span class="exam-label fail">❌ لم يجتز (${result.score} من ${result.total})</span>`;
+    ? `<span class="exam-label">✅ اجتاز الامتحان (${result.score} من ${result.total_marks_possible})</span>`
+    : `<span class="exam-label fail">❌ لم يجتز (${result.score} من ${result.total_marks_possible})</span>`;
   let table = document.querySelectorAll(".levels-table tbody tr");
   if(table && table.length >= level) {
     let cell = table[level-1].querySelector("td:last-child");
@@ -1299,7 +1340,7 @@ function saveSummary(lessonId) {
       console.log("Draft saved to Firestore successfully.");
       setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
   }).catch((error)=>{ 
-      showToast("خطأ أثناء الحفظ: " + error.message, "var(--danger-color)");
+      showToast(`خطأ أثناء الحفظ: ${error.message}`, "var(--danger-color)");
       console.error("Error saving draft to Firestore:", error);
   });
   console.log("--- saveSummary انتهى ---");
@@ -1393,7 +1434,7 @@ function logout() {
       studentMarksListenerUnsubscribe = null;
   }
   auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
-    console.error("خطأ في تسجيل الخروج:", error);
+    console.error("Error in تسجيل الخروج:", error);
   });
 }
 
@@ -1440,19 +1481,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadReportBtn = document.getElementById('downloadReportBtn');
   if (downloadReportBtn) downloadReportBtn.onclick = downloadReport;
 
-  // NEW: ربط زر بدء الاختبار الجديد startExamBtn
   const startExamBtn = document.getElementById('startExamBtn');
   if (startExamBtn) {
-      // إخفاء الزر افتراضيًا عند تحميل DOM (لأنه مرئي في HTML)
       startExamBtn.style.display = "none"; 
       console.log("Initial state: startExamBtn hidden.");
 
       startExamBtn.onclick = function() {
-          // استدعاء performExamEligibilityCheckAndProceed للانتقال إلى الاختبار
-          // proceedIfEligible = true للإشارة إلى أن النقر يدوي
           performExamEligibilityCheckAndProceed({
-              accepted: true, // نفترض أنه مقبول عند النقر، لكن الدالة ستتحقق مجدداً
-              // قم بتضمين أي بيانات طالب أخرى تحتاجها الدالة إذا لم تكن موجودة عالمياً
+              accepted: true,
+              // Note: currentStudentData is a global populated by loadStudentData.
+              // We should pass the actual studentData from loadStudentData if available.
+              // For robustness, performExamEligibilityCheckAndProceed should fetch it again or accept it as parameter.
+              // For now, assuming `lastActiveLevelIndex` and `studentData.accepted` are globally accessible.
           }, true); 
       };
       console.log("Event listener attached to startExamBtn.");
