@@ -1,5 +1,5 @@
 // Firebase Config: (يتم جلبه من firebase-config.js)
-    
+
 // الوضع الليلي
 function toggleNightMode() {
   document.body.classList.toggle('dark-mode');
@@ -26,10 +26,36 @@ function openSupport() {
 
 // تنزيل تقرير PDF (مكتبة jsPDF مطلوبة)
 function downloadReport() {
-  showToast("هذه الميزة تتطلب مكتبة jsPDF. يمكنك إضافتها لاحقًا.");
-  // مثال: https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.js
-  // يمكنك استيرادها ثم تفعيل كود تصدير PDF هنا.
+  // NEW: More explicit message if jsPDF is not fully integrated client-side
+  if (typeof html2pdf === 'undefined') {
+      showToast("ميزة تحميل التقرير قيد التطوير حالياً. يرجى المحاولة لاحقاً.", "var(--info-color)");
+      return;
+  }
+  showToast("جاري إنشاء تقرير PDF...", "var(--info-color)");
+  let el = document.getElementById('studentDataForPdf'); // Assuming you'd wrap relevant data in an ID for PDF
+  if (!el) {
+    el = document.querySelector('.container'); // Fallback to entire container if specific ID not found
+  }
+  let studentNameForPdf = currentStudentName || "التقرير";
+  let opt = {
+    margin: 0.5,
+    filename: `تقرير_${studentNameForPdf}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  // Clone the element to hide specific buttons/inputs only for PDF generation
+  let clonedElement = el.cloneNode(true);
+  let elementsToHideInPdf = clonedElement.querySelectorAll('.btn, .form-group button, .table-mark-input, .table-mark-button, .reset-summary, #summaryDetailsBox .card-actions, .app-bar, .spinner, #toast, .notification-bell, .notification-panel, .message-input-area, #examBox');
+  elementsToHideInPdf.forEach(elem => elem.style.display = 'none');
+  
+  html2pdf().set(opt).from(clonedElement).save().finally(() => {
+    // No need to revert hidden elements on the actual page, as we used a clone
+    showToast("تم إنشاء التقرير بنجاح!", "var(--success-color)");
+  });
 }
+
 
 // فلترة النص لمنع HTML
 function sanitizeText(text) {
@@ -49,7 +75,7 @@ function startExamTimer(minutes = 20) {
     updateExamTimer();
     if (examTimeLeft <= 0) {
       clearInterval(examTimerInterval);
-      showToast("انتهى وقت الاختبار! سيتم تسليم إجاباتك تلقائياً.", "#e63946");
+      showToast("انتهى وقت الاختبار! سيتم تسليم إجاباتك تلقائياً.", "var(--danger-color)"); // Use CSS variable
       processExamSubmission(true); // استدعاء الدالة الجديدة للتسليم التلقائي
     }
   }, 1000);
@@ -96,14 +122,14 @@ const TEACHER_ADMIN_EMAIL = "saad.abushendi@gmail.com";
 // تعريف روابط التنقل لكل دور
 const navLinks = {
     teacher: [
-        { name: 'لوحة التحكم', href: 'dashboard.html' },
-        { name: 'إدارة الأسئلة', href: 'questions-admin.html' },
-        { name: 'الدردشة', href: 'chat.html' }
+        { name: 'لوحة التحكم', href: 'dashboard.html', icon: 'fas fa-tachometer-alt' },
+        { name: 'إدارة الأسئلة', href: 'questions-admin.html', icon: 'fas fa-question-circle' },
+        { name: 'الدردشة', href: 'chat.html', icon: 'fas fa-comments' }
     ],
     student: [
-        { name: 'لوحة الطالب', href: 'student.html' },
-        { name: 'الاختبار', href: 'student-quiz.html' },
-        { name: 'الدردشة', href: 'chat.html' }
+        { name: 'لوحة الطالب', href: 'student.html', icon: 'fas fa-user-graduate' },
+        { name: 'الاختبار', href: 'student-quiz.html', icon: 'fas fa-pencil-alt' },
+        { name: 'الدردشة', href: 'chat.html', icon: 'fas fa-comments' }
     ]
 };
 
@@ -119,11 +145,19 @@ function renderNavigation(role) {
     linksToRender.forEach(link => {
         const a = document.createElement('a');
         a.href = link.href;
-        a.textContent = link.name;
         a.className = 'nav-link';
         if (currentPath === link.href) {
              a.classList.add('active');
         }
+        // Add icon
+        const icon = document.createElement('i');
+        icon.className = link.icon;
+        a.appendChild(icon);
+        // Add text
+        const textSpan = document.createElement('span');
+        textSpan.textContent = link.name;
+        a.appendChild(textSpan);
+
         navContainer.appendChild(a);
     });
 }
@@ -190,7 +224,7 @@ auth.onAuthStateChanged(function(user) {
           email: user.email, role: "student"
         }).then(function() { window.location.reload(); });
       }
-    }).catch(err => { showLoading(false); showToast("خطأ في جلب بيانات المستخدم", "#e63946"); });
+    }).catch(err => { showLoading(false); showToast("خطأ في جلب بيانات المستخدم", "var(--danger-color)"); }); // Use CSS variable
   } else {
     window.location.href = "login.html";
   }
@@ -265,7 +299,7 @@ function setupNotificationsListener() {
             renderNotifications(notifications, unreadCount);
         }, function(error) {
             console.error("Error listening to notifications:", error);
-            showToast("خطأ في تحميل الإشعارات: " + error.message, "#e63946");
+            showToast("خطأ في تحميل الإشعارات: " + error.message, "var(--danger-color)"); // Use CSS variable
         });
 }
 
@@ -304,7 +338,7 @@ function markNotificationAsRead(notificationId) {
         is_read: true // Use is_read as per Firestore document
     }).catch(error => {
         console.error("Error marking notification as read:", error);
-        showToast("خطأ في تحديث حالة الإشعار: " + error.message, "#e63946");
+        showToast("خطأ في تحديث حالة الإشعار: " + error.message, "var(--danger-color)"); // Use CSS variable
     });
 }
 
@@ -341,7 +375,7 @@ function setupRealtimeMarksListener() {
 
         }, function(error) {
             console.error("Error listening to student marks:", error);
-            showToast("خطأ في تحميل علامات الطلاب في الوقت الحقيقي: " + error.message, "#e63946");
+            showToast("خطأ في تحميل علامات الطلاب في الوقت الحقيقي: " + error.message, "var(--danger-color)"); // Use CSS variable
         });
 }
 
@@ -362,10 +396,10 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
       document.getElementById('studentEmail').innerText = userEmail || "";
       document.getElementById('courseNumber').innerText = data.course_number || "";
       document.getElementById('msg').innerText = "";
-      document.getElementById('examsBox').style.display = "none";
-      document.getElementById('admissionStatusBox').style.display = "none";
-      document.getElementById('lessonsSummariesArea').innerHTML = "";
-      document.getElementById('levelsExamsTableArea').innerHTML = "";
+      
+      // NEW: Control visibility of examsBoxWrapper
+      const examsBoxWrapper = document.getElementById('examsBoxWrapper');
+      examsBoxWrapper.style.display = "none"; // Hide by default
 
       // حالة القبول
       const admissionBox = document.getElementById('admissionStatusBox');
@@ -378,20 +412,20 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
         if (isAccepted) {
           admissionBox.className = "admission-status-box admission-accepted";
           admissionBox.innerText = "تم قبولك في الدورة ✅";
-          document.getElementById('examsBox').style.display = "block";
+          examsBoxWrapper.style.display = "block"; // Show exams box if accepted
         } else if (isRejected) {
           admissionBox.className = "admission-status-box admission-rejected";
           admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
-          document.getElementById('examsBox').style.display = "none";
+          examsBoxWrapper.style.display = "none";
         } else {
           admissionBox.className = "admission-status-box admission-pending";
           admissionBox.innerText = "طلبك قيد المراجعة...";
-          document.getElementById('examsBox').style.display = "none";
+          examsBoxWrapper.style.display = "none";
         }
       } else {
         admissionBox.className = "admission-status-box admission-pending";
         admissionBox.innerText = "طلبك قيد المراجعة...";
-        document.getElementById('examsBox').style.display = "none";
+        examsBoxWrapper.style.display = "none";
       }
 
       // جدول المستويات/الامتحانات
@@ -414,7 +448,7 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
   }).catch(function(err) {
     showLoading(false);
     document.getElementById('msg').innerText = "خطأ في جلب البيانات: " + err.message;
-    showToast("خطأ في تحميل بيانات الطالب!", "#e63946");
+    showToast("خطأ في تحميل بيانات الطالب!", "var(--danger-color)"); // Use CSS variable
   });
 }
 
@@ -424,8 +458,8 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
   const warn = document.getElementById('examWarnMsg');
 
   if (!lastActiveLevelIndex || !studentData.accepted) {
-    btn.style.display = "none";
-    warn.innerText = ''; // مسح أي تحذيرات سابقة
+    if (btn) btn.style.display = "none";
+    if (warn) warn.innerText = ''; // مسح أي تحذيرات سابقة
     return; // لا يوجد مستوى نشط أو الطالب غير مقبول
   }
 
@@ -438,8 +472,9 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
     const lessonIds = lessons.map(l=>l.id);
 
     if(!lessonIds.length) {
-      btn.style.display = "none";
-      warn.innerText = 'لا توجد دروس في هذا المستوى.';
+      if (btn) btn.style.display = "none";
+      if (warn) warn.innerText = 'لا توجد دروس في هذا المستوى.';
+      if (warn) warn.style.display = 'block'; // Show warning
       showLoading(false);
       return;
     }
@@ -500,8 +535,9 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
           }
 
           if(allRequiredSummariesPresentAndMarked){
-              btn.style.display="";
-              warn.innerText = '';
+              if (btn) btn.style.display="";
+              if (warn) warn.innerText = '';
+              if (warn) warn.style.display = 'none'; // Hide warning
               if (proceedIfEligible) { // فقط إذا كانت الدالة قد استدعيت بهدف المتابعة للامتحان
                   currentExamLevel = lastActiveLevelIndex;
                   checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
@@ -510,33 +546,37 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
                   }, 300);
               }
           } else {
-              btn.style.display="none";
-              warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+              if (btn) btn.style.display="none";
+              if (warn) warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+              if (warn) warn.style.display = 'block'; // Show warning
           }
           showLoading(false); // إخفاء مؤشر التحميل بعد التحقق
         }).catch(error => {
             console.error("Error in Promise.all for summary/mark check:", error);
-            btn.style.display="none";
-            warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
+            if (btn) btn.style.display="none";
+            if (warn) warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
+            if (warn) warn.style.display = 'block'; // Show warning
             showLoading(false);
         });
       }).catch(error => {
           console.error("Error fetching summaries for exam check:", error);
-          btn.style.display="none";
-          warn.innerText = 'حدث خطأ في جلب التلاخيص.';
+          if (btn) btn.style.display="none";
+          if (warn) warn.innerText = 'حدث خطأ في جلب التلاخيص.';
+          if (warn) warn.style.display = 'block'; // Show warning
           showLoading(false);
       });
   }).catch(error => {
       console.error("Error fetching lessons for exam check:", error);
-      btn.style.display="none";
-      warn.innerText = 'حدث خطأ في جلب الدروس.';
+      if (btn) btn.style.display="none";
+      if (warn) warn.innerText = 'حدث خطأ في جلب الدروس.';
+      if (warn) warn.style.display = 'block'; // Show warning
       showLoading(false);
   });
 }
 
 // المستويات + الامتحانات (مع تحسينات عرض)
 function renderLevelsExamsMergedTable(data) {
-  let html = `<div class="exams-title-bar">حالة المستويات ونتائج الامتحانات</div>
+  let html = `<div class="table-container">
     <table class="levels-table" id="levelsExamsTable">
       <thead>
         <tr>
@@ -570,12 +610,14 @@ function renderLevelsExamsMergedTable(data) {
         <td>${examLabel}</td>
       </tr>`;
   }
-  html += "</tbody></table>";
+  html += "</tbody></table></div>"; // Close table-container
 
   // زر الانتقال للاختبار
   if(lastActiveLevelIndex && data.accepted === true){
     html += `<div style="text-align:center; margin:20px 0;">
-      <button class="btn" id="goToExamBtn" style="display:none">الانتقال إلى اختبار ${getLevelText(lastActiveLevelIndex)}</button>
+      <button class="btn" id="goToExamBtn" style="display:none">
+        <i class="fas fa-arrow-alt-circle-left" style="margin-left: 8px;"></i> الانتقال إلى اختبار المستوى ${getLevelText(lastActiveLevelIndex)}
+      </button>
     </div>`;
   }
   document.getElementById('levelsExamsTableArea').innerHTML = html;
@@ -604,7 +646,7 @@ function checkIfExamAlreadySubmitted(email, level) {
         showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
       }
     })
-    .catch(()=>{ showToast("خطأ في تحميل نتيجة الاختبار", "#e63946"); });
+    .catch(()=>{ showToast("خطأ في تحميل نتيجة الاختبار", "var(--danger-color)"); }); // Use CSS variable
 }
 
 // إظهار نتيجة الاختبار فقط
@@ -615,7 +657,12 @@ function showExamResultOnly(result) {
   document.getElementById('examStudentInfo').innerHTML =
     `<b>اسم الطالب:</b> ${currentStudentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${currentStudentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${result.level}`;
   document.getElementById('examLevelInfo').innerText = '';
-  document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#e63946;font-weight:bold;">
+  
+  // NEW: Add a class to resultArea based on pass/fail
+  let passed = (result.score >= result.total * 0.5);
+  document.getElementById('resultArea').className = `result ${passed ? '' : 'fail'}`;
+
+  document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;font-weight:bold;">
     لقد سبق لك تقديم اختبار هذا المستوى.<br>درجتك: ${result.score} من ${result.total}
     </div>`;
   let btn = document.getElementById('goToExamBtn');
@@ -656,7 +703,7 @@ function loadExamQuestions(level) {
     examQuestions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
     prepareRandomizedExam();
     renderQuestions();
-  }).catch(()=>{ showToast("خطأ في تحميل الأسئلة", "#e63946"); });
+  }).catch(()=>{ showToast("خطأ في تحميل الأسئلة", "var(--danger-color)"); }); // Use CSS variable
 }
 
 // عشوائية الأسئلة والاختيارات
@@ -734,7 +781,7 @@ function processExamSubmission(isTimerSubmission = false) {
   let totalMark = 0, gainedMark = 0, empty = 0;
   let details = [];
   randomizedExamQuestions.forEach((q, i) => {
-    const nodes = document.getElementsByName('q'+i);
+    const nodes = document.getElementsByName('q${i}');
     let selected = [];
     nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
 
@@ -772,7 +819,7 @@ function processExamSubmission(isTimerSubmission = false) {
   });
   if (!isTimerSubmission && empty > 0) {
     showFormMsg('يرجى الإجابة على جميع الأسئلة!');
-    showToast("يرجى الإجابة على جميع الأسئلة!", "#e63946");
+    showToast("يرجى الإجابة على جميع الأسئلة!", "var(--danger-color)"); // Use CSS variable
     return;
   }
 
@@ -786,7 +833,7 @@ function processExamSubmission(isTimerSubmission = false) {
       if (!querySnapshot.empty) {
         showExamResultOnly(querySnapshot.docs[0].data());
         updateLevelExamTable(currentExamLevel, querySnapshot.docs[0].data());
-        showToast("تم إرسال الإجابات مسبقاً", "#e63946");
+        showToast("تم إرسال الإجابات مسبقاً", "var(--danger-color)"); // Use CSS variable
         return;
       }
       const resultDoc = {
@@ -804,7 +851,11 @@ function processExamSubmission(isTimerSubmission = false) {
         .then(() => {
           document.getElementById('questionsArea').innerHTML = '';
           document.getElementById('formMsg').innerText = '';
-          document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#219e4b;font-weight:bold;">
+          // NEW: Add a class to resultArea based on pass/fail
+          let passed = (gainedMark >= totalMark * 0.5);
+          document.getElementById('resultArea').className = `result ${passed ? '' : 'fail'}`;
+
+          document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;font-weight:bold;">
             تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}
             </div>`;
           document.querySelector("button[type=submit]").style.display = "none";
@@ -812,13 +863,13 @@ function processExamSubmission(isTimerSubmission = false) {
           let btn = document.getElementById('goToExamBtn');
           if(btn) btn.style.display = "none";
           updateLevelExamTable(currentExamLevel, resultDoc);
-          showToast("تم إرسال الإجابات بنجاح", "#1dad87");
+          showToast("تم إرسال الإجابات بنجاح", "var(--success-color)"); // Use CSS variable
           clearInterval(examTimerInterval); updateExamTimer();
         })
         .catch((error) => {
           showResult(`درجتك: ${gainedMark} من ${totalMark}`);
           showFormMsg('حدث خطأ أثناء حفظ النتيجة: ' + error.message);
-          showToast("حدث خطأ أثناء حفظ النتيجة!", "#e63946");
+          showToast("حدث خطأ أثناء حفظ النتيجة!", "var(--danger-color)"); // Use CSS variable
         });
       showFormMsg('');
     });
@@ -880,7 +931,7 @@ function loadActiveLessonsAndSummaries(activeLevels) {
     window.lastRenderedLessons = lessons; // Store lessons for re-rendering from marks listener
 
     if (lessons.length === 0) {
-      document.getElementById('lessonsSummariesArea').innerHTML = "";
+      document.getElementById('lessonsSummariesArea').innerHTML = "<p style='text-align: center; color: var(--text-muted);'>لا توجد دروس متاحة حالياً في المستويات النشطة.</p>";
       showLoading(false);
       return;
     }
@@ -943,22 +994,22 @@ function loadActiveLessonsAndSummaries(activeLevels) {
 
             renderSummariesLessonsUI(lessons, studentSummaries); // Re-render with fresh data
             if (shouldShowToast) {
-                showToast("لديك تعليق أو علامة جديدة من المعلم على أحد تلاخيصك!", "#3b5cb8");
+                showToast("لديك تعليق أو علامة جديدة من المعلم على أحد تلاخيصك!", "var(--primary-color)"); // Use CSS variable
             }
             showLoading(false);
         }).catch(err => {
-            showToast("خطأ في تحديث العلامات في الوقت الحقيقي: " + err.message, "#e63946");
+            showToast("خطأ في تحديث العلامات في الوقت الحقيقي: " + err.message, "var(--danger-color)"); // Use CSS variable
             console.error("Promise.all error in listener:", err);
             showLoading(false);
         });
 
       }, function(error) {
-        showToast("خطأ في الاستماع لتحديثات التلاخيص: " + error.message, "#e63946");
+        showToast("خطأ في الاستماع لتحديثات التلاخيص: " + error.message, "var(--danger-color)"); // Use CSS variable
         console.error("Listener error:", error);
         showLoading(false);
       });
   }).catch(err => {
-    showToast("خطأ في تحميل الدروس للتلاخيص: " + err.message, "#e63946");
+    showToast("خطأ في تحميل الدروس للتلاخيص: " + err.message, "var(--danger-color)"); // Use CSS variable
     showLoading(false);
     console.error("Error fetching lessons for summaries:", err);
   });
@@ -966,7 +1017,7 @@ function loadActiveLessonsAndSummaries(activeLevels) {
 
 // عرض التلاخيص مع العلامة والتاريخ (مُعدلة)
 function renderSummariesLessonsUI(lessons, summariesMap) {
-  let html = `<h3 style="color:var(--primary-dark); margin-bottom:10px;">تلخيصات دروسك</h3>`;
+  let html = ''; // Removed h3 as it's now in card-header
   lessons.forEach(function(lesson){
     // Ensure teacher_comment and student_reply_comment are initialized even if null in DB
     let sum = summariesMap[lesson.id] || { docId: `new_draft_${lesson.id}`, summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" };
@@ -1076,12 +1127,12 @@ function saveStudentReply(summaryDocId) {
     // Check if summary or lesson_id is undefined before accessing
     if (!summary) {
         console.error("Error: Summary object is undefined for summaryDocId:", summaryDocId);
-        showToast("حدث خطأ: بيانات التلخيص غير موجودة. حاول تحديث الصفحة.", "#e63946");
+        showToast("حدث خطأ: بيانات التلخيص غير موجودة. حاول تحديث الصفحة.", "var(--danger-color)"); // Use CSS variable
         return;
     }
     if (typeof summary.lesson_id === 'undefined' || summary.lesson_id === null) {
         console.error("Error: summary.lesson_id is undefined or null for summaryDocId:", summaryDocId, summary);
-        showToast("حدث خطأ: رقم الدرس غير موجود للتلخيص. حاول تحديث الصفحة.", "#e63946");
+        showToast("حدث خطأ: رقم الدرس غير موجود للتلخيص. حاول تحديث الصفحة.", "var(--danger-color)"); // Use CSS variable
         return;
     }
     const lessonTitle = window.lessonsMap[summary.lesson_id];
@@ -1094,7 +1145,7 @@ function saveStudentReply(summaryDocId) {
 
 
     if (!replyText) {
-        showToast("يرجى كتابة الرد أولاً.", "#e63946");
+        showToast("يرجى كتابة الرد أولاً.", "var(--danger-color)"); // Use CSS variable
         console.warn("Reply text is empty."); // Log warning
         return;
     }
@@ -1102,7 +1153,7 @@ function saveStudentReply(summaryDocId) {
     firestore.collection('summaries').doc(summaryDocId).update({
         student_reply_comment: replyText
     }).then(() => {
-        showToast("تم حفظ ردك بنجاح!", "#1dad87");
+        showToast("تم حفظ ردك بنجاح!", "var(--success-color)"); // Use CSS variable
         console.log("Reply saved to Firestore successfully."); // Log success
         // NEW: Send notification to teacher for student reply
         sendTeacherNotification(
@@ -1114,7 +1165,7 @@ function saveStudentReply(summaryDocId) {
         console.log("Teacher notification sent for reply."); // Log notification send
         // No need to call loadStudentData here, listener will handle refresh
     }).catch(error => {
-        showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "#e63946");
+        showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "var(--danger-color)"); // Use CSS variable
         console.error("Error saving student reply to Firestore:", error); // Log error
     });
     console.log("--- saveStudentReply انتهى ---"); // Log end
@@ -1137,7 +1188,7 @@ function saveSummary(lessonId) {
 
   if (!text) {
     msg.innerText = "يرجى كتابة التلخيص أولاً.";
-    showToast("يرجى كتابة التلخيص!", "#e63946");
+    showToast("يرجى كتابة التلخيص!", "var(--danger-color)"); // Use CSS variable
     console.warn("Draft text is empty."); // Log warning
     return;
   }
@@ -1148,7 +1199,7 @@ function saveSummary(lessonId) {
       // Check if already submitted
       if (existingSummary.status === "submitted") {
           msg.innerText = "تم تسليم التلخيص النهائي ولا يمكن التعديل.";
-          showToast("تم تسليم التلخيص النهائي ولا يمكن التعديل.", "#e63946");
+          showToast("تم تسليم التلخيص النهائي ولا يمكن التعديل.", "var(--danger-color)"); // Use CSS variable
           console.warn("Attempted to save draft for already submitted summary."); // NEW LOG
           return;
       }
@@ -1168,14 +1219,14 @@ function saveSummary(lessonId) {
   console.log("Summary data to save (draft):", summaryData); // NEW LOG
 
   docRef.set(summaryData, { merge: true }).then(function(){ // Use set with merge for both new and update
-      msg.style.color = "var(--success-color)";
+      msg.style.color = "var(--success-color)"; // Use CSS variable
       msg.innerText = "تم حفظ المسودة.";
-      showToast("تم حفظ المسودة.", "#1dad87");
+      showToast("تم حفظ المسودة.", "var(--success-color)"); // Use CSS variable
       console.log("Draft saved to Firestore successfully."); // NEW LOG
       // No need to call loadStudentData, listener will handle refresh
-      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
+      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500); // Use CSS variable
   }).catch((error)=>{ 
-      showToast("خطأ أثناء الحفظ: " + error.message, "#e63946"); 
+      showToast("خطأ أثناء الحفظ: " + error.message, "var(--danger-color)"); // Use CSS variable
       console.error("Error saving draft to Firestore:", error); // NEW LOG
   });
   console.log("--- saveSummary انتهى ---"); // Log end
@@ -1194,7 +1245,7 @@ function submitSummary(lessonId) {
 
   if (!text) {
     msg.innerText = "يرجى كتابة التلخيص أولاً.";
-    showToast("يرجى كتابة التلخيص!", "#e63946");
+    showToast("يرجى كتابة التلخيص!", "var(--danger-color)"); // Use CSS variable
     console.warn("Submission text is empty."); // NEW LOG
     return;
   }
@@ -1209,7 +1260,7 @@ function submitSummary(lessonId) {
       // Check if already submitted
       if (existingSummary.status === "submitted") {
           msg.innerText = "تم تسليم التلخيص بالفعل.";
-          showToast("تم تسليم التلخيص بالفعل.", "#e63946");
+          showToast("تم تسليم التلخيص بالفعل.", "var(--danger-color)"); // Use CSS variable
           console.warn("Attempted to submit already submitted summary."); // NEW LOG
           return;
       }
@@ -1236,10 +1287,10 @@ function submitSummary(lessonId) {
   console.log("Lesson title (for notification):", lessonTitle); // NEW LOG
 
   docRef.set(summaryData, { merge: true }).then(function(){
-      msg.style.color = "var(--success-color)";
+      msg.style.color = "var(--success-color)"; // Use CSS variable
       msg.innerText = "تم تسليم التلخيص بنجاح.";
       // No need to call loadStudentData, listener will handle refresh
-      showToast("تم تسليم التلخيص بنجاح!", "#1dad87");
+      showToast("تم تسليم التلخيص بنجاح!", "var(--success-color)"); // Use CSS variable
       console.log("Summary submitted to Firestore successfully."); // NEW LOG
       // NEW: Send notification to teacher for summary submission
       sendTeacherNotification(
@@ -1249,9 +1300,9 @@ function submitSummary(lessonId) {
           lessonTitle
       );
       console.log("Teacher notification sent for submission."); // NEW LOG
-      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
+      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500); // Use CSS variable
   }).catch((error)=>{ 
-      showToast("خطأ أثناء التسليم: " + error.message, "#e63946"); 
+      showToast("خطأ أثناء التسليم: " + error.message, "var(--danger-color)"); // Use CSS variable
       console.error("Error submitting summary to Firestore:", error); // NEW LOG
   });
   console.log("--- submitSummary انتهى ---"); // Log end
