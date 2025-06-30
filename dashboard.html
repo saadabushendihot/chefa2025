@@ -1,37 +1,24 @@
+@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+  </head>
   <meta charset="UTF-8">
   <title>لوحة المعلم - إدارة الطلاب والدروس</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="main.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
   <header class="app-bar">
     <img src="https://i.ibb.co/cSpS2NDk/logo-1.png" alt="شعار المركز" class="app-bar-logo">
-    <h1 class="app-bar-title">منصة شفاء</h1> <div class="app-bar-spacer"></div>
-
-    <nav id="main-nav-links">
-      </nav>
-
-    <div class="d-flex align-items-center">
-      <button class="btn" onclick="toggleDarkMode()">
-        <i class="material-icons">brightness_4</i>
-      </button>
-      <div class="notification-bell" onclick="toggleTeacherNotificationPanel()">
-        <i class="material-icons">notifications</i>
-        <span id="unreadTeacherNotificationsBadge" class="notification-badge d-none">0</span>
-      </div>
-      <button class="btn btn-danger" onclick="logout()">
-        <i class="material-icons">logout</i> تسجيل الخروج
-      </button>
+@@ -24,6 +35,243 @@ <h1 class="app-bar-title">منصة شفاء</h1> <div class="app-bar-spacer"></d
     </div>
   </header>
 
@@ -137,86 +124,6 @@
 
     <div class="card mt-3">
       <div class="card-header">
-        <h4 class="mb-0">نتائج الاختبارات</h4>
-      </div>
-      <div class="card-content">
-        <div class="form-group">
-          <label for="examResultSearch" class="form-label">بحث في النتائج:</label>
-          <input type="text" id="examResultSearch" class="form-control" placeholder="ابحث باسم الطالب أو المستوى..." onkeyup="filterExamResults()">
-        </div>
-        <div class="form-group">
-          <label for="examResultFilterStatus" class="form-label">تصفية حسب الحالة:</label>
-          <select id="examResultFilterStatus" class="form-control form-select" onchange="renderExamResultsTable()">
-            <option value="all">الكل</option>
-            <option value="pending_review">في انتظار المراجعة</option>
-            <option value="approved">معتمدة</option>
-            <option value="rejected">غير معتمدة</option>
-          </select>
-        </div>
-        <div id="examResultsDashboardArea" class="table-container">
-          <table class="table" id="examResultsTable">
-            <thead>
-              <tr>
-                <th>الطالب</th>
-                <th>المستوى</th>
-                <th>الدرجة</th>
-                <th>تاريخ التسليم</th>
-                <th>حالة الاعتماد</th>
-                <th>مراجعة</th>
-                <th>إجراءات</th>
-              </tr>
-            </thead>
-            <tbody id="examResultsTbody">
-              <tr><td colspan="7" class="text-center" style="color:var(--text-muted)">جاري تحميل النتائج...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div id="examResultDetailsBox" class="card mt-3" style="display: none;">
-            <div class="card-header">
-                <h4 id="examResultDetailsTitle">تفاصيل نتيجة الاختبار</h4>
-            </div>
-            <div class="card-content">
-                <div class="form-group">
-                    <label class="form-label">اسم الطالب:</label>
-                    <p id="examResultStudentNameDisplay"></p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">مستوى الاختبار:</label>
-                    <p id="examResultLevelDisplay"></p>
-                </div>
-                 <div class="form-group">
-                    <label class="form-label">الدرجة المحرزة:</label>
-                    <p id="examResultScoreDisplay"></p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">تاريخ ووقت التسليم:</label>
-                    <p id="examResultSubmittedAtDisplay"></p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">المدة المستغرقة:</label>
-                    <p id="examResultDurationDisplay"></p>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">أسئلة الاختبار والإجابات:</label>
-                    <div id="examResultQuestionsDetails" class="form-control" style="min-height: 150px; background-color: var(--background-light); overflow-y: auto; text-align:right;"></div>
-                </div>
-                <div class="form-group">
-                    <label for="examResultTeacherComment" class="form-label">ملاحظات المعلم:</label>
-                    <textarea id="examResultTeacherComment" class="form-control" placeholder="أضف ملاحظاتك هنا..."></textarea>
-                    <button class="btn mt-2" id="saveExamResultCommentBtn">حفظ الملاحظات</button>
-                </div>
-                <div class="card-actions">
-                    <button class="btn btn-success" id="approveExamBtn">اعتماد النتيجة</button>
-                    <button class="btn btn-danger ml-2" id="rejectExamBtn">رفض النتيجة</button>
-                    <button class="btn btn-danger ml-2" id="resetExamBtn">إعادة الاختبار</button>
-                    <button class="btn btn-outlined ml-auto" onclick="hideExamResultDetails()">إغلاق</button>
-                </div>
-            </div>
-        </div>
-      </div>
-    </div>
-    <div class="card mt-3">
-      <div class="card-header">
         <h3>إدارة مستويات الطلاب</h3>
       </div>
       <div class="card-content">
@@ -236,7 +143,7 @@
         
         <div id="selectedStudentDetails" style="display: none;">
           <div class="d-flex justify-content-between mt-4 mb-3">
-            <button class="btn btn-danger" id="deleteStudentBtn">حذف الطالب</button>
+            <button class="btn btn-danger" id="deleteStudentBtn" onclick="confirmDeleteStudent()">حذف الطالب</button>
             <button class="btn" id="teacherPDFBtn" onclick="downloadStudentReport()">تصدير نتائج الطالب PDF</button>
           </div>
           
