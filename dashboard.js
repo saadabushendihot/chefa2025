@@ -84,7 +84,7 @@ let teacherNotificationsData = []; // Global array to store teacher notification
 let teacherLoggedInEmail = ''; // To store logged-in teacher's email
 
 // NEW: Global variables for exam results management
-let allExamResults = [];
+let allExamResults = []; // هذا هو التعريف الصحيح الوحيد
 let examResultsListenerUnsubscribe = null;
 let currentlyOpenExamResultDocId = null;
 
@@ -1332,7 +1332,7 @@ async function sendNotification(e) {
 }
 
 // NEW: Exam Results Dashboard Functions
-let allExamResults = []; // Ensure this is declared globally in dashboard.js
+// تم إزالة السطر الزائد: let allExamResults = [];
 let examResultsListenerUnsubscribe = null;
 let currentlyOpenExamResultDocId = null;
 
@@ -1355,7 +1355,8 @@ function loadExamResultsDashboard() {
         .orderBy('submitted_at', 'desc')
         .onSnapshot(function(snapshot) {
             console.log("Exam results snapshot received. Size:", snapshot.size); // NEW LOG
-            allExamResults = [];
+            // يجب تحديث المصفوفة الموجودة بدلاً من إعادة تعريفها
+            allExamResults = []; // إفراغ المصفوفة الموجودة
             snapshot.forEach(doc => {
                 allExamResults.push({ id: doc.id, ...doc.data() });
             });
@@ -1378,12 +1379,12 @@ function renderExamResultsTable() {
 
     let filteredResults = allExamResults.filter(result => {
         const matchesSearch = (result.student_name?.toLowerCase().includes(searchTerm) ||
-                               String(result.level).includes(searchTerm));
+                                 String(result.level).includes(searchTerm));
 
         const matchesFilter = (filterStatus === 'all') ||
-                              (filterStatus === 'pending_review' && result.approved === null) ||
-                              (filterStatus === 'approved' && result.approved === true) ||
-                              (filterStatus === 'rejected' && result.approved === false);
+                               (filterStatus === 'pending_review' && result.approved === null) ||
+                               (filterStatus === 'approved' && result.approved === true) ||
+                               (filterStatus === 'rejected' && result.approved === false);
         return matchesSearch && matchesFilter;
     });
 
@@ -1660,10 +1661,11 @@ function logout() {
       teacherNotificationsListenerUnsubscribe();
       teacherNotificationsListenerUnsubscribe = null;
   }
-  if (studentMarksListenerUnsubscribe) {
-      studentMarksListenerUnsubscribe();
-      studentMarksListenerUnsubscribe = null;
-  }
+  // يجب أن يكون هذا المتغير `studentMarksListenerUnsubscribe` معرّفاً إذا كان مستخدماً
+  // if (studentMarksListenerUnsubscribe) {
+  //     studentMarksListenerUnsubscribe();
+  //     studentMarksListenerUnsubscribe = null;
+  // }
   if (examResultsListenerUnsubscribe) {
       examResultsListenerUnsubscribe();
       examResultsListenerUnsubscribe = null;
