@@ -1,13 +1,14 @@
 // js/dashboard.js
 
 // Firebase references
+// Ensure firebase-init.js is loaded BEFORE this script and initializes `firebase`
 const auth = firebase.auth();
 const db = firebase.firestore();
 
 // --- Main execution wrapped in DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', () => { // <--- ADD THIS LINE
+document.addEventListener('DOMContentLoaded', () => { 
 
-    // DOM Elements (Moved inside DOMContentLoaded)
+    // DOM Elements
     const sections = document.querySelectorAll('.content-section');
     const navLinks = document.querySelectorAll('.list-group-item');
     const teacherNameSpan = document.getElementById('teacherName');
@@ -912,7 +913,7 @@ document.addEventListener('DOMContentLoaded', () => { // <--- ADD THIS LINE
     }
 
     // Initial call to reset form UI on page load
-    resetQuestionFormUI(); // <--- Moved inside DOMContentLoaded
+    resetQuestionFormUI(); 
 
     // Logout
     document.getElementById('logoutLink').addEventListener('click', function(e) {
@@ -926,4 +927,4 @@ document.addEventListener('DOMContentLoaded', () => { // <--- ADD THIS LINE
         });
     });
 
-}); // <--- END OF DOMContentLoaded LISTENER
+}); // END OF DOMContentLoaded LISTENER
