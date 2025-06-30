@@ -102,10 +102,17 @@ document.addEventListener('DOMContentLoaded', () => { // تأكد أن كل ال
                     
                     // هذا الجزء يحدد رؤية زر "حذف الدردشة" بناءً على الدور
                     const deleteChatBtn = document.getElementById('deleteChatBtn'); // جلب الزر
+                    const createChatBtn = document.getElementById('createChatBtn'); // جلب زر إنشاء
+                    const manageParticipantsBtn = document.getElementById('manageParticipantsBtn'); // جلب زر إدارة
+
                     if (currentUserRole === 'teacher') {
                         deleteChatBtn.classList.remove('d-none'); // إظهار الزر للمعلم
+                        createChatBtn.style.display = 'inline-block'; // إظهار زر إنشاء محادثة
+                        manageParticipantsBtn.style.display = 'inline-block'; // إظهار زر إدارة الأعضاء
                     } else {
                         deleteChatBtn.classList.add('d-none'); // إخفاء الزر للطالب
+                        createChatBtn.style.display = 'none'; // إخفاء زر إنشاء محادثة
+                        manageParticipantsBtn.style.display = 'none'; // إخفاء زر إدارة الأعضاء
                     }
 
                     loadChatRooms(); // Start loading chat rooms after role is determined
@@ -392,6 +399,19 @@ function sendMessage(fileUrl = null, fileName = null, fileType = 'text') {
   if (!currentChatRoomId || !currentUser) {
     showToast("الرجاء اختيار محادثة.", "#e63946");
     return;
+  }
+
+  const messageData = {
+    senderId: currentUser.uid,
+    senderName: currentUser.displayName || currentUser.email,
+    text: messageText,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    type: fileType // 'text', 'file', 'image'
+  };
+
+  if (fileUrl) {
+    messageData.fileUrl = fileUrl;
+    messageData.fileName = fileName;
   }
 
   firestore.collection('chatRooms').doc(currentChatRoomId).update({
