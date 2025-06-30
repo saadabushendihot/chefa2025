@@ -29,16 +29,22 @@
     </div>
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
-     <div id="examWarnMsg"></div>
+    <div id="examWarnMsg"></div>
     <div class="spinner" id="loadingSpinner"></div>
     <div id="levelsExamsTableArea"></div>
-   
-    
+
     <div style="text-align:center;margin:15px 0;">
       <button class="btn" id="downloadReportBtn">تحميل تقرير الدرجات PDF</button>
     </div>
     <div id="lessonsSummariesArea"></div>
-    
+
+    <!-- زر أيقونة الانتقال للاختبار -->
+    <div style="text-align:center;margin:20px 0;">
+      <button class="btn" id="startExamBtn">
+        <i class="fas fa-pencil-alt"></i> بدء الاختبار
+      </button>
+    </div>
+
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -57,5 +63,5 @@
 
   <script src="firebase-config.js"></script>
   <script src="student.js"></script>
-  </body>
+</body>
 </html>
