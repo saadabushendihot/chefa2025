@@ -393,6 +393,9 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
     } else {
       const data = querySnapshot.docs[0].data();
       currentStudentName = data.name || userNameFromUserDoc || "";
+      // Store full student data globally for use by other functions (e.g., onclick handlers)
+      window.currentStudentFullData = data; 
+
       const studentNameEl = document.getElementById('studentName');
       const studentNameInfoEl = document.getElementById('studentNameInfo');
       const studentEmailEl = document.getElementById('studentEmail');
@@ -473,23 +476,19 @@ function renderExamEligibilityStatus(eligibilityObject) {
 
     // عرض الرسالة العامة في examWarnMsg
     let overallStatusHtml = `<div style="padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid;">`;
+
     if (eligibilityObject.overall_ready) {
         overallStatusHtml += `<p style="color: var(--success-color);">✅ ${eligibilityObject.overall_message}</p>`;
-        startExamBtn.style.display = '';
-        overallStatusHtml += `<button class="btn" onclick="performExamEligibilityCheckAndProceed(window.currentStudentFullData, true)" style="margin-top: 10px;">
-                                <i class="fas fa-pencil-alt"></i> بدء الاختبار
-                              </button>`;
+        startExamBtn.style.display = ''; // إظهار زر الاختبار
         examWarnMsgEl.style.backgroundColor = 'rgba(40, 167, 69, 0.1)';
         examWarnMsgEl.style.borderColor = 'var(--success-color)';
     } else {
         overallStatusHtml += `<p style="color: var(--danger-color);">❌ ${eligibilityObject.overall_message}</p>`;
-        startExamBtn.style.display = 'none';
-        overallStatusHtml += `<button class="btn" style="margin-top: 10px; background-color: var(--danger-color);" disabled>
-                                <i class="fas fa-times-circle"></i> الاختبار غير متاح
-                              </button>`; // زر معطل
+        startExamBtn.style.display = 'none'; // إخفاء زر الاختبار
         examWarnMsgEl.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
         examWarnMsgEl.style.borderColor = 'var(--danger-color)';
     }
+
     overallStatusHtml += `</div>`;
     examWarnMsgEl.innerHTML = overallStatusHtml;
     examWarnMsgEl.style.display = 'block';
@@ -757,8 +756,8 @@ function showExamResultOnly(result) {
   const submitBtn = document.querySelector("#examForm button[type=submit]");
   const exitExamBtnEl = document.getElementById('exitExamBtn');
   const startExamBtn = document.getElementById('startExamBtn');
-  const examWarnMsgEl = document.getElementById('examWarnMsg'); // Get examWarnMsg element
-  const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea'); // Get the detailed table area
+  const examWarnMsgEl = document.getElementById('examWarnMsg');
+  const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea');
 
   if (examBoxEl) examBoxEl.style.display = '';
   if (questionsAreaEl) questionsAreaEl.innerHTML = '';
@@ -800,7 +799,7 @@ function showExamResultOnly(result) {
               </p>
           </div>
       `;
-      examWarnMsgEl.style.display = 'block'; // Ensure it's visible
+      examWarnMsgEl.style.display = 'block';
   }
   // إخفاء الجدول التفصيلي للأهلية عند عرض نتيجة الاختبار
   if(examEligibilityDetailsTableArea) {
@@ -825,12 +824,12 @@ function showExamBox(studentName, studentEmail, level) {
   const submitBtn = document.querySelector("#examForm button[type=submit]");
   const exitExamBtnEl = document.getElementById('exitExamBtn');
   const startExamBtn = document.getElementById('startExamBtn');
-  const examWarnMsgEl = document.getElementById('examWarnMsg'); // Get examWarnMsg element
-  const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea'); // Get the detailed table area
+  const examWarnMsgEl = document.getElementById('examWarnMsg');
+  const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea');
 
   if (startExamBtn) startExamBtn.style.display = "none";
-  if (examWarnMsgEl) examWarnMsgEl.style.display = "none"; // إخفاء رسالة الحالة العامة
-  if (examEligibilityDetailsTableArea) examEligibilityDetailsTableArea.style.display = 'none'; // إخفاء الجدول التفصيلي للأهلية
+  if (examWarnMsgEl) examWarnMsgEl.style.display = "none";
+  if (examEligibilityDetailsTableArea) examEligibilityDetailsTableArea.style.display = 'none';
 
 
   if (examBoxEl) examBoxEl.style.display = '';
@@ -1531,19 +1530,14 @@ document.addEventListener('DOMContentLoaded', () => {
           // هنا يجب التأكد من أن studentData متاح. 
           // performExamEligibilityCheckAndProceed تعتمد على `studentData` الذي تم جلبه في `loadStudentData`
           // ويجب أن يكون الكائن `studentData` كاملاً.
-          // في حالتنا، `loadStudentData` تستدعي `renderLevelsExamsMergedTable` التي تستدعي `performExamEligibilityCheckAndProceed`.
-          // لذلك، فإن `performExamEligibilityCheckAndProceed` ستتلقى بيانات الطالب.
-          // ومع ذلك، عند النقر على الزر، نحتاج إلى التأكد من أن `studentData` الأحدث متاح للدالة.
-          // الطريقة الأكثر أماناً هي إعادة جلب بيانات الطالب أو التأكد من تخزينها في متغير عام يمكن الوصول إليه هنا.
-          // حالياً، `performExamEligibilityCheckAndProceed` تستخدم `studentData` كباراميتر يتم تمريره من `renderLevelsExamsMergedTable`.
-          // لإعادة استدعائها عند النقر، يجب أن يكون `studentData` متاحاً.
-          // يمكننا حفظ `studentData` في متغير عام بعد جلبه في `loadStudentData`.
-          if (window.currentStudentFullData) { // افترض أننا نخزن بيانات الطالب في متغير عام
+          // لإعادة استدعائها عند النقر، يجب أن يكون `window.currentStudentFullData` متاحاً.
+          if (window.currentStudentFullData) {
               performExamEligibilityCheckAndProceed(window.currentStudentFullData, true);
           } else {
-              // هذا يعني أن بيانات الطالب لم يتم تحميلها بعد، أو حدث خطأ.
               console.error("Student data not available for exam launch!");
               showToast("بيانات الطالب غير متاحة. يرجى تحديث الصفحة.", "var(--danger-color)");
+              // إذا لم تكن البيانات متاحة، يمكن إعادة تحميل بيانات الطالب ثم إعادة المحاولة
+              // loadStudentData(currentStudentEmail, currentStudentName); // قد يؤدي إلى حلقة لا نهائية أو استدعاءات متكررة
           }
       };
       console.log("Event listener attached to startExamBtn.");
