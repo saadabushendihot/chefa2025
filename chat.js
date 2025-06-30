@@ -5,16 +5,15 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const firestore = firebase.firestore();
 const storage = firebase.storage(); // Initialize Firebase Storage
-// تهيئة Cloud Functions (أضف هذا السطر)
-const functions = firebase.functions();
 
+// لا حاجة لـ const functions = firebase.functions(); هنا إذا كنت تستخدم fetch API لدوال onRequest
 
 // Global variables
 let currentUser = null;
 let currentUserRole = null;
 let currentChatRoomId = null;
-let chatRoomsListenerUnsubscribe = null;
-let messagesListenerUnsubscribe = null;
+let chatRoomsListenerUnsubscribe = null; // سيتم تهيئته لاحقًا في loadChatRooms
+let messagesListenerUnsubscribe = null; // سيتم تهيئته لاحقًا في loadMessages
 let allUsers = []; // For create/manage chat modals
 let currentChatParticipants = []; // For manage participants modal
 
@@ -50,11 +49,18 @@ function sanitizeText(text) {
 }
 
 function logout() {
-  // Unsubscribe from all listeners before logging out
-  if (chatRoomsListenerUnsubscribe) chatRoomsListenerUnsubscribe();
-  if (messagesListenerUnsubscribe) messagesListenerUnsubscribe();
+  // إلغاء الاشتراك من المستمعات قبل تسجيل الخروج
+  if (chatRoomsListenerUnsubscribe) {
+    chatRoomsListenerUnsubscribe();
+    chatRoomsListenerUnsubscribe = null;
+  }
+  if (messagesListenerUnsubscribe) {
+    messagesListenerUnsubscribe();
+    messagesListenerUnsubscribe = null;
+  }
+
   auth.signOut().then(() => {
-    window.location.href = "login.html"; // Redirect to login page
+    window.location.href = "login.html"; // إعادة التوجيه إلى صفحة تسجيل الدخول
   }).catch((error) => {
     console.error("Error during sign-out:", error);
     showToast("خطأ أثناء تسجيل الخروج: " + error.message, "#e63946");
@@ -69,13 +75,14 @@ function toggleSidebar() {
     }
 }
 
-// --- Authentication State Listener ---
-document.addEventListener('DOMContentLoaded', () => { // تأكد أن كل الأكواد التي تعتمد على DOM داخل هذا المستمع
+// --- Authentication State Listener و DOMContentLoaded ---
+document.addEventListener('DOMContentLoaded', () => {
     // إضافة مستمع حدث لزر تبديل القائمة الجانبية
     const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
     if (sidebarToggleBtn) {
         sidebarToggleBtn.addEventListener('click', toggleSidebar);
     }
+
     // Adjust textarea height automatically (basic)
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
@@ -87,9 +94,6 @@ document.addEventListener('DOMContentLoaded', () => { // تأكد أن كل ال
 
     // بدء التحقق من حالة المصادقة بعد تحميل DOM
     auth.onAuthStateChanged(function(user) {
-        // إضافة فئة للجسم لتحديد أن الصفحة هي صفحة دردشة
-        // document.body.classList.add('chat-page'); // هذه الفئة أصبحت مضافة مباشرة في HTML
-
         if (user) {
             currentUser = user;
             firestore.collection('users').doc(user.uid).get().then(doc => {
@@ -222,7 +226,7 @@ function selectChatRoom(chatRoomId) {
     showToast("خطأ في جلب تفاصيل المحادثة: " + error.message, "#e63946");
     document.getElementById('currentChatRoomName').innerText = 'خطأ في التحميل';
     document.getElementById('messageDisplay').innerHTML = '<p style="text-align: center; color: #e63946; padding: 20px;">خطأ في تحميل تفاصيل المحادثة.</p>';
-    showLoading(false); // Hide main spinner
+    showLoading(false);
   });
 }
 
@@ -673,11 +677,32 @@ async function confirmDeleteChatRoom(chatRoomId) {
     showLoading(true);
 
     try {
-        // استدعاء الدالة السحابية لحذف الدردشة
-        const deleteChatRoomCallable = functions.httpsCallable('deleteChatRoom');
-        const result = await deleteChatRoomCallable({ chatRoomId: chatRoomId });
+        // الحصول على الرمز المميز للمصادقة (Authentication Token) لإرساله مع الطلب
+        const idToken = await auth.currentUser.getIdToken();
 
-        if (result.data.status === 'success') {
+        // استخدام Fetch API لدوال onRequest
+        const response = await fetch('https://us-central1-shefa-502fe.cloudfunctions.net/deleteChatRoom', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}` // إرسال الرمز المميز
+            },
+            body: JSON.stringify({
+                data: { // هيكلة البيانات لدوال onRequest
+                    chatRoomId: chatRoomId
+                },
+                context: { // تضمين سياق المصادقة
+                    auth: {
+                        uid: auth.currentUser.uid,
+                        token: idToken
+                    }
+                }
+            })
+        });
+
+        const result = await response.json(); // قراءة الاستجابة كـ JSON
+
+        if (response.ok && result.status === 'success') {
             showToast("تم حذف الدردشة بالكامل بنجاح!", "#1dad87");
             // إعادة تحميل قائمة الدردشات أو إعادة التوجيه
             loadChatRooms();
@@ -685,7 +710,7 @@ async function confirmDeleteChatRoom(chatRoomId) {
             document.getElementById('messageDisplay').innerHTML = '';
             document.getElementById('currentChatRoomName').innerText = 'الرجاء اختيار محادثة';
         } else {
-            showToast("خطأ في حذف الدردشة: " + result.data.message, "#e63946");
+            showToast("خطأ في حذف الدردشة: " + (result.message || "حدث خطأ غير معروف"), "#e63946");
         }
     } catch (error) {
         console.error("خطأ أثناء استدعاء Cloud Function:", error);
