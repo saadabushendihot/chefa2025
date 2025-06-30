@@ -9,14 +9,15 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
   <header>
     <span>لوحة الطالب</span>
     <div>
-      <button class="btn" id="supportBtn" onclick="openSupport()">الدعم الفني</button>
-      <button class="btn" id="nightModeBtn" onclick="toggleNightMode()">الوضع الليلي</button>
-      <button class="btn signout" onclick="logout()">تسجيل الخروج</button>
+      <button class="btn" id="supportBtn">الدعم الفني</button>
+      <button class="btn" id="nightModeBtn">الوضع الليلي</button>
+      <button class="btn signout" id="logoutBtn">تسجيل الخروج</button>
     </div>
   </header>
   <div class="container">
@@ -33,9 +34,10 @@
     <div id="examWarnMsg"></div>
     
     <div style="text-align:center;margin:15px 0;">
-      <button class="btn" id="downloadReportBtn" onclick="downloadReport()">تحميل تقرير الدرجات PDF</button>
+      <button class="btn" id="downloadReportBtn">تحميل تقرير الدرجات PDF</button>
     </div>
     <div id="lessonsSummariesArea"></div>
+    
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -54,5 +56,5 @@
 
   <script src="firebase-config.js"></script>
   <script src="student.js"></script>
-</body>
+  </body>
 </html>
