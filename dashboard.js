@@ -83,12 +83,6 @@ let teacherNotificationsListenerUnsubscribe = null; // Listener for teacher noti
 let teacherNotificationsData = []; // Global array to store teacher notifications
 let teacherLoggedInEmail = ''; // To store logged-in teacher's email
 
-// NEW: Global variables for exam results management
-let allExamResults = []; // هذا هو التعريف الصحيح الوحيد
-let examResultsListenerUnsubscribe = null;
-let currentlyOpenExamResultDocId = null;
-
-
 // تعريف روابط التنقل لكل دور
 const navLinks = {
     teacher: [
@@ -157,7 +151,6 @@ auth.onAuthStateChanged(function(user) {
         loadLessons();
         setupTeacherNotificationsListener(); // Setup listener for teacher notifications
         renderNavigation(doc.data().role); // استدعاء دالة جديدة لرسم التنقل
-        loadExamResultsDashboard(); // NEW: Load exam results for the dashboard
       }
     }).catch(function(error) {
       console.error("خطأ في جلب دور المستخدم:", error);
@@ -532,7 +525,7 @@ window.showSelectedStudentDetails = function(studentId) {
     // Update notification recipient dropdown
     const notificationRecipientSelect = document.getElementById('notificationRecipient');
     notificationRecipientSelect.innerHTML = `
-        <option value="selectedStudent">الطالب المحدد حالياً: ${student.name || student.email}</option>
+        <option value="${student.email}">الطالب المحدد حالياً: ${student.name || student.email}</option>
         <option value="allStudents">جميع الطلاب</option>
     `;
     notificationRecipientSelect.value = student.email; // Set current student as default recipient
@@ -851,7 +844,7 @@ window.updateLevel = function(checkbox) {
             }
         }
     }
-    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1500);
+    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--danger-color)';}, 1500);
   }).catch(function(err){
     document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
   });
@@ -1079,6 +1072,7 @@ function clearStudentReply(docId) {
         student_reply_comment: firebase.firestore.FieldValue.delete()
     }).then(() => {
         showToast('تم مسح رد الطالب بنجاح!', 'var(--secondary-color)');
+        // Listener will handle refresh, no need to call loadStudentSummaries here
     }).catch(error => {
         showToast(`حدث خطأ أثناء مسح رد الطالب: ${error.message}`, 'var(--error)');
         console.error('Error clearing student reply:', error);
@@ -1088,7 +1082,8 @@ function clearStudentReply(docId) {
 
 // Save Summary Mark
 function saveSummaryMark(docId) {
-    let val = document.getElementById('summaryDetailsMark').value;
+    let val = document.getElementById('summaryDetailsMark').value; // Use the value from the detail box input
+    // If coming from table row, use table-specific input (fallback/alternative)
     if (!val && document.getElementById('markinp_' + docId)) {
         val = document.getElementById('markinp_' + docId).value;
     }
@@ -1097,7 +1092,7 @@ function saveSummaryMark(docId) {
         showToast("يرجى إدخال علامة صالحة (رقم).", "var(--error)");
         return;
     }
-    val = Number(val);
+    val = Number(val); // Ensure it's a number
 
     firestore.collection('summaries').doc(docId).get().then(summaryDoc => {
         if (!summaryDoc.exists) {
@@ -1148,6 +1143,7 @@ function saveSummaryMark(docId) {
                             summaryData.lesson_id,
                             lessonTitle
                         );
+                        // No need to call loadStudentSummaries here, listener will handle refresh
                     }).catch((err) => {
                         showToast('خطأ أثناء تحديث العلامة:\n' + err.message, 'var(--error)');
                         console.error(err);
@@ -1162,6 +1158,7 @@ function saveSummaryMark(docId) {
                             summaryData.lesson_id,
                             lessonTitle
                         );
+                        // No need to call loadStudentSummaries here, listener will handle refresh
                     }).catch((err) => {
                         showToast('خطأ أثناء إضافة العلامة:\n' + err.message, 'var(--error)');
                         console.error(err);
@@ -1197,6 +1194,7 @@ function saveSummaryComment(docId) {
                 lessonTitle
             );
         }
+        // Listener will handle refresh, no need to call loadStudentSummaries here
     }).catch(err => {
         showToast('خطأ في حفظ التعليق: ' + err.message, 'var(--error)');
         console.error('Error saving summary comment:', err);
@@ -1232,6 +1230,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
         return Promise.resolve();
     }).then(() => {
         showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', 'var(--secondary-color)');
+        // Listener will handle refresh, no need to call loadStudentSummaries here
         hideSummaryDetails();
         showLoading(false);
     }).catch(error => {
@@ -1331,325 +1330,6 @@ async function sendNotification(e) {
     }
 }
 
-// NEW: Exam Results Dashboard Functions
-// تم إزالة السطر الزائد: let allExamResults = [];
-let examResultsListenerUnsubscribe = null;
-let currentlyOpenExamResultDocId = null;
-
-function loadExamResultsDashboard() {
-    console.log("loadExamResultsDashboard called."); // NEW LOG
-    if (examResultsListenerUnsubscribe) {
-        examResultsListenerUnsubscribe();
-        examResultsListenerUnsubscribe = null;
-    }
-    const examResultsTbody = document.getElementById('examResultsTbody');
-    if (examResultsTbody) {
-        examResultsTbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--text-muted)">جاري تحميل النتائج...</td></tr>';
-    } else {
-        console.error("examResultsTbody not found. Cannot load exam results dashboard."); // NEW LOG
-        return;
-    }
-    showLoading(true);
-
-    examResultsListenerUnsubscribe = firestore.collection('exam_results')
-        .orderBy('submitted_at', 'desc')
-        .onSnapshot(function(snapshot) {
-            console.log("Exam results snapshot received. Size:", snapshot.size); // NEW LOG
-            // يجب تحديث المصفوفة الموجودة بدلاً من إعادة تعريفها
-            allExamResults = []; // إفراغ المصفوفة الموجودة
-            snapshot.forEach(doc => {
-                allExamResults.push({ id: doc.id, ...doc.data() });
-            });
-            renderExamResultsTable();
-            showLoading(false);
-        }, function(error) {
-            console.error("Error listening to exam results:", error); // NEW LOG
-            showToast("خطأ في تحميل نتائج الاختبارات: " + error.message, "var(--error)");
-            if (examResultsTbody) examResultsTbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--danger-color)">خطأ في تحميل النتائج.</td></tr>';
-            showLoading(false);
-        });
-}
-
-function renderExamResultsTable() {
-    const examResultsTbody = document.getElementById('examResultsTbody');
-    if (!examResultsTbody) return;
-
-    const searchTerm = document.getElementById('examResultSearch')?.value.trim().toLowerCase() || '';
-    const filterStatus = document.getElementById('examResultFilterStatus')?.value || 'all';
-
-    let filteredResults = allExamResults.filter(result => {
-        const matchesSearch = (result.student_name?.toLowerCase().includes(searchTerm) ||
-                                 String(result.level).includes(searchTerm));
-
-        const matchesFilter = (filterStatus === 'all') ||
-                               (filterStatus === 'pending_review' && result.approved === null) ||
-                               (filterStatus === 'approved' && result.approved === true) ||
-                               (filterStatus === 'rejected' && result.approved === false);
-        return matchesSearch && matchesFilter;
-    });
-
-    if (filteredResults.length === 0) {
-        examResultsTbody.innerHTML = '<tr><td colspan="7" class="text-center" style="color:var(--text-muted)">لا توجد نتائج مطابقة.</td></tr>';
-        return;
-    }
-
-    let html = '';
-    filteredResults.forEach(result => {
-        const submittedAt = result.submitted_at ? new Date(result.submitted_at.toDate()).toLocaleString('ar-EG') : 'غير متوفر';
-        let statusLabel = '';
-        let statusClass = '';
-
-        if (result.approved === true) {
-            statusLabel = 'معتمدة ✅';
-            statusClass = 'status-approved';
-        } else if (result.approved === false) {
-            statusLabel = 'مرفوضة ❌';
-            statusClass = 'status-rejected';
-        } else {
-            statusLabel = 'في انتظار المراجعة 🟡';
-            statusClass = 'status-pending';
-        }
-
-        html += `
-            <tr>
-                <td>${result.student_name || 'غير معروف'}</td>
-                <td>المستوى ${result.level}</td>
-                <td>${result.score || 0} من ${result.total_marks_possible || 0}</td>
-                <td>${submittedAt}</td>
-                <td class="${statusClass}">${statusLabel}</td>
-                <td>
-                    <button class="btn btn-outlined" onclick="openExamResultDetails('${result.id}')">مراجعة</button>
-                </td>
-                <td>
-                    <button class="btn btn-success" style="padding: 6px 12px; font-size: 0.85rem; margin-left: 5px;" onclick="approveExamResult('${result.id}')" ${result.approved === true ? 'disabled' : ''}>اعتماد</button>
-                    <button class="btn btn-danger" style="padding: 6px 12px; font-size: 0.85rem;" onclick="confirmRejectExamResult('${result.id}')" ${result.approved === false ? 'disabled' : ''}>رفض</button>
-                    <button class="btn btn-info" style="padding: 6px 12px; font-size: 0.85rem; margin-left: 5px;" onclick="confirmResetExamResult('${result.id}', '${result.student_uid}', ${result.level})">إعادة</button>
-                </td>
-            </tr>
-        `;
-    });
-    examResultsTbody.innerHTML = html;
-}
-
-// Exam Result Details Functions
-function openExamResultDetails(docId) {
-    const result = allExamResults.find(r => r.id === docId);
-    if (!result) {
-        showToast("لم يتم العثور على نتيجة الاختبار.", "var(--error)");
-        return;
-    }
-    currentlyOpenExamResultDocId = docId;
-
-    const examResultDetailsBox = document.getElementById('examResultDetailsBox');
-    if (!examResultDetailsBox) { console.error("examResultDetailsBox not found."); return; }
-    
-    document.getElementById('examResultDetailsTitle').innerText = `تفاصيل اختبار المستوى ${result.level} للطالب ${result.student_name || ''}`;
-    document.getElementById('examResultStudentNameDisplay').innerText = result.student_name || '';
-    document.getElementById('examResultLevelDisplay').innerText = `المستوى ${result.level}`;
-    document.getElementById('examResultScoreDisplay').innerText = `${result.score} من ${result.total_marks_possible}`;
-    document.getElementById('examResultSubmittedAtDisplay').innerText = result.submitted_at ? new Date(result.submitted_at.toDate()).toLocaleString('ar-EG') : 'غير متوفر';
-    document.getElementById('examResultDurationDisplay').innerText = result.exam_duration_taken ? `${Math.floor(result.exam_duration_taken / 60)} دقيقة و ${result.exam_duration_taken % 60} ثانية` : 'غير متوفر';
-    document.getElementById('examResultTeacherComment').value = result.teacher_comment || '';
-
-    let questionsHtml = '';
-    if (result.details && result.details.length > 0) {
-        result.details.forEach((q, i) => {
-            const isCorrectAnswer = q.selected_choices?.every(choice => q.correct_choices_at_submission.includes(choice)) && q.selected_choices?.length === q.correct_choices_at_submission.length; // Add null checks
-            const statusIcon = isCorrectAnswer ? '✅' : '❌';
-            const statusColor = isCorrectAnswer ? 'var(--success-color)' : 'var(--danger-color)';
-            const markStatus = q.mark_obtained_for_question !== undefined ? `[الدرجة: ${q.mark_obtained_for_question}]` : '';
-
-            questionsHtml += `
-                <div style="margin-bottom: 15px; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;">
-                    <p><strong>${i+1}. ${q.question_text_at_submission || 'سؤال غير معروف'}</strong> <span style="color: ${statusColor}; margin-right: 10px;">${statusIcon} ${markStatus}</span></p>
-                    <p style="margin-right: 20px;">الإجابات الصحيحة: ${q.correct_choices_at_submission?.join(', ') || 'غير متوفر'}</p>
-                    <p style="margin-right: 20px;">الإجابات المختارة: ${q.selected_choices?.join(', ') || 'لم يُجب'}</p>
-                </div>
-            `;
-        });
-    } else {
-        questionsHtml = '<p style="text-align: center; color: var(--text-muted);">لا توجد تفاصيل للأسئلة.</p>';
-    }
-    document.getElementById('examResultQuestionsDetails').innerHTML = questionsHtml;
-
-    // Attach event listeners for action buttons
-    document.getElementById('saveExamResultCommentBtn').onclick = () => saveExamResultComment(docId);
-    document.getElementById('approveExamBtn').onclick = () => approveExamResult(docId);
-    document.getElementById('rejectExamBtn').onclick = () => rejectExamResult(docId);
-    document.getElementById('resetExamBtn').onclick = () => confirmResetExamResult(docId, result.student_uid, result.level);
-
-    // Disable/enable buttons based on current approval status
-    const approveBtn = document.getElementById('approveExamBtn');
-    const rejectBtn = document.getElementById('rejectExamBtn');
-    if (result.approved === true) {
-        approveBtn.disabled = true;
-        rejectBtn.disabled = false;
-    } else if (result.approved === false) {
-        approveBtn.disabled = false;
-        rejectBtn.disabled = true;
-    } else { // null
-        approveBtn.disabled = false;
-        rejectBtn.disabled = false;
-    }
-
-    examResultDetailsBox.style.display = 'block';
-    examResultDetailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-function hideExamResultDetails() {
-    document.getElementById('examResultDetailsBox').style.display = 'none';
-    currentlyOpenExamResultDocId = null;
-}
-
-async function saveExamResultComment(docId) {
-    const comment = document.getElementById('examResultTeacherComment').value.trim();
-    showLoading(true);
-    try {
-        await firestore.collection('exam_results').doc(docId).update({
-            teacher_comment: comment
-        });
-        showToast('تم حفظ الملاحظة بنجاح!', 'var(--secondary-color)');
-        const resultIndex = allExamResults.findIndex(r => r.id === docId);
-        if (resultIndex !== -1) {
-            allExamResults[resultIndex].teacher_comment = comment;
-        }
-    } catch (error) {
-        console.error("Error saving exam result comment:", error);
-        showToast(`خطأ في حفظ الملاحظة: ${error.message}`, 'var(--error)');
-    } finally {
-        showLoading(false);
-    }
-}
-
-async function approveExamResult(docId) {
-    if (!confirm('هل أنت متأكد من اعتماد نتيجة هذا الاختبار؟')) return;
-    showLoading(true);
-    try {
-        const resultDoc = await firestore.collection('exam_results').doc(docId).get();
-        if (!resultDoc.exists) {
-            showToast("نتيجة الاختبار غير موجودة.", "var(--error)");
-            return;
-        }
-        const resultData = resultDoc.data();
-        const studentEmail = resultData.student_email;
-        const studentName = resultData.student_name;
-        const level = resultData.level;
-
-        await firestore.collection('exam_results').doc(docId).update({
-            approved: true,
-            teacher_reviewed: true
-        });
-
-        const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
-        if (!lecturesSnapshot.empty) {
-            const studentLectureDocId = lecturesSnapshot.docs[0].id;
-            await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: true
-            });
-        }
-        
-        showToast('تم اعتماد نتيجة الاختبار بنجاح!', 'var(--secondary-color)');
-        sendStudentSpecificNotification(
-            studentEmail,
-            `تهانينا! تم اعتماد نتيجة اختبار المستوى ${level} الخاص بك.`,
-            'exam_approved',
-            level,
-            `المستوى ${level}`
-        );
-        hideExamResultDetails();
-    } catch (error) {
-        console.error("Error approving exam result:", error);
-        showToast(`خطأ في اعتماد النتيجة: ${error.message}`, 'var(--error)');
-    } finally {
-        showLoading(false);
-    }
-}
-
-function confirmRejectExamResult(docId) {
-    if (confirm('هل أنت متأكد من رفض نتيجة هذا الاختبار؟')) {
-        rejectExamResult(docId);
-    }
-}
-
-async function rejectExamResult(docId) {
-    showLoading(true);
-    try {
-        const resultDoc = await firestore.collection('exam_results').doc(docId).get();
-        if (!resultDoc.exists) {
-            showToast("نتيجة الاختبار غير موجودة.", "var(--error)");
-            return;
-        }
-        const resultData = resultDoc.data();
-        const studentEmail = resultData.student_email;
-        const level = resultData.level;
-
-        await firestore.collection('exam_results').doc(docId).update({
-            approved: false,
-            teacher_reviewed: true
-        });
-
-        const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
-        if (!lecturesSnapshot.empty) {
-            const studentLectureDocId = lecturesSnapshot.docs[0].id;
-            await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: false
-            });
-        }
-        
-        showToast('تم رفض نتيجة الاختبار!', 'var(--secondary-color)');
-        sendStudentSpecificNotification(
-            studentEmail,
-            `عذراً، لم يتم اعتماد نتيجة اختبار المستوى ${level} الخاص بك. يرجى مراجعة ملاحظات المعلم.`,
-            'exam_rejected',
-            level,
-            `المستوى ${level}`
-        );
-        hideExamResultDetails();
-    } catch (error) {
-        console.error("Error rejecting exam result:", error);
-        showToast(`خطأ في رفض النتيجة: ${error.message}`, 'var(--error)');
-    } finally {
-        showLoading(false);
-    }
-}
-
-function confirmResetExamResult(docId, studentUid, level) {
-    if (confirm('هل أنت متأكد من إعادة تعيين هذا الاختبار؟ سيؤدي ذلك إلى حذف النتيجة الحالية وسيتطلب من الطالب إعادة الاختبار لهذا المستوى.')) {
-        resetExamResult(docId, studentUid, level);
-    }
-}
-
-async function resetExamResult(docId, studentUid, level) {
-    showLoading(true);
-    try {
-        await firestore.collection('exam_results').doc(docId).delete();
-
-        const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentUid).limit(1).get();
-        if (!lecturesSnapshot.empty) {
-            const studentLectureDocId = lecturesSnapshot.docs[0].id;
-            await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: false
-            });
-        }
-        
-        showToast('تمت إعادة تعيين الاختبار بنجاح. يمكن للطالب إعادة الاختبار الآن.', 'var(--secondary-color)');
-        sendStudentSpecificNotification(
-            studentUid,
-            `تم إعادة تعيين اختبار المستوى ${level} الخاص بك. يمكنك الآن إعادة تقديم الاختبار.`,
-            'exam_reset',
-            level,
-            `المستوى ${level}`
-        );
-        hideExamResultDetails();
-    } catch (error) {
-        console.error("Error resetting exam result:", error);
-        showToast(`خطأ في إعادة تعيين الاختبار: ${error.message}`, 'var(--error)');
-    } finally {
-        showLoading(false);
-    }
-}
-
-
 // Logout
 function logout() {
   // Unsubscribe from listeners before logging out
@@ -1661,14 +1341,9 @@ function logout() {
       teacherNotificationsListenerUnsubscribe();
       teacherNotificationsListenerUnsubscribe = null;
   }
-  // يجب أن يكون هذا المتغير `studentMarksListenerUnsubscribe` معرّفاً إذا كان مستخدماً
-  // if (studentMarksListenerUnsubscribe) {
-  //     studentMarksListenerUnsubscribe();
-  //     studentMarksListenerUnsubscribe = null;
-  // }
-  if (examResultsListenerUnsubscribe) {
-      examResultsListenerUnsubscribe();
-      examResultsListenerUnsubscribe = null;
+  if (studentMarksListenerUnsubscribe) { // NEW: Unsubscribe marks listener
+      studentMarksListenerUnsubscribe();
+      studentMarksListenerUnsubscribe = null;
   }
   auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
     console.error("خطأ في تسجيل الخروج:", error);
