@@ -461,9 +461,23 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
   console.log("lastActiveLevelIndex:", lastActiveLevelIndex);
   console.log("studentData.accepted:", studentData.accepted);
 
+  // التعديل المقترح هنا: لضمان ظهور رسالة حتى لو كان الشرط الأول غير مستوفى
   if (!lastActiveLevelIndex || !studentData.accepted) {
     if (btn) btn.style.display = "none";
-    if (warn) warn.innerText = ''; // مسح أي تحذيرات سابقة
+    if (warn) {
+        // التحقق من أن lastActiveLevelIndex هو رقم صالح وأكبر من صفر
+        if (typeof lastActiveLevelIndex !== 'number' || lastActiveLevelIndex <= 0) {
+            warn.innerText = 'لا يوجد مستوى نشط للطالب. يرجى تفعيل مستوى واحد على الأقل للطالب عبر لوحة تحكم المعلم.';
+        } else if (studentData.accepted !== true) { // التأكد من أن accepted هي true بشكل صريح
+            warn.innerText = 'حالة قبول الطالب في الدورة غير "مقبول". يرجى مراجعة حالة القبول عبر لوحة تحكم المعلم.';
+        } else {
+            // في حالة لم يتم تفعيل الرسالة بشكل صحيح، كحل احتياطي
+            warn.innerText = 'خطأ غير معروف في التحقق الأولي. الرجاء التأكد من تفعيل مستوى الطالب وحالة القبول.';
+        }
+        warn.style.display = 'block'; // تأكد من إظهار رسالة التحذير
+        warn.style.color = 'var(--danger-color)'; // لتوضيح أنها رسالة مهمة
+        warn.style.fontWeight = 'bold'; // لتكون بارزة
+    }
     console.log("Condition 1 (lastActiveLevelIndex or studentData.accepted) not met.");
     return; // لا يوجد مستوى نشط أو الطالب غير مقبول
   }
