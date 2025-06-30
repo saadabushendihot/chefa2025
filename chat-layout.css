@@ -28,7 +28,7 @@ body.chat-page {
   padding-bottom: 70px; /* مسافة لمنطقة إدخال الرسائل الثابتة في الأسفل */
   box-sizing: border-box;
   overflow: hidden; /* لمنع ظهور شريط التمرير الرئيسي */
-  position: relative; /* لتحديد سياق التمركز المطلق للقائمة الجانبية في الجوال (غطاء التراكب) */
+  position: relative; /* لتحديد سياق التمركز المطلق للقائمة الجانبية في الجوال */
 }
 
 /* ------------------------------------ */
@@ -632,187 +632,647 @@ body.chat-page {
     background-color: #2a2a2a;
     border-color: var(--border-color);
     color: var(--text-dark);
+    }
+    .dark-mode .login-container .google-btn {
+      background-color: var(--surface-light);
+      color: var(--text-dark);
+      border-color: var(--border-color);
+    }
+    .dark-mode .login-container .google-btn:hover {
+        background-color: #f0f0f0;
+        box-shadow: none;
+    }
+    .dark-mode .login-container .google-btn img {
+        margin-left: 10px;
+    }
+    .dark-mode .login-container #msg {
+        color: var(--danger-color);
+    }
+    .dark-mode #welcomeBox {
+        background: var(--surface-light);
+        border-color: var(--border-color);
+    }
+    .dark-mode #welcomeBox h2 {
+        color: var(--primary-light);
+    }
+    .dark-mode #welcomeBox p {
+        color: var(--text-dark);
+    }
+
+    /* ------------------------------------ */
+    /* 8. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
+    /* ------------------------------------ */
+
+    @media (max-width: 992px) {
+      body {
+        font-size: 15px;
+      }
+      .container {
+        padding: 20px;
+        margin-left: 15px;
+        margin-right: 15px;
+      }
+      .btn {
+        padding: 8px 16px;
+        font-size: 0.95rem;
+      }
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      h3 { font-size: 1.25rem; }
+
+      .nav-link {
+        height: 56px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+      }
+      .notification-bell {
+        font-size: 1.4rem;
+        margin-left: 15px;
+      }
+      .notification-badge {
+        top: -5px;
+        right: -5px;
+        padding: 2px 6px;
+        font-size: 0.65rem;
+      }
+      .notification-panel {
+        width: 300px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header, .app-bar {
+        padding: 12px 15px;
+        font-size: 1.2rem;
+      }
+      .app-bar-title {
+        font-size: 1.1rem;
+        margin-left: 10px;
+      }
+      .container {
+        margin-top: 60px;
+        padding: 15px;
+      }
+      .btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+      }
+      .table th, .table td {
+        padding: 10px 14px;
+      }
+      .login-container {
+        margin: 40px auto;
+      }
+
+      /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
+      body.chat-page .main-container {
+        padding-top: 0;
+        flex-direction: column;
+      }
+      body.chat-page .chat-list-panel {
+        position: fixed;
+        top: 0;
+        right: -250px; /* لإخفائها خارج الشاشة في البداية (لجهة اليمين في RTL) */
+        width: 250px;
+        height: 100%;
+        background: var(--surface);
+        box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+        z-index: 500;
+        transition: all 0.3s ease-in-out;
+        border-left: 1px solid var(--border-color);
+        flex-shrink: unset;
+      }
+      body.chat-page .chat-list-panel.open {
+        right: 0;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+      }
+      body.chat-page .chat-area {
+        width: 100%;
+        flex: 1;
+        overflow-y: auto;
+      }
+      body.chat-page .sidebar-toggle-btn {
+        display: flex;
+      }
+      body.chat-page .app-bar-title {
+        margin-right: auto;
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 576px) {
+      body {
+        font-size: 14px;
+      }
+      header, .app-bar {
+        font-size: 1.1rem;
+        justify-content: space-around;
+        text-align: center;
+        padding: 10px 8px;
+      }
+      .app-bar-logo {
+        height: 35px;
+        margin-right: 8px;
+      }
+      .app-bar-title {
+        display: none;
+      }
+      .container {
+        padding: 10px;
+        margin-left: 8px;
+        margin-right: 8px;
+        margin-top: 55px;
+      }
+      .toast {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        bottom: 15px;
+      }
+      .notification-panel {
+        width: calc(100% - 30px);
+        right: 15px;
+        left: 15px;
+      }
+      .table-mark-input {
+        width: 50px;
+        font-size: 0.8rem;
+        padding: 5px 6px;
+      }
+      .table-mark-button {
+        font-size: 0.75rem;
+        padding: 5px 10px;
+      }
+      .lesson-summary-block {
+        padding: 15px;
+      }
+      .lesson-summary-block h4 {
+          font-size: 1.05rem;
+      }
+      .lesson-summary-block audio {
+          max-width: 100%;
+      }
+      .reply-area .btn {
+          padding: 6px 12px;
+          font-size: 0.85rem;
+      }
+      .login-container {
+        padding: 20px;
+        margin: 30px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-bar">
+    <img src="https://i.ibb.co/cSpS2NDk/logo-1.png" alt="شعار المركز" class="app-bar-logo">
+    <h1 class="app-bar-title">لوحة المعلم - إدارة الطلاب والدروس</h1>
+    <div class="app-bar-spacer"></div>
+    <nav>
+      <a href="dashboard.html" class="nav-link active">لوحة التحكم</a>
+      <a href="questions-admin.html" class="nav-link">إدارة الأسئلة</a>
+    </nav>
+    <div class="d-flex align-items-center">
+      <button class="btn ml-2" onclick="toggleDarkMode()">
+        <i class="material-icons">brightness_4</i>
+      </button>
+      <div class="notification-bell" onclick="toggleTeacherNotificationPanel()">
+        <i class="material-icons">notifications</i>
+        <span id="unreadTeacherNotificationsBadge" class="notification-badge d-none">0</span>
+      </div>
+      <button class="btn btn-danger ml-2" onclick="logout()">
+        <i class="material-icons mr-1">logout</i> تسجيل الخروج
+      </button>
+    </div>
+  </header>
+
+  <div id="teacherNotificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h5 class="mb-0">إشعارات الطلاب</h5>
+    </div>
+    <div id="teacherNotificationsList">
+      <p class="text-center" style="color: var(--text-secondary); padding: 16px;">لا توجد إشعارات حالياً.</p>
+    </div>
+  </div>
+
+  <main class="container" style="max-width: 1200px; margin: 24px auto; padding: 0 20px;"> <div class="spinner" id="loadingSpinner"></div>
+    <div id="toast" class="toast"></div>
+
+    <div class="card mt-3">
+      <div class="card-header">
+        <h4 class="mb-0">ضبط عدد الأسئلة في الامتحان لكل مستوى</h4>
+      </div>
+      <div class="card-content">
+        <form id="settingsForm" onsubmit="return false;">
+          <div class="table-container">
+            <table class="table settings-table">
+              <thead>
+                <tr>
+                  <th>المستوى</th>
+                  <th>عدد الأسئلة</th>
+                  <th>عدد العلامات</th>
+                  <th>الوقت (دقيقة)</th>
+                  <th>إجراء</th>
+                </tr>
+              </thead>
+              <tbody id="settingsTbody">
+                <tr><td colspan="5" class="text-center" style="color:var(--text-secondary)">جاري التحميل...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-header">
+        <h4 id="formTitle" class="mb-0">إضافة سؤال جديد</h4>
+      </div>
+      <div class="card-content">
+        <form id="questionForm">
+          <div class="form-group">
+            <label for="qText" class="form-label">نص السؤال:</label>
+            <textarea id="qText" class="form-control" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="qLevel" class="form-label">المستوى:</label>
+            <select id="qLevel" class="form-control form-select">
+              <option value="1">المستوى 1</option>
+              <option value="2">المستوى 2</option>
+              <option value="3">المستوى 3</option>
+              <option value="4">المستوى 4</option>
+              <option value="5">المستوى 5</option>
+              <option value="6">المستوى 6</option>
+              <option value="7">المستوى 7</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="qMark" class="form-label">علامة السؤال:</label>
+            <input type="number" id="qMark" class="form-control" min="1" value="1" required style="max-width:120px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">الخيارات:</label>
+            <div class="choices-area" id="choicesArea"></div>
+            <button type="button" class="btn btn-outlined mt-2" onclick="addChoice()">
+                <i class="material-icons mr-1">add</i> خيار جديد
+            </button>
+          </div>
+          <div class="card-actions">
+            <button type="submit" class="btn btn-success">
+                <i class="material-icons mr-1">save</i> حفظ السؤال
+            </button>
+            <button type="button" class="btn btn-outlined ml-2" onclick="resetForm()">
+                <i class="material-icons mr-1">cancel</i> إلغاء
+            </button>
+          </div>
+          <div class="mt-2 text-center" id="formMsg" style="color: var(--error);"></div>
+          <input type="hidden" id="editId">
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">قائمة الأسئلة</h4>
+            <div class="d-flex align-items-center">
+                <label for="filterLevel" class="form-label mb-0" style="margin-left: 10px;">تصفية حسب المستوى:</label>
+                <select id="filterLevel" class="form-control form-select" onchange="renderQuestionsTable()" style="width: auto; display: inline-block;">
+                    <option value="">الكل</option>
+                    <option value="1">المستوى 1</option>
+                    <option value="2">المستوى 2</option>
+                    <option value="3">المستوى 3</option>
+                    <option value="4">المستوى 4</option>
+                    <option value="5">المستوى 5</option>
+                    <option value="6">المستوى 6</option>
+                    <option value="7">المستوى 7</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="table-container">
+                <table class="table" id="questionsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>السؤال</th>
+                            <th>المستوى</th>
+                            <th>العلامة</th>
+                            <th>الخيارات</th>
+                            <th>عدد الصحيحة</th>
+                            <th>تعديل</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionsTbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </main>
+
+<script>
+// Toast & Loading Functions
+function showToast(msg, color="var(--primary-color)") {
+  const toast = document.getElementById("toast");
+  if (!toast) {
+      console.error("Toast element not found!");
+      return;
+  }
+  toast.innerText = msg;
+  toast.style.background = color;
+  toast.className = "toast show";
+  setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
 }
-.dark-mode .login-container .google-btn {
-    background-color: var(--surface-light);
-    color: var(--text-dark);
-    border-color: var(--border-color);
-}
-.dark-mode .login-container #msg {
-    color: var(--danger-color);
-}
-.dark-mode #welcomeBox {
-    background: var(--surface-light);
-    border-color: var(--border-color);
-}
-.dark-mode #welcomeBox h2 {
-    color: var(--primary-light);
-}
-.dark-mode #welcomeBox p {
-    color: var(--text-dark);
-    font-size: 1.05rem;
-    margin-bottom: 20px;
+function showLoading(show) {
+  const spinner = document.getElementById("loadingSpinner");
+  if (spinner) {
+      spinner.style.display = show ? "block" : "none";
+  }
 }
 
-/* ------------------------------------ */
-/* 8. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
-/* ------------------------------------ */
-
-@media (max-width: 992px) {
-  body {
-    font-size: 15px;
-  }
-  .container {
-    padding: 20px;
-    margin-left: 15px;
-    margin-right: 15px;
-  }
-  .btn {
-    padding: 8px 16px;
-    font-size: 0.95rem;
-  }
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.5rem; }
-  h3 { font-size: 1.25rem; }
-
-  .nav-link {
-    height: 56px;
-    padding: 0 12px;
-    font-size: 0.875rem;
-  }
-  .notification-bell {
-    font-size: 1.4rem;
-    margin-left: 15px;
-  }
-  .notification-badge {
-    top: -5px;
-    right: -5px;
-    padding: 2px 6px;
-    font-size: 0.65rem;
-  }
-  .notification-panel {
-    width: 300px;
+// Dark Mode Toggle
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  // Save user preference
+  if (document.body.classList.contains('dark-mode')) {
+    localStorage.setItem('theme', 'dark');
+  } else {
+    localStorage.setItem('theme', 'light');
   }
 }
+// Apply saved theme preference on load
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+});
 
-@media (max-width: 768px) {
-  header, .app-bar {
-    padding: 12px 15px;
-    font-size: 1.2rem;
-  }
-  .app-bar-title {
-    font-size: 1.1rem;
-    margin-left: 10px;
-  }
-  .container {
-    margin-top: 60px;
-    padding: 15px;
-  }
-  .btn {
-    padding: 6px 12px;
-    font-size: 0.9rem;
-  }
-  .table th, .table td {
-    padding: 10px 14px;
-  }
-  .login-container {
-    margin: 40px auto;
-  }
 
-  /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
-  body.chat-page .main-container {
-    padding-top: 0;
-    flex-direction: column;
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+var auth = firebase.auth();
+var firestore = firebase.firestore();
+
+let questions = [];
+const LEVELS = [1,2,3,4,5,6,7];
+
+// حماية الصفحة - فقط للمعلمين
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    firestore.collection('users').doc(user.uid).get().then(function(doc) {
+      if (!doc.exists || doc.data().role !== "teacher") {
+        window.location.href = "login.html";
+      } else {
+        startQuestionsAdmin();
+        loadSettingsTable();
+      }
+    }).catch(function(error) {
+      window.location.href = "login.html";
+    });
+  } else {
+    window.location.href = "login.html";
   }
-  body.chat-page .chat-list-panel {
-    position: fixed;
-    top: 0;
-    right: -250px; /* لإخفائها خارج الشاشة في البداية (لجهة اليمين في RTL) */
-    width: 250px;
-    height: 100%;
-    background: var(--surface-light);
-    box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-    z-index: 500;
-    transition: all 0.3s ease-in-out;
-    border-left: 1px solid var(--border-color);
-    flex-shrink: unset;
-  }
-  body.chat-page .chat-list-panel.open {
-    right: 0;
-    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-  }
-  body.chat-page .chat-area {
-    width: 100%;
-    flex: 1;
-    overflow-y: auto;
-  }
-  body.chat-page .sidebar-toggle-btn {
-    display: flex;
-  }
-  body.chat-page .app-bar-title {
-    margin-right: auto;
-    margin-left: 0;
-  }
+});
+
+function logout() {
+  auth.signOut().then(()=>{window.location.href='login.html';});
 }
 
-@media (max-width: 576px) {
-  body {
-    font-size: 14px;
-  }
-  header, .app-bar {
-    font-size: 1.1rem;
-    justify-content: space-around;
-    text-align: center;
-    padding: 10px 8px;
-  }
-  .app-bar-logo {
-    height: 35px;
-    margin-right: 8px;
-  }
-  .app-bar-title {
-    display: none;
-  }
-  .container {
-    padding: 10px;
-    margin-left: 8px;
-    margin-right: 8px;
-    margin-top: 55px;
-  }
-  .toast {
-    width: 90%;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    bottom: 15px;
-  }
-  .notification-panel {
-    width: calc(100% - 30px);
-    right: 15px;
-    left: 15px;
-  }
-  .table-mark-input {
-    width: 50px;
-    font-size: 0.8rem;
-    padding: 5px 6px;
-  }
-  .table-mark-button {
-    font-size: 0.7rem;
-    padding: 5px 10px;
-  }
-  .lesson-summary-block {
-    padding: 15px;
-  }
-  .lesson-summary-block h4 {
-      font-size: 1.05rem;
-  }
-  .lesson-summary-block audio {
-      max-width: 100%;
-  }
-  .reply-area .btn {
-      padding: 6px 12px;
-      font-size: 0.85rem;
-  }
-  .login-container {
-    padding: 20px;
-    margin: 30px auto;
-  }
+// إعدادات عدد الأسئلة لكل مستوى
+function loadSettingsTable() {
+  showLoading(true);
+  const tbody = document.getElementById('settingsTbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color:var(--text-secondary)">جاري التحميل...</td></tr>';
+  firestore.collection('exam_settings').get().then(snapshot => {
+    let data = {};
+    snapshot.forEach(doc => {
+      data[doc.id] = doc.data(); // Get all data for the level (question_num, total_marks, exam_duration)
+    });
+    let rows = '';
+    LEVELS.forEach(lvl => {
+      let questionNum = data[`level_${lvl}`]?.question_num !== undefined ? data[`level_${lvl}`].question_num : '';
+      let totalMarks = data[`level_${lvl}`]?.total_marks !== undefined ? data[`level_${lvl}`].total_marks : ''; // New field
+      let examDuration = data[`level_${lvl}`]?.exam_duration !== undefined ? data[`level_${lvl}`].exam_duration : ''; // New field
+
+      rows += `
+        <tr>
+          <td>المستوى ${lvl}</td>
+          <td>
+            <input type="number" min="1" id="input_qnum_${lvl}" value="${questionNum}" placeholder="عدد الأسئلة" class="form-control" required>
+          </td>
+          <td>
+            <input type="number" min="1" id="input_tmarks_${lvl}" value="${totalMarks}" placeholder="عدد العلامات" class="form-control" required>
+          </td>
+          <td>
+            <input type="number" min="1" id="input_duration_${lvl}" value="${examDuration}" placeholder="الوقت (دقيقة)" class="form-control" required>
+          </td>
+          <td class="text-center">
+            <button type="button" class="btn btn-success" onclick="saveLevel(${lvl})">
+                <i class="material-icons">save</i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = rows;
+    showLoading(false);
+  }).catch(error => {
+      showToast(`خطأ في تحميل الإعدادات: ${error.message}`, 'var(--error)');
+      showLoading(false);
+  });
 }
+
+function saveLevel(lvl) {
+  let inputQNum = document.getElementById(`input_qnum_${lvl}`);
+  let inputTMarks = document.getElementById(`input_tmarks_${lvl}`);
+  let inputDuration = document.getElementById(`input_duration_${lvl}`);
+
+  let qNum = parseInt(inputQNum.value);
+  let tMarks = parseInt(inputTMarks.value);
+  let duration = parseInt(inputDuration.value);
+
+  if (!qNum || qNum < 1) {
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`, 'var(--error)');
+    inputQNum.focus();
+    return;
+  }
+  if (!tMarks || tMarks < 1) {
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`, 'var(--error)');
+    inputTMarks.focus();
+    return;
+  }
+  if (!duration || duration < 1) {
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`, 'var(--error)');
+    inputDuration.focus();
+    return;
+  }
+
+  firestore.collection('exam_settings').doc(`level_${lvl}`).set({
+    question_num: qNum,
+    total_marks: tMarks,
+    exam_duration: duration
+  }).then(()=>{
+    showToast(`تم حفظ إعدادات المستوى ${lvl} بنجاح`, 'var(--secondary-color)');
+  }).catch((error)=>{
+    showToast(`حدث خطأ أثناء الحفظ! ${error.message}`, 'var(--error)');
+    console.error("Error saving level settings:", error);
+  });
+}
+
+// الكود الأصلي لإضافة الأسئلة وإدارتها
+function startQuestionsAdmin() {
+  resetForm();
+  loadQuestions();
+}
+
+function addChoice(text = '', checked = false) {
+  let idx = document.querySelectorAll('.choice-row').length;
+  let div = document.createElement('div');
+  div.className = 'choice-row d-flex align-items-center mb-1';
+  div.innerHTML = `
+    <input type="checkbox" class="correctChoice" name="correct${idx}" ${checked ? 'checked' : ''} title="صحيح" style="width:24px; height:24px; margin-left:8px; accent-color: var(--primary-color);">
+    <input type="text" class="choiceText form-control" value="${text}" required placeholder="الخيار ${idx+1}" style="flex-grow:1; margin-bottom:0;">
+    <button type="button" class="btn btn-danger ml-2" onclick="this.parentNode.remove()" style="padding: 6px 12px; height: auto;">
+        <i class="material-icons">delete</i>
+    </button>
+  `;
+  document.getElementById('choicesArea').appendChild(div);
+}
+
+function resetForm() {
+  document.getElementById('questionForm').reset();
+  document.getElementById('choicesArea').innerHTML = '';
+  addChoice();
+  addChoice();
+  document.getElementById('editId').value = '';
+  document.getElementById('formTitle').innerText = 'إضافة سؤال جديد';
+  document.getElementById('formMsg').innerText = '';
+  document.getElementById('qMark').value = 1;
+}
+
+function loadQuestions() {
+  showLoading(true);
+  firestore.collection('questions').orderBy('level').get().then(snap => {
+    questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+    renderQuestionsTable();
+    showLoading(false);
+  }).catch(error => {
+      showToast(`خطأ في تحميل الأسئلة: ${error.message}`, 'var(--error)');
+      showLoading(false);
+  });
+}
+
+function renderQuestionsTable() {
+  let level = document.getElementById('filterLevel').value;
+  let rows = '';
+  let filtered = level ? questions.filter(q => q.level == level) : questions;
+  filtered.forEach((q, i) => {
+    let chs = q.choices.map((c, idx) =>
+      `<span class="choice-item${q.correct && q.correct.includes(idx) ? ' correct' : ''}">${c}</span>`
+    ).join('');
+    rows += `<tr>
+      <td class="text-center">${i+1}</td>
+      <td class="text-right">${q.question}</td>
+      <td class="text-center">${q.level}</td>
+      <td class="text-center">${q.mark || 1}</td>
+      <td><div class="choices-list d-flex justify-content-end">${chs}</div></td>
+      <td class="text-center">${q.correct ? q.correct.length : 0}</td>
+      <td class="text-center">
+        <button class="btn" onclick="editQuestion('${q.id}')" style="padding: 6px 12px; height: auto;">
+            <i class="material-icons" style="font-size:18px;">edit</i>
+        </button>
+      </td>
+      <td class="text-center">
+        <button class="btn btn-danger" onclick="deleteQuestion('${q.id}')" style="padding: 6px 12px; height: auto;">
+            <i class="material-icons" style="font-size:18px;">delete</i>
+        </button>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('questionsTbody').innerHTML = rows || `<tr><td colspan="8" class="text-center" style="color:var(--text-secondary)">لا توجد أسئلة</td></tr>`;
+}
+
+function editQuestion(id) {
+  let q = questions.find(x => x.id === id);
+  if (!q) return;
+  document.getElementById('qText').value = q.question;
+  document.getElementById('qLevel').value = q.level;
+  document.getElementById('qMark').value = q.mark || 1;
+  document.getElementById('choicesArea').innerHTML = '';
+  q.choices.forEach((choice, i) => {
+    addChoice(choice, q.correct && q.correct.includes(i));
+  });
+  document.getElementById('editId').value = id;
+  document.getElementById('formTitle').innerText = 'تعديل سؤال';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteQuestion(id) {
+  if (!confirm('هل أنت متأكد من حذف السؤال؟')) return;
+  firestore.collection('questions').doc(id).delete().then(()=>{
+      loadQuestions();
+      showToast('تم حذف السؤال بنجاح!', 'var(--secondary-color)');
+  }).catch(error => {
+      showToast(`خطأ في حذف السؤال: ${error.message}`, 'var(--error)');
+      console.error("Error deleting question:", error);
+  });
+}
+
+document.getElementById('questionForm').onsubmit = function(e){
+  e.preventDefault();
+  let question = document.getElementById('qText').trim();
+  let level = parseInt(document.getElementById('qLevel').value);
+  let mark = parseFloat(document.getElementById('qMark').value) || 1;
+  let choiceNodes = document.querySelectorAll('.choice-row');
+  let choices = [];
+  let correct = [];
+  choiceNodes.forEach((row, i) => {
+    let text = row.querySelector('.choiceText').value.trim();
+    if (text) {
+      choices.push(text);
+      if (row.querySelector('.correctChoice').checked) correct.push(i);
+    }
+  });
+  if (choices.length < 2) { showFormMsg('يجب إدخال خيارين على الأقل!'); return; }
+  if (correct.length === 0) { showFormMsg('حدد إجابة صحيحة واحدة على الأقل!'); return; }
+  if (mark <= 0) { showFormMsg('يجب أن تكون العلامة أكبر من صفر!'); return; }
+  let qObj = {
+    question,
+    choices,
+    correct,
+    level,
+    mark
+  };
+  let editId = document.getElementById('editId').value;
+  if (editId) {
+    firestore.collection('questions').doc(editId).set(qObj).then(()=>{
+      resetForm();
+      loadQuestions();
+      showFormMsg('تم تحديث السؤال بنجاح', true);
+      showToast('تم تحديث السؤال بنجاح!', 'var(--secondary-color)');
+    }).catch(error => {
+        showFormMsg(`خطأ في تحديث السؤال: ${error.message}`, false);
+        showToast(`خطأ في تحديث السؤال: ${error.message}`, 'var(--error)');
+        console.error("Error updating question:", error);
+    });
+  } else {
+    firestore.collection('questions').add(qObj).then(()=>{
+      resetForm();
+      loadQuestions();
+      showFormMsg('تمت إضافة السؤال بنجاح', true);
+      showToast('تمت إضافة السؤال بنجاح!', 'var(--secondary-color)');
+    }).catch(error => {
+        showFormMsg(`خطأ في إضافة السؤال: ${error.message}`, false);
+        showToast(`خطأ في إضافة السؤال: ${error.message}`, 'var(--error)');
+        console.error("Error adding question:", error);
+    });
+  }
+};
+
+function showFormMsg(msg, success=false) {
+  let el = document.getElementById('formMsg');
+  el.innerText = msg;
+  el.style.color = success ? 'var(--secondary-color)' : 'var(--error)';
+  setTimeout(()=>{el.innerText='';}, 2500);
+}
+</script>
+</body>
+</html>
