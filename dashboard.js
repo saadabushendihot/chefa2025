@@ -1,7 +1,3 @@
-// dashboard.js
-
-console.log("dashboard.js started execution."); // أضف هذا السطر في أول الملف
-
 // Toast & Loading
 function showToast(msg, color="var(--primary-color)") {
   const toast = document.getElementById("toast");
@@ -71,10 +67,7 @@ function downloadStudentReport() {
 }
 
 // Firebase Initialization
-console.log("Attempting Firebase initialization."); // أضف هذا السطر قبل تهيئة Firebase
 if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-console.log("Firebase initialization status:", firebase.apps.length > 0 ? "SUCCESS" : "FAILED"); // أضف هذا السطر بعد تهيئة Firebase
-
 var auth = firebase.auth();
 var firestore = firebase.firestore();
 
@@ -89,12 +82,6 @@ let currentlyOpenSummaryDocId = null; // To track if a summary details box is op
 let teacherNotificationsListenerUnsubscribe = null; // Listener for teacher notifications
 let teacherNotificationsData = []; // Global array to store teacher notifications
 let teacherLoggedInEmail = ''; // To store logged-in teacher's email
-
-// NEW: Global variables for exam results management
-let allExamResults = [];
-let examResultsListenerUnsubscribe = null;
-let currentlyOpenExamResultDocId = null;
-
 
 // تعريف روابط التنقل لكل دور
 const navLinks = {
@@ -154,7 +141,6 @@ function getMarkForSummary(summaryId, studentEmail) {
 
 // Auth State Changed - Protection and Initial Data Load
 auth.onAuthStateChanged(function(user) {
-  console.log("auth.onAuthStateChanged fired in dashboard.js. User:", user); // أضف هذا السطر
   if (user) {
     firestore.collection('users').doc(user.uid).get().then(function(doc) {
       if (!doc.exists || doc.data().role !== "teacher") {
@@ -165,7 +151,6 @@ auth.onAuthStateChanged(function(user) {
         loadLessons();
         setupTeacherNotificationsListener(); // Setup listener for teacher notifications
         renderNavigation(doc.data().role); // استدعاء دالة جديدة لرسم التنقل
-        loadExamResultsDashboard(); // NEW: Load exam results for the dashboard
       }
     }).catch(function(error) {
       console.error("خطأ في جلب دور المستخدم:", error);
@@ -305,6 +290,9 @@ function renderTeacherNotificationsPanel(notifications, unreadCount) {
         } else if (n.timestamp) {
             try {
                 timestampText = new Date(n.timestamp).toLocaleString('ar-EG');
+            } catch (e) {
+                console.error("Error parsing notification timestamp (non-Firestore obj):", n.id, n.timestamp, e);
+                timestampText = '(تاريخ غير صالح)';
             }
         } else {
             timestampText = '(لا يوجد تاريخ)';
@@ -537,7 +525,7 @@ window.showSelectedStudentDetails = function(studentId) {
     // Update notification recipient dropdown
     const notificationRecipientSelect = document.getElementById('notificationRecipient');
     notificationRecipientSelect.innerHTML = `
-        <option value="selectedStudent">الطالب المحدد حالياً</option>
+        <option value="${student.email}">الطالب المحدد حالياً: ${student.name || student.email}</option>
         <option value="allStudents">جميع الطلاب</option>
     `;
     notificationRecipientSelect.value = student.email; // Set current student as default recipient
@@ -554,8 +542,8 @@ window.showSelectedStudentDetails = function(studentId) {
     `;
     document.getElementById('notificationRecipient').value = "selectedStudent";
     setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
-  });
-}
+  }
+};
 
 // Update Student Admission Status
 window.updateStudentAdmission = function(status) {
@@ -856,7 +844,7 @@ window.updateLevel = function(checkbox) {
             }
         }
     }
-    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1500);
+    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--danger-color)';}, 1500);
   }).catch(function(err){
     document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
   });
@@ -1155,6 +1143,7 @@ function saveSummaryMark(docId) {
                             summaryData.lesson_id,
                             lessonTitle
                         );
+                        // No need to call loadStudentSummaries here, listener will handle refresh
                     }).catch((err) => {
                         showToast('خطأ أثناء تحديث العلامة:\n' + err.message, 'var(--error)');
                         console.error(err);
@@ -1169,6 +1158,7 @@ function saveSummaryMark(docId) {
                             summaryData.lesson_id,
                             lessonTitle
                         );
+                        // No need to call loadStudentSummaries here, listener will handle refresh
                     }).catch((err) => {
                         showToast('خطأ أثناء إضافة العلامة:\n' + err.message, 'var(--error)');
                         console.error(err);
@@ -1204,6 +1194,7 @@ function saveSummaryComment(docId) {
                 lessonTitle
             );
         }
+        // Listener will handle refresh, no need to call loadStudentSummaries here
     }).catch(err => {
         showToast('خطأ في حفظ التعليق: ' + err.message, 'var(--error)');
         console.error('Error saving summary comment:', err);
@@ -1239,6 +1230,7 @@ window.resetSummary = function(summaryDocId, studentEmail) {
         return Promise.resolve();
     }).then(() => {
         showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', 'var(--secondary-color)');
+        // Listener will handle refresh, no need to call loadStudentSummaries here
         hideSummaryDetails();
         showLoading(false);
     }).catch(error => {
@@ -1340,6 +1332,7 @@ async function sendNotification(e) {
 
 // Logout
 function logout() {
+  // Unsubscribe from listeners before logging out
   if (teacherSummariesListenerUnsubscribe) {
     teacherSummariesListenerUnsubscribe();
     teacherSummariesListenerUnsubscribe = null;
@@ -1348,7 +1341,7 @@ function logout() {
       teacherNotificationsListenerUnsubscribe();
       teacherNotificationsListenerUnsubscribe = null;
   }
-  if (studentMarksListenerUnsubscribe) {
+  if (studentMarksListenerUnsubscribe) { // NEW: Unsubscribe marks listener
       studentMarksListenerUnsubscribe();
       studentMarksListenerUnsubscribe = null;
   }
