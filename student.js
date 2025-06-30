@@ -421,9 +421,10 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
       if (courseNumberEl) courseNumberEl.innerText = data.course_number || "";
       if (msgEl) msgEl.innerText = ""; // تحقق قبل التعيين
       
-      // NEW: Control visibility of examsBoxWrapper
-      const examsBoxWrapper = document.getElementById('examsBox'); // تم تغييرها إلى examsBox بدلاً من examsBoxWrapper
-      if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // Hide by default
+      // لا توجد حاجة للتعامل مع examsBox هنا لأنها أزيلت من HTML
+      // const examsBoxWrapper = document.getElementById('examsBox'); 
+      // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; 
+
 
       // حالة القبول
       const admissionBox = document.getElementById('admissionStatusBox');
@@ -437,20 +438,20 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
           if (isAccepted) {
             admissionBox.className = "admission-status-box admission-accepted";
             admissionBox.innerText = "تم قبولك في الدورة ✅";
-            if (examsBoxWrapper) examsBoxWrapper.style.display = "block"; // Show exams box if accepted
+            // if (examsBoxWrapper) examsBoxWrapper.style.display = "block"; // أزيلت الحاجة
           } else if (isRejected) {
             admissionBox.className = "admission-status-box admission-rejected";
             admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
-            if (examsBoxWrapper) examsBoxWrapper.style.display = "none";
+            // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // أزيلت الحاجة
           } else {
             admissionBox.className = "admission-status-box admission-pending";
             admissionBox.innerText = "طلبك قيد المراجعة...";
-            if (examsBoxWrapper) examsBoxWrapper.style.display = "none";
+            // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // أزيلت الحاجة
           }
         } else {
           admissionBox.className = "admission-status-box admission-pending";
           admissionBox.innerText = "طلبك قيد المراجعة...";
-          if (examsBoxWrapper) examsBoxWrapper.style.display = "none";
+          // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // أزيلت الحاجة
         }
       }
 
@@ -458,21 +459,21 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
       // جدول المستويات/الامتحانات
       renderLevelsExamsMergedTable(data);
 
-      // الامتحانات العامة
-      const diagnosisMarkEl = document.getElementById('diagnosisExamMark');
-      const exam1MarkEl = document.getElementById('exam1Mark');
-      const oralExamMarkEl = document.getElementById('oralExamMark');
-      const fExamEl = document.getElementById('fExam');
+      // الامتحانات العامة - تم إزالة هذا الجزء بالكامل
+      // const diagnosisMarkEl = document.getElementById('diagnosisExamMark');
+      // const exam1MarkEl = document.getElementById('exam1Mark');
+      // const oralExamMarkEl = document.getElementById('oralExamMark');
+      // const fExamEl = document.getElementById('fExam');
       
-      const diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
-      const exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
-      const oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
-      const fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
+      // const diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
+      // const exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
+      // const oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
+      // const fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
       
-      if (diagnosisMarkEl) diagnosisMarkEl.innerText = diagnosisMark;
-      if (exam1MarkEl) exam1MarkEl.innerText = exam1Mark;
-      if (oralExamMarkEl) oralExamMarkEl.innerText = oralMark;
-      if (fExamEl) fExamEl.innerText = fMark;
+      // if (diagnosisMarkEl) diagnosisMarkEl.innerText = diagnosisMark;
+      // if (exam1MarkEl) exam1MarkEl.innerText = exam1Mark;
+      // if (oralExamMarkEl) oralExamMarkEl.innerText = oralMark;
+      // if (fExamEl) fExamEl.innerText = fMark;
 
       // تحميل الدروس والتلاخيص (مع التعديل الجديد)
       const allowedLevels = getAllowedLevels(data);
