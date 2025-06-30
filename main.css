@@ -1110,7 +1110,7 @@ nav#main-nav-links {
     
     .dark-mode .form-control:focus {
       border-color: var(--primary-light);
-      box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2); /* Light primary color tint for focus */
+      box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
     }
     
     .dark-mode .form-select {
@@ -1194,7 +1194,7 @@ nav#main-nav-links {
     .dark-mode .question-mark {
         color: var(--secondary-light);
     }
-    .dark-mode .choice-row label {
+    .dark-mode .choices-list label {
         color: var(--text-dark);
     }
     .dark-mode .result {
@@ -1349,124 +1349,37 @@ nav#main-nav-links {
       }
     }
 
-    @media (max-width: 768px) {
-      header, .app-bar {
-        padding: 12px 15px;
-        font-size: 1.2rem;
-      }
-      .app-bar-title {
-        font-size: 1.1rem;
-        margin-left: 10px;
-      }
-      .container {
-        margin-top: 60px;
-        padding: 15px;
-      }
-      .btn {
-        padding: 6px 12px;
-        font-size: 0.9rem;
-      }
-      .table th, .table td {
-        padding: 10px 14px;
-      }
-      .login-container {
-        margin: 40px auto;
-      }
-
-      /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
-      body.chat-page .main-container {
-        padding-top: 0;
-        flex-direction: column;
-      }
-      body.chat-page .chat-list-panel {
-        position: fixed;
-        top: 0;
-        right: -250px; /* لإخفائها خارج الشاشة في البداية (لجهة اليمين في RTL) */
-        width: 250px;
-        height: 100%;
-        background: var(--surface);
-        box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-        z-index: 500;
-        transition: all 0.3s ease-in-out;
-        border-left: 1px solid var(--border-color);
-        flex-shrink: unset;
-      }
-      body.chat-page .chat-list-panel.open {
-        right: 0;
-        box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-      }
-      body.chat-page .chat-area {
-        width: 100%;
-        flex: 1;
-        overflow-y: auto;
-      }
-      body.chat-page .sidebar-toggle-btn {
-        display: flex;
-      }
-      body.chat-page .app-bar-title {
-        margin-right: auto;
-        margin-left: 0;
-      }
-    }
-
-    @media (max-width: 576px) {
-      body {
-        font-size: 14px;
-      }
-      header, .app-bar {
-        font-size: 1.1rem;
-        justify-content: space-around;
-        text-align: center;
-        padding: 10px 8px;
-      }
-      .app-bar-logo {
-        height: 35px;
-        margin-right: 8px;
-      }
+    @media (max-width: 600px) {
       .app-bar-title {
         display: none;
       }
-      .container {
-        padding: 10px;
-        margin-left: 8px;
-        margin-right: 8px;
-        margin-top: 55px;
+      
+      .levels-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
       }
-      .toast {
-        width: 90%;
-        left: 50%;
-        transform: translateX(-50%) translateY(100px);
-        bottom: 15px;
+      
+      .card-content {
+        padding: 16px; /* Slightly reduced for small screens */
       }
+      
+      .table th,
+      .table td {
+        padding: 10px 14px; /* Reduced padding */
+      }
+      
       .notification-panel {
-        width: calc(100% - 30px);
-        right: 15px;
-        left: 15px;
+        width: calc(100% - 32px);
+        right: 16px;
+        left: 16px;
+        /* No transform needed if using fixed left/right */
       }
       .table-mark-input {
-        width: 50px;
-        font-size: 0.8rem;
-        padding: 5px 6px;
+        width: 60px;
+        font-size: 0.85rem;
+        padding: 6px 8px;
       }
       .table-mark-button {
         font-size: 0.75rem;
-        padding: 5px 10px;
-      }
-      .lesson-summary-block {
-        padding: 15px;
-      }
-      .lesson-summary-block h4 {
-          font-size: 1.05rem;
-      }
-      .lesson-summary-block audio {
-          max-width: 100%;
-      }
-      .reply-area .btn {
-          padding: 6px 12px;
-          font-size: 0.85rem;
-      }
-      .login-container {
-        padding: 20px;
-        margin: 30px auto;
+        padding: 6px 12px;
       }
     }
