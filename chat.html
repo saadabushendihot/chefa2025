@@ -26,7 +26,7 @@
     <div class="chat-list-panel" id="chatListPanel">
       <div class="chat-list-header">
         <h5>المحادثات</h5>
-        <button class="btn" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openCreateChatModal()">
+        <button class="btn d-none" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px;" onclick="openCreateChatModal()">
             <i class="fas fa-plus" style="margin-left: 5px;"></i> إنشاء
         </button>
       </div>
@@ -85,14 +85,7 @@
     <div class="modal-content">
       <span class="close-btn" onclick="closeManageParticipantsModal()">&times;</span>
       <h2>إدارة أعضاء المحادثة: <span id="manageChatRoomName"></span></h2>
-      <div class="chat-list-panel" id="chatListPanel">
-  <div class="chat-list-header">
-    <h5>المحادثات</h5>
-    <button class="btn d-none" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px;" onclick="openCreateChatModal()">
-        <i class="fas fa-plus" style="margin-left: 5px;"></i> إنشاء
-    </button>
-  </div>
-  </div>
+      
       <label>المشاركون الحاليون:</label>
       <div id="currentParticipantsList" class="multi-select-list">
         </div>
