@@ -422,8 +422,6 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
       if (msgEl) msgEl.innerText = ""; // تحقق قبل التعيين
       
       // لا توجد حاجة للتعامل مع examsBox هنا لأنها أزيلت من HTML
-      // const examsBoxWrapper = document.getElementById('examsBox'); 
-      // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; 
 
 
       // حالة القبول
@@ -438,20 +436,16 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
           if (isAccepted) {
             admissionBox.className = "admission-status-box admission-accepted";
             admissionBox.innerText = "تم قبولك في الدورة ✅";
-            // if (examsBoxWrapper) examsBoxWrapper.style.display = "block"; // أزيلت الحاجة
           } else if (isRejected) {
             admissionBox.className = "admission-status-box admission-rejected";
             admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
-            // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // أزيلت الحاجة
           } else {
             admissionBox.className = "admission-status-box admission-pending";
             admissionBox.innerText = "طلبك قيد المراجعة...";
-            // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // أزيلت الحاجة
           }
         } else {
           admissionBox.className = "admission-status-box admission-pending";
           admissionBox.innerText = "طلبك قيد المراجعة...";
-          // if (examsBoxWrapper) examsBoxWrapper.style.display = "none"; // أزيلت الحاجة
         }
       }
 
@@ -460,20 +454,7 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
       renderLevelsExamsMergedTable(data);
 
       // الامتحانات العامة - تم إزالة هذا الجزء بالكامل
-      // const diagnosisMarkEl = document.getElementById('diagnosisExamMark');
-      // const exam1MarkEl = document.getElementById('exam1Mark');
-      // const oralExamMarkEl = document.getElementById('oralExamMark');
-      // const fExamEl = document.getElementById('fExam');
-      
-      // const diagnosisMark = data.diagnosis_exam_mark || (data.diagnosis_exam ? 'مُجتاز' : 'غير مجتاز');
-      // const exam1Mark = data.exam1_mark || (data.exam1 ? 'مُجتاز' : 'غير مجتاز');
-      // const oralMark = data.oral_exam_mark || (data.oral_exam ? 'مُجتاز' : 'غير مجتاز');
-      // const fMark = (typeof data.f !== "undefined" && data.f !== null && data.f !== "") ? data.f : 'غير متوفر';
-      
-      // if (diagnosisMarkEl) diagnosisMarkEl.innerText = diagnosisMark;
-      // if (exam1MarkEl) exam1MarkEl.innerText = exam1Mark;
-      // if (oralExamMarkEl) oralExamMarkEl.innerText = oralMark;
-      // if (fExamEl) fExamEl.innerText = fMark;
+
 
       // تحميل الدروس والتلاخيص (مع التعديل الجديد)
       const allowedLevels = getAllowedLevels(data);
@@ -496,46 +477,58 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
   console.log("lastActiveLevelIndex:", lastActiveLevelIndex);
   console.log("studentData.accepted:", studentData.accepted);
 
-  // التعديل هنا لضمان ظهور رسالة حتى لو كان الشرط الأول غير مستوفى
+  // إذا لم يكن المستوى نشطًا أو الطالب غير مقبول
   if (!lastActiveLevelIndex || !studentData.accepted) {
     if (btn) btn.style.display = "none";
     if (warn) {
-        // التحقق من أن lastActiveLevelIndex هو رقم صالح وأكبر من صفر
         if (typeof lastActiveLevelIndex !== 'number' || lastActiveLevelIndex <= 0) {
             warn.innerText = 'لا يوجد مستوى نشط للطالب. يرجى تفعيل مستوى واحد على الأقل للطالب عبر لوحة تحكم المعلم.';
-        } else if (studentData.accepted !== true) { // التأكد من أن accepted هي true بشكل صريح
+        } else if (studentData.accepted !== true) {
             warn.innerText = 'حالة قبول الطالب في الدورة غير "مقبول". يرجى مراجعة حالة القبول عبر لوحة تحكم المعلم.';
         } else {
-            // في حالة لم يتم تفعيل الرسالة بشكل صحيح، كحل احتياطي (لا ينبغي أن تصل هنا بعد التعديلات)
             warn.innerText = 'خطأ غير معروف في التحقق الأولي. الرجاء التأكد من تفعيل مستوى الطالب وحالة القبول.';
         }
-        warn.style.display = 'block'; // تأكد من إظهار رسالة التحذير
-        warn.style.color = 'var(--danger-color)'; // لتوضيح أنها رسالة مهمة
-        warn.style.fontWeight = 'bold'; // لتكون بارزة
+        warn.style.display = 'block';
+        warn.style.color = 'var(--danger-color)';
+        warn.style.fontWeight = 'bold';
     }
     console.log("Condition 1 (lastActiveLevelIndex or studentData.accepted) not met.");
     return; // لا يوجد مستوى نشط أو الطالب غير مقبول
   }
 
+  // --- BEGIN DEBUGGING MODIFICATION: إظهار الاختبار في جميع الأحوال فورًا ---
+  // هذا الكود سيقوم بتشغيل منطق الاختبار مباشرة إذا كان المستوى نشط والطالب مقبول.
+  // لأغراض التصحيح فقط.
+  currentExamLevel = lastActiveLevelIndex; // تعيين المستوى الحالي للاختبار
+  checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel); // تشغيل التحقق من الاختبار مباشرة
+  
+  if (btn) btn.style.display = "none"; // إخفاء الزر حيث أننا نشغل الاختبار مباشرة
+  if (warn) { // إخفاء رسالة التحذير حيث أننا نشغل الاختبار مباشرة
+      warn.innerText = '';
+      warn.style.display = 'none';
+  }
+  showLoading(false); // إخفاء مؤشر التحميل
+  console.log("--- performExamEligibilityCheckAndProceed Finished (Debugging Mode - Exam Launch) ---");
+  return; // إنهاء الدالة هنا
+  // --- END DEBUGGING MODIFICATION ---
+
+  // الكود الأصلي (تم التعليق عليه في هذا الوضع):
+  /*
   const levelText = getLevelText(lastActiveLevelIndex);
-  showLoading(true); // إظهار مؤشر التحميل أثناء التحقق
+  showLoading(true);
 
   firestore.collection('lessons').where('level', '==', levelText).get().then(function(lessonQuery){
     let lessons = [];
     lessonQuery.forEach(doc => lessons.push(doc.data()));
     const lessonIds = lessons.map(l=>l.id);
 
-    console.log("Lessons for level", levelText, ":", lessons);
-    console.log("Lesson IDs:", lessonIds);
-
     if(!lessonIds.length) {
       if (btn) btn.style.display = "none";
-      if (warn) { // أضف التحقق من وجود العنصر
+      if (warn) {
         warn.innerText = 'لا توجد دروس في هذا المستوى.';
-        warn.style.display = 'block'; // Show warning
+        warn.style.display = 'block';
       }
       showLoading(false);
-      console.log("Condition 2 (no lessons for this level) met.");
       return;
     }
 
@@ -549,7 +542,6 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
         summariesSnap.forEach(doc => {
             let s = { ...doc.data(), docId: doc.id };
             summariesMapForExamCheck[s.lesson_id] = s;
-            console.log("Fetched summary for lesson_id", s.lesson_id, ":", s);
             if (s.status === 'submitted') {
                 summaryAndMarkPromises.push(
                     firestore.collection('student_marks')
@@ -558,103 +550,90 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
                     .limit(1)
                     .get()
                     .then(markSnap => {
-                        // الشرط الجديد: يجب أن تكون العلامة أكبر من صفر
                         if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark > 0) {
                             s.mark_from_student_marks = markSnap.docs[0].data().mark;
-                            console.log("Mark for summary", s.docId, "is valid:", s.mark_from_student_marks);
                             return true;
                         }
-                        s.mark_from_student_marks = null; // العلامة غير صالحة (صفر أو أقل)
-                        console.log("Mark for summary", s.docId, "is NOT valid (null, 0 or less):", markSnap.empty ? "no mark doc" : markSnap.docs[0].data().mark);
-                        return false; // الملخص مسلم لكن لا يوجد علامة صالحة
+                        s.mark_from_student_marks = null;
+                        return false;
                     }).catch(error => {
                         console.error("Error fetching mark for summary in exam check:", s.docId, error);
                         s.mark_from_student_marks = null;
-                        return false; // اعتبارها غير صالحة في حالة الخطأ
+                        return false;
                     })
                 );
             } else {
-                s.mark_from_student_marks = null; // الملخصات المسودة لا تؤهل للامتحان
-                console.log("Summary for lesson_id", s.lesson_id, "is not submitted:", s.status);
+                s.mark_from_student_marks = null;
                 summaryAndMarkPromises.push(Promise.resolve(false));
             }
         });
-        console.log("Number of summaries fetched:", summariesSnap.size);
 
         Promise.all(summaryAndMarkPromises).then(() => {
           let allRequiredSummariesPresentAndMarked = true;
 
-          // إذا لم تكن هناك دروس، فليس هناك ما يجب التحقق منه، وبالتالي يعتبر مؤهلاً.
           if (lessons.length === 0) {
             allRequiredSummariesPresentAndMarked = true;
-            console.log("No lessons found for this level, assuming eligible.");
-          } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) { // لم يتم تقديم كل التلاخيص
+          } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) {
             allRequiredSummariesPresentAndMarked = false;
-            console.log("Condition 3 (not all summaries fetched for all lessons) failed. Summaries fetched:", Object.keys(summariesMapForExamCheck).length, "Lessons total:", lessons.length);
-          } else { // تم تقديم كل التلاخيص، لكن يجب التحقق من حالتهم وعلاماتهم
+          } else {
             for (let i = 0; i < lessons.length; i++) {
               const lessonId = lessons[i].id;
               const summary = summariesMapForExamCheck[lessonId];
               if (!summary || summary.status !== 'submitted' || summary.mark_from_student_marks === null || summary.mark_from_student_marks <= 0) {
                 allRequiredSummariesPresentAndMarked = false;
-                console.log("Condition 4 (summary not submitted or mark invalid) failed for lesson_id:", lessonId, "Summary:", summary);
                 break;
               }
             }
           }
           
-          console.log("Final allRequiredSummariesPresentAndMarked:", allRequiredSummariesPresentAndMarked);
-
           if(allRequiredSummariesPresentAndMarked){
               if (btn) btn.style.display="";
               if (warn) warn.innerText = '';
-              if (warn) warn.style.display = 'none'; // Hide warning
-              console.log("Exam button activated.");
-              if (proceedIfEligible) { // فقط إذا كانت الدالة قد استدعيت بهدف المتابعة للامتحان
+              if (warn) warn.style.display = 'none';
+              if (proceedIfEligible) {
                   currentExamLevel = lastActiveLevelIndex;
                   checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
                   setTimeout(function(){
-                      const examBoxEl = document.getElementById('examBox'); // أضف التحقق من وجود العنصر
+                      const examBoxEl = document.getElementById('examBox');
                       if (examBoxEl) examBoxEl.scrollIntoView({behavior: 'smooth'});
                   }, 300);
               }
           } else {
               if (btn) btn.style.display="none";
-              if (warn) { // أضف التحقق من وجود العنصر
+              if (warn) {
                 warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
-                warn.style.display = 'block'; // Show warning
+                warn.style.display = 'block';
               }
-              console.log("Exam button deactivated, warning shown.");
           }
-          showLoading(false); // إخفاء مؤشر التحميل بعد التحقق
-          console.log("--- performExamEligibilityCheckAndProceed Finished ---");
+          showLoading(false);
         }).catch(error => {
             console.error("Error in Promise.all for summary/mark check:", error);
             if (btn) btn.style.display="none";
-            if (warn) { // أضف التحقق من وجود العنصر
+            if (warn) {
               warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
-              warn.style.display = 'block'; // Show warning
+              warn.style.display = 'block';
             }
             showLoading(false);
         });
       }).catch(error => {
           console.error("Error fetching summaries for exam check:", error);
           if (btn) btn.style.display="none";
-          if (warn) { // أضف التحقق من وجود العنصر
+          if (warn) {
             warn.innerText = 'حدث خطأ في جلب التلاخيص.';
-            warn.style.display = 'block'; // Show warning
+            warn.style.display = 'block';
           }
           showLoading(false);
       });
   }).catch(error => {
       console.error("Error fetching lessons for exam check:", error);
       if (btn) btn.style.display="none";
-      if (warn) { // أضف التحقق من وجود العنصر
+      if (warn) {
         warn.innerText = 'حدث خطأ في جلب الدروس.';
-        warn.style.display = 'block'; // Show warning
+        warn.style.display = 'block';
       }
       showLoading(false);
   });
+  */
 }
 
 // المستويات + الامتحانات (مع تحسينات عرض)
@@ -698,26 +677,24 @@ function renderLevelsExamsMergedTable(data) {
   }
   html += "</tbody></table></div>"; // Close table-container
 
-  // زر الانتقال للاختبار
-  if(lastActiveLevelIndex && data.accepted === true){
-    html += `<div style="text-align:center; margin:20px 0;">
-      <button class="btn" id="goToExamBtn" style="display:none">
-        <i class="fas fa-arrow-alt-circle-left" style="margin-left: 8px;"></i> الانتقال إلى اختبار المستوى ${getLevelText(lastActiveLevelIndex)}
-      </button>
-    </div>`;
-  }
+  // زر الانتقال للاختبار - تم تغيير مكانه ليبقى مرتبطًا بمنطق performExamEligibilityCheckAndProceed
+  // وإخفاؤه حيث أننا نشغل الاختبار مباشرة في وضع التصحيح هذا.
+  html += `<div style="text-align:center; margin:20px 0;">
+    <button class="btn" id="goToExamBtn" style="display:none">
+      <i class="fas fa-arrow-alt-circle-left" style="margin-left: 8px;"></i> الانتقال إلى اختبار المستوى ${getLevelText(lastActiveLevelIndex || 1)}
+    </button>
+  </div>`;
+
   levelsExamsTableArea.innerHTML = html;
 
   // عند تحميل الصفحة، نقوم بالتحقق الأولي (لا نتقدم للامتحان تلقائياً)
   if(lastActiveLevelIndex && data.accepted === true){
       performExamEligibilityCheckAndProceed(data, false); // التحقق الأولي
-      // عند الضغط على الزر، نعيد التحقق ونتقدم إذا كانت الشروط مستوفاة
-      const goToExamBtn = document.getElementById('goToExamBtn'); // احصل على العنصر هنا
-      if (goToExamBtn) { // تحقق من وجود العنصر قبل إضافة معالج الحدث
-          goToExamBtn.onclick = function(){
-              performExamEligibilityCheckAndProceed(data, true); // إعادة التحقق والتقدم عند النقر
-          };
-      }
+      // معالج النقر على الزر لم يعد مطلوبًا في هذا الوضع لأنه يتم تشغيل الاختبار تلقائيًا.
+      const goToExamBtn = document.getElementById('goToExamBtn');
+      if (goToExamBtn) goToExamBtn.onclick = function(){
+          performExamEligibilityCheckAndProceed(data, true); // في حال أردت تفعيل الزر لاحقاً
+      };
   }
 }
 
