@@ -1,4 +1,9 @@
-// Toast & Loading
+حصل خطأ أثناء محاولة جلب الملف. سأقوم بتضمين الكود كاملاً بناءً على ما لدي من معلومات سابقة وتعديلات مقترحة.
+
+```javascript
+// dashboard.js - الكود الكامل والمحدث
+
+// Toast & Loading Functions
 function showToast(msg, color="var(--primary-color)") {
   const toast = document.getElementById("toast");
   if (!toast) {
@@ -11,7 +16,10 @@ function showToast(msg, color="var(--primary-color)") {
   setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
 }
 function showLoading(show) {
-  document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
+  const spinner = document.getElementById("loadingSpinner");
+  if (spinner) {
+      spinner.style.display = show ? "block" : "none";
+  }
 }
 
 // Dark Mode Toggle
@@ -315,7 +323,10 @@ function renderTeacherNotificationsPanel(notifications, unreadCount) {
             messageContent = `تم وضع علامة جديدة لدرس "${n.related_name}".`;
         } else if (n.notification_type === 'level_open' && n.sender_name && n.related_name) {
             messageContent = `تم فتح ${n.related_name} للطالب ${n.sender_name}.`;
-        } else if (n.sender_name && n.message) { // Generic from student
+        } else if (n.notification_type === 'exam_reviewed' && n.sender_name && n.related_name) { // NEW: Exam reviewed notification
+            messageContent = `تم مراجعة ${n.related_name} للطالب ${n.sender_name}.`;
+        }
+        else if (n.sender_name && n.message) { // Generic from student
             messageContent = `إشعار من الطالب ${n.sender_name}: ${n.message}`;
         }
 
@@ -471,6 +482,7 @@ window.showSelectedStudentDetails = function(studentId) {
   const studentDetailsDiv = document.getElementById('selectedStudentDetails');
   const deleteStudentBtn = document.getElementById('deleteStudentBtn');
   hideSummaryDetails(); // Close any open summary details box
+  hideExamResultDetails(); // NEW: Close any open exam result details box
 
   // Unsubscribe from previous listener if exists (real-time summaries)
   if (teacherSummariesListenerUnsubscribe) {
@@ -1334,6 +1346,341 @@ async function sendNotification(e) {
     }
 }
 
+// NEW: Load Exam Results for Dashboard
+function loadExamResultsDashboard() {
+    showLoading(true);
+    if (examResultsListenerUnsubscribe) {
+        examResultsListenerUnsubscribe(); // Unsubscribe previous listener
+    }
+
+    examResultsListenerUnsubscribe = firestore.collection('exam_results')
+        .orderBy('submitted_at', 'desc')
+        .onSnapshot(snapshot => {
+            allExamResults = [];
+            snapshot.forEach(doc => {
+                allExamResults.push({ id: doc.id, ...doc.data() });
+            });
+            filterExamResults(); // Render results after loading and filtering
+            showLoading(false);
+        }, error => {
+            console.error("Error loading exam results:", error);
+            showToast("خطأ في تحميل نتائج الاختبارات: " + error.message, "var(--danger-color)");
+            document.getElementById('examResultsTbody').innerHTML = `<tr><td colspan="7" class="text-center" style="color:var(--danger-color)">خطأ في تحميل النتائج: ${error.message}</td></tr>`;
+            showLoading(false);
+        });
+}
+
+// NEW: Filter Exam Results
+function filterExamResults() {
+    const searchTerm = document.getElementById('examResultSearch').value.trim().toLowerCase();
+    const filterStatus = document.getElementById('examResultFilterStatus').value;
+
+    let filteredResults = allExamResults.filter(result => {
+        const matchesSearch = (result.student_name && result.student_name.toLowerCase().includes(searchTerm)) ||
+                              (result.student_email && result.student_email.toLowerCase().includes(searchTerm)) ||
+                              (result.level && `المستوى ${result.level}`.includes(searchTerm));
+
+        const matchesStatus = (filterStatus === 'all') ||
+                              (filterStatus === 'pending_review' && result.approved === null) ||
+                              (filterStatus === 'approved' && result.approved === true) ||
+                              (filterStatus === 'rejected' && result.approved === false);
+        return matchesSearch && matchesStatus;
+    });
+
+    renderExamResultsTable(filteredResults);
+}
+
+// NEW: Render Exam Results Table
+function renderExamResultsTable(results) {
+    const tbody = document.getElementById('examResultsTbody');
+    if (!tbody) {
+        console.error("Exam results tbody not found!");
+        return;
+    }
+
+    if (!results || results.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:var(--text-muted)">لا توجد نتائج مطابقة للفلتر.</td></tr>`;
+        hideExamResultDetails(); // Hide details box if no results or filtered out
+        return;
+    }
+
+    let html = '';
+    results.forEach(result => {
+        const submittedAt = result.submitted_at ? new Date(result.submitted_at.toDate()).toLocaleString('ar-EG') : '—';
+        let approvalStatusText = '';
+        let approvalStatusClass = '';
+        if (result.approved === true) {
+            approvalStatusText = 'معتمدة ✅';
+            approvalStatusClass = 'text-success';
+        } else if (result.approved === false) {
+            approvalStatusText = 'غير معتمدة ❌';
+            approvalStatusClass = 'text-danger';
+        } else {
+            approvalStatusText = 'في انتظار المراجعة 🟡';
+            approvalStatusClass = 'text-warning';
+        }
+
+        html += `
+            <tr>
+                <td>${result.student_name || 'غير معروف'}</td>
+                <td>المستوى ${result.level || '—'}</td>
+                <td>${result.score !== undefined ? `${result.score} / ${result.total_marks_possible || '—'}` : '—'}</td>
+                <td>${submittedAt}</td>
+                <td class="${approvalStatusClass}">${approvalStatusText}</td>
+                <td>
+                    <button class="btn btn-info" onclick="showExamResultDetails('${result.id}')">
+                        <i class="material-icons">visibility</i>
+                    </button>
+                </td>
+                <td>
+                    <button class="btn btn-danger" onclick="confirmDeleteExamResult('${result.id}', '${result.student_name || 'هذا الطالب'}')">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+    
+    // If a result details box is open and its data has been filtered out, close it
+    if (currentlyOpenExamResultDocId && !results.some(r => r.id === currentlyOpenExamResultDocId)) {
+        hideExamResultDetails();
+    }
+}
+
+// NEW: Show Exam Result Details
+function showExamResultDetails(docId) {
+    const result = allExamResults.find(r => r.id === docId);
+    if (!result) {
+        showToast("تعذر العثور على نتيجة الاختبار.", "var(--danger-color)");
+        return;
+    }
+
+    const examResultDetailsBox = document.getElementById('examResultDetailsBox');
+    document.getElementById('examResultDetailsTitle').innerText = `تفاصيل نتيجة اختبار المستوى ${result.level}`;
+    document.getElementById('examResultStudentNameDisplay').innerText = result.student_name || 'غير معروف';
+    document.getElementById('examResultLevelDisplay').innerText = `المستوى ${result.level || '—'}`;
+    document.getElementById('examResultScoreDisplay').innerText = `${result.score !== undefined ? result.score : '—'} / ${result.total_marks_possible || '—'}`;
+    document.getElementById('examResultSubmittedAtDisplay').innerText = result.submitted_at ? new Date(result.submitted_at.toDate()).toLocaleString('ar-EG') : '—';
+    
+    const durationMinutes = Math.floor(result.exam_duration_taken / 60);
+    const durationSeconds = result.exam_duration_taken % 60;
+    document.getElementById('examResultDurationDisplay').innerText = result.exam_duration_taken !== undefined ? `${durationMinutes} دقيقة و ${durationSeconds} ثانية` : '—';
+
+    document.getElementById('examResultTeacherComment').value = result.teacher_comment || '';
+
+    let questionsHtml = '';
+    if (result.details && result.details.length > 0) {
+        result.details.forEach((qDetail, index) => {
+            // Determine if the question was answered completely correctly
+            const isCorrectlyAnswered = 
+                (qDetail.selected_choices && qDetail.correct_choices_at_submission &&
+                 qDetail.selected_choices.length === qDetail.correct_choices_at_submission.length &&
+                 qDetail.selected_choices.every(val => qDetail.correct_choices_at_submission.includes(val)));
+
+            const statusIcon = isCorrectlyAnswered ? '✅' : '❌';
+            const selectedChoicesText = qDetail.selected_choices && qDetail.selected_choices.length > 0 ? 
+                `الإجابات المختارة: ${qDetail.selected_choices.map(idx => `<span style="font-weight:bold;">${idx + 1}</span>`).join(', ')}` : 'لم يتم الإجابة';
+            const correctChoicesText = qDetail.correct_choices_at_submission && qDetail.correct_choices_at_submission.length > 0 ? 
+                `الإجابات الصحيحة: ${qDetail.correct_choices_at_submission.map(idx => `<span style="font-weight:bold;">${idx + 1}</span>`).join(', ')}` : '—';
+
+            questionsHtml += `
+                <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed var(--border-color);">
+                    <p style="font-weight: bold;">السؤال ${index + 1}: ${qDetail.question_text_at_submission}</p>
+                    <p style="margin-right: 15px;">النتيجة: ${statusIcon} (علامة محرزة: ${qDetail.mark_obtained_for_question || 0} من ${qDetail.question_mark_value || 1})</p>
+                    <p style="margin-right: 15px;">${selectedChoicesText}</p>
+                    <p style="margin-right: 15px;">${correctChoicesText}</p>
+                </div>
+            `;
+        });
+    } else {
+        questionsHtml = '<p>لا توجد تفاصيل أسئلة لهذا الاختبار.</p>';
+    }
+    document.getElementById('examResultQuestionsDetails').innerHTML = questionsHtml;
+
+    // Set data-doc-id for action buttons and attach handlers
+    document.getElementById('saveExamResultCommentBtn').dataset.docId = docId;
+    document.getElementById('approveExamBtn').dataset.docId = docId;
+    document.getElementById('rejectExamBtn').dataset.docId = docId;
+    document.getElementById('resetExamBtn').dataset.docId = docId;
+
+    // Remove existing event listeners to prevent duplicates
+    document.getElementById('saveExamResultCommentBtn').onclick = null;
+    document.getElementById('approveExamBtn').onclick = null;
+    document.getElementById('rejectExamBtn').onclick = null;
+    document.getElementById('resetExamBtn').onclick = null;
+
+    // Attach new event listeners
+    document.getElementById('saveExamResultCommentBtn').onclick = () => saveExamResultComment(docId);
+    document.getElementById('approveExamBtn').onclick = () => updateExamApprovalStatus(docId, true);
+    document.getElementById('rejectExamBtn').onclick = () => updateExamApprovalStatus(docId, false);
+    document.getElementById('resetExamBtn').onclick = () => resetExamResult(docId, result.student_email, result.level);
+
+    examResultDetailsBox.style.display = 'block';
+    examResultDetailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    currentlyOpenExamResultDocId = docId; // Set currently open exam result ID
+}
+
+// NEW: Hide Exam Result Details
+function hideExamResultDetails() {
+    document.getElementById('examResultDetailsBox').style.display = 'none';
+    currentlyOpenExamResultDocId = null; // Clear currently open exam result ID
+}
+
+// NEW: Save Exam Result Comment
+function saveExamResultComment(docId) {
+    const comment = document.getElementById('examResultTeacherComment').value.trim();
+    showLoading(true);
+    firestore.collection('exam_results').doc(docId).update({
+        teacher_comment: comment,
+        teacher_reviewed: true // Mark as reviewed if comment is added
+    }).then(() => {
+        showToast('تم حفظ ملاحظات المعلم بنجاح!', 'var(--secondary-color)');
+        showLoading(false);
+        // No need to re-render, listener will update allExamResults and re-filter
+    }).catch(err => {
+        showToast('خطأ في حفظ الملاحظات: ' + err.message, 'var(--danger-color)');
+        console.error('Error saving exam result comment:', err);
+        showLoading(false);
+    });
+}
+
+// NEW: Update Exam Approval Status (Approve/Reject)
+function updateExamApprovalStatus(docId, approvedStatus) {
+    const currentResult = allExamResults.find(r => r.id === docId);
+    if (!currentResult) {
+        showToast("لا يمكن العثور على نتيجة الاختبار لتحديثها.", "var(--danger-color)");
+        return;
+    }
+
+    if (currentResult.approved === approvedStatus) {
+        showToast(`حالة الاعتماد هي بالفعل "${approvedStatus ? 'معتمدة' : 'غير معتمدة'}".`, "var(--info-color)");
+        return;
+    }
+
+    showLoading(true);
+    firestore.collection('exam_results').doc(docId).update({
+        approved: approvedStatus,
+        teacher_reviewed: true // Mark as reviewed upon approval/rejection
+    }).then(() => {
+        showToast(`تم ${approvedStatus ? 'اعتماد' : 'رفض'} النتيجة بنجاح!`, 'var(--secondary-color)');
+        showLoading(false);
+
+        // Update student's lectures.examX field if approved/rejected
+        // First, find the student document using student_email
+        firestore.collection('lectures').where('email', '==', currentResult.student_email).limit(1).get()
+            .then(studentSnap => {
+                if (!studentSnap.empty) {
+                    const studentDocRef = studentSnap.docs[0].ref;
+                    const studentData = studentSnap.docs[0].data();
+                    const examField = `exam${currentResult.level}`;
+
+                    // Update examField if the approvedStatus is true and the score is passing,
+                    // or if approvedStatus is false (even if score was passing, teacher overrides)
+                    let shouldUpdateExamField = false;
+                    if (approvedStatus === true) { // Approved
+                        // Check if passing score is achieved (e.g., 50%)
+                        const passingScore = currentResult.total_marks_possible * 0.5;
+                        if (currentResult.score >= passingScore) {
+                            shouldUpdateExamField = true;
+                        } else {
+                            showToast("تم اعتماد النتيجة ولكن درجة الطالب لا تتجاوز 50%، لم يتم تحديث حالة الاجتياز في بيانات الطالب.", "var(--warning-color)");
+                        }
+                    } else { // Rejected
+                        shouldUpdateExamField = false; // Always set to false if rejected
+                    }
+                    
+                    if (studentData[examField] !== shouldUpdateExamField) {
+                        studentDocRef.update({
+                            [examField]: shouldUpdateExamField
+                        }).then(() => {
+                            console.log(`Updated student's ${examField} to ${shouldUpdateExamField}.`);
+                            showToast("تم تحديث حالة اجتياز المستوى للطالب بنجاح!", "var(--success-color)");
+                        }).catch(err => {
+                            console.error("Error updating student exam field:", err);
+                            showToast("خطأ في تحديث حالة اجتياز المستوى للطالب: " + err.message, "var(--danger-color)");
+                        });
+                    }
+                } else {
+                    console.warn("Student not found for updating exam field:", currentResult.student_email);
+                }
+            }).catch(err => {
+                console.error("Error finding student for exam field update:", err);
+            });
+        
+        // Send notification to student
+        sendStudentSpecificNotification(
+            currentResult.student_email,
+            `تم ${approvedStatus ? 'اعتماد' : 'رفض'} نتيجة اختبارك للمستوى ${currentResult.level}.`,
+            'exam_reviewed',
+            currentResult.id,
+            `اختبار المستوى ${currentResult.level}`
+        );
+        // Re-render table and details to reflect changes
+        filterExamResults();
+        showExamResultDetails(docId);
+
+    }).catch(err => {
+        showToast('خطأ في تحديث حالة الاعتماد: ' + err.message, 'var(--danger-color)');
+        console.error('Error updating exam approval status:', err);
+        showLoading(false);
+    });
+}
+
+// NEW: Reset Exam Result (Deletes exam result, student can retake)
+async function resetExamResult(docId, studentEmail, level) {
+    if (!confirm("هل أنت متأكد من إعادة تعيين هذا الاختبار؟ سيؤدي ذلك إلى حذف النتيجة من النظام، وسيتمكن الطالب من إعادة الاختبار لهذا المستوى.")) {
+        return;
+    }
+
+    showLoading(true);
+    try {
+        // Delete the exam result document
+        await firestore.collection('exam_results').doc(docId).delete();
+
+        // Also update the student's examX field to false
+        const studentSnap = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
+        if (!studentSnap.empty) {
+            const studentDocRef = studentSnap.docs[0].ref;
+            const examField = `exam${level}`;
+            await studentDocRef.update({ [examField]: false });
+        } else {
+            console.warn("Student not found for resetting exam field:", studentEmail);
+        }
+
+        showToast('تم إعادة تعيين الاختبار بنجاح! يمكن للطالب الآن إعادة الاختبار لهذا المستوى.', 'var(--secondary-color)');
+        showLoading(false);
+        hideExamResultDetails(); // Close the details box
+        filterExamResults(); // Re-render the exam results table (listener will do this)
+    } catch (error) {
+        showToast('خطأ أثناء إعادة تعيين الاختبار: ' + error.message, 'var(--danger-color)');
+        console.error('Error resetting exam result:', error);
+        showLoading(false);
+    }
+}
+
+// Confirm Delete Exam Result (Permanently delete the result record)
+async function confirmDeleteExamResult(docId, studentName) {
+    if (!confirm(`هل أنت متأكد من حذف نتيجة الاختبار للطالب ${studentName}؟ هذا الإجراء لا يمكن التراجع عنه. هذا لن يؤثر على حالة اجتياز المستوى للطالب، فقط سيحذف السجل.`)) {
+        return;
+    }
+
+    showLoading(true);
+    try {
+        await firestore.collection('exam_results').doc(docId).delete();
+        showToast('تم حذف نتيجة الاختبار بنجاح!', 'var(--secondary-color)');
+        showLoading(false);
+        hideExamResultDetails(); // Close the details box if open for this result
+        // Listener will automatically update the table
+    } catch (error) {
+        showToast('خطأ في حذف نتيجة الاختبار: ' + error.message, 'var(--danger-color)');
+        console.error('Error deleting exam result:', error);
+        showLoading(false);
+    }
+}
+
+
 // Logout
 function logout() {
   // Unsubscribe from listeners before logging out
@@ -1345,9 +1692,9 @@ function logout() {
       teacherNotificationsListenerUnsubscribe();
       teacherNotificationsListenerUnsubscribe = null;
   }
-  if (studentMarksListenerUnsubscribe) {
-      studentMarksListenerUnsubscribe();
-      studentMarksListenerUnsubscribe = null;
+  if (examResultsListenerUnsubscribe) { // NEW: Unsubscribe exam results listener
+      examResultsListenerUnsubscribe();
+      examResultsListenerUnsubscribe = null;
   }
   auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
     console.error("خطأ في تسجيل الخروج:", error);
