@@ -29,22 +29,42 @@
     </div>
     <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
-    <div id="examWarnMsg"></div>
     <div class="spinner" id="loadingSpinner"></div>
     <div id="levelsExamsTableArea"></div>
-
-    <div style="text-align:center;margin:15px 0;">
-      <button class="btn" id="downloadReportBtn">تحميل تقرير الدرجات PDF</button>
-    </div>
-    <div id="lessonsSummariesArea"></div>
-
-    <!-- زر أيقونة الانتقال للاختبار -->
+    
     <div style="text-align:center;margin:20px 0;">
-      <button class="btn" id="startExamBtn">
+      <button class="btn" id="startExamBtn" style="display:none;">
         <i class="fas fa-pencil-alt"></i> بدء الاختبار
       </button>
     </div>
 
+    <div id="examWarnMsg" style="display:none; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid;">
+        </div>
+
+    <div id="examEligibilityDetailsTableArea" class="card mt-3" style="display:none;">
+        <div class="card-header">
+            <h4 class="mb-0">تفاصيل أهلية الاختبار</h4>
+        </div>
+        <div class="card-content">
+            <div class="table-container">
+                <table class="table" id="eligibilityDetailsTable">
+                    <thead>
+                        <tr>
+                            <th>الشرط</th>
+                            <th>الحالة</th>
+                            <th>القيمة الفعلية/الملاحظات</th>
+                            <th>الجداول والحقول التي تم التحقق منها</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eligibilityTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="lessonsSummariesArea"></div>
+    
     <div id="examBox" style="display:none; margin-top:30px;">
       <div class="student-info" id="examStudentInfo"></div>
       <div class="level-info" id="examLevelInfo"></div>
@@ -63,5 +83,5 @@
 
   <script src="firebase-config.js"></script>
   <script src="student.js"></script>
-</body>
+  </body>
 </html>
