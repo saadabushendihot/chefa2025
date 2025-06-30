@@ -83,6 +83,12 @@ let teacherNotificationsListenerUnsubscribe = null; // Listener for teacher noti
 let teacherNotificationsData = []; // Global array to store teacher notifications
 let teacherLoggedInEmail = ''; // To store logged-in teacher's email
 
+// NEW: Global variables for exam results management
+let allExamResults = [];
+let examResultsListenerUnsubscribe = null;
+let currentlyOpenExamResultDocId = null;
+
+
 // تعريف روابط التنقل لكل دور
 const navLinks = {
     teacher: [
@@ -151,6 +157,7 @@ auth.onAuthStateChanged(function(user) {
         loadLessons();
         setupTeacherNotificationsListener(); // Setup listener for teacher notifications
         renderNavigation(doc.data().role); // استدعاء دالة جديدة لرسم التنقل
+        loadExamResultsDashboard(); // NEW: Load exam results for the dashboard
       }
     }).catch(function(error) {
       console.error("خطأ في جلب دور المستخدم:", error);
@@ -664,7 +671,7 @@ window.toggleExamStatus = function(studentId, examField, currentValue) {
     }
     setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1200);
   }).catch(function(err){
-    document.getElementById('msg').innerText = "حدث خطأ أثناء تحديث الامتحان: " + err.message;
+    document.getElementById('msg').innerText = "خطأ أثناء تحديث الامتحان: " + err.message;
   });
 };
 
@@ -844,7 +851,7 @@ window.updateLevel = function(checkbox) {
             }
         }
     }
-    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--danger-color)';}, 1500);
+    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1500);
   }).catch(function(err){
     document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
   });
@@ -1143,7 +1150,6 @@ function saveSummaryMark(docId) {
                             summaryData.lesson_id,
                             lessonTitle
                         );
-                        // No need to call loadStudentSummaries here, listener will handle refresh
                     }).catch((err) => {
                         showToast('خطأ أثناء تحديث العلامة:\n' + err.message, 'var(--error)');
                         console.error(err);
@@ -1158,7 +1164,6 @@ function saveSummaryMark(docId) {
                             summaryData.lesson_id,
                             lessonTitle
                         );
-                        // No need to call loadStudentSummaries here, listener will handle refresh
                     }).catch((err) => {
                         showToast('خطأ أثناء إضافة العلامة:\n' + err.message, 'var(--error)');
                         console.error(err);
@@ -1194,7 +1199,6 @@ function saveSummaryComment(docId) {
                 lessonTitle
             );
         }
-        // Listener will handle refresh, no need to call loadStudentSummaries here
     }).catch(err => {
         showToast('خطأ في حفظ التعليق: ' + err.message, 'var(--error)');
         console.error('Error saving summary comment:', err);
@@ -1341,7 +1345,7 @@ function logout() {
       teacherNotificationsListenerUnsubscribe();
       teacherNotificationsListenerUnsubscribe = null;
   }
-  if (studentMarksListenerUnsubscribe) { // NEW: Unsubscribe marks listener
+  if (studentMarksListenerUnsubscribe) {
       studentMarksListenerUnsubscribe();
       studentMarksListenerUnsubscribe = null;
   }
