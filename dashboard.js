@@ -532,7 +532,7 @@ window.showSelectedStudentDetails = function(studentId) {
     // Update notification recipient dropdown
     const notificationRecipientSelect = document.getElementById('notificationRecipient');
     notificationRecipientSelect.innerHTML = `
-        <option value="${student.email}">الطالب المحدد حالياً: ${student.name || student.email}</option>
+        <option value="selectedStudent">الطالب المحدد حالياً: ${student.name || student.email}</option>
         <option value="allStudents">جميع الطلاب</option>
     `;
     notificationRecipientSelect.value = student.email; // Set current student as default recipient
@@ -549,8 +549,8 @@ window.showSelectedStudentDetails = function(studentId) {
     `;
     document.getElementById('notificationRecipient').value = "selectedStudent";
     setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
-  });
-}
+  }
+};
 
 // Update Student Admission Status
 window.updateStudentAdmission = function(status) {
@@ -1079,7 +1079,6 @@ function clearStudentReply(docId) {
         student_reply_comment: firebase.firestore.FieldValue.delete()
     }).then(() => {
         showToast('تم مسح رد الطالب بنجاح!', 'var(--secondary-color)');
-        // Listener will handle refresh, no need to call loadStudentSummaries here
     }).catch(error => {
         showToast(`حدث خطأ أثناء مسح رد الطالب: ${error.message}`, 'var(--error)');
         console.error('Error clearing student reply:', error);
@@ -1089,8 +1088,7 @@ function clearStudentReply(docId) {
 
 // Save Summary Mark
 function saveSummaryMark(docId) {
-    let val = document.getElementById('summaryDetailsMark').value; // Use the value from the detail box input
-    // If coming from table row, use table-specific input (fallback/alternative)
+    let val = document.getElementById('summaryDetailsMark').value;
     if (!val && document.getElementById('markinp_' + docId)) {
         val = document.getElementById('markinp_' + docId).value;
     }
@@ -1099,7 +1097,7 @@ function saveSummaryMark(docId) {
         showToast("يرجى إدخال علامة صالحة (رقم).", "var(--error)");
         return;
     }
-    val = Number(val); // Ensure it's a number
+    val = Number(val);
 
     firestore.collection('summaries').doc(docId).get().then(summaryDoc => {
         if (!summaryDoc.exists) {
@@ -1334,6 +1332,10 @@ async function sendNotification(e) {
 }
 
 // NEW: Exam Results Dashboard Functions
+let allExamResults = []; // Ensure this is declared globally in dashboard.js
+let examResultsListenerUnsubscribe = null;
+let currentlyOpenExamResultDocId = null;
+
 function loadExamResultsDashboard() {
     console.log("loadExamResultsDashboard called."); // NEW LOG
     if (examResultsListenerUnsubscribe) {
@@ -1451,7 +1453,7 @@ function openExamResultDetails(docId) {
     let questionsHtml = '';
     if (result.details && result.details.length > 0) {
         result.details.forEach((q, i) => {
-            const isCorrectAnswer = q.selected_choices.every(choice => q.correct_choices_at_submission.includes(choice)) && q.selected_choices.length === q.correct_choices_at_submission.length;
+            const isCorrectAnswer = q.selected_choices?.every(choice => q.correct_choices_at_submission.includes(choice)) && q.selected_choices?.length === q.correct_choices_at_submission.length; // Add null checks
             const statusIcon = isCorrectAnswer ? '✅' : '❌';
             const statusColor = isCorrectAnswer ? 'var(--success-color)' : 'var(--danger-color)';
             const markStatus = q.mark_obtained_for_question !== undefined ? `[الدرجة: ${q.mark_obtained_for_question}]` : '';
@@ -1506,7 +1508,6 @@ async function saveExamResultComment(docId) {
             teacher_comment: comment
         });
         showToast('تم حفظ الملاحظة بنجاح!', 'var(--secondary-color)');
-        // Update allExamResults in memory
         const resultIndex = allExamResults.findIndex(r => r.id === docId);
         if (resultIndex !== -1) {
             allExamResults[resultIndex].teacher_comment = comment;
@@ -1538,12 +1539,11 @@ async function approveExamResult(docId) {
             teacher_reviewed: true
         });
 
-        // Update student's lectures.examX status
         const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
         if (!lecturesSnapshot.empty) {
             const studentLectureDocId = lecturesSnapshot.docs[0].id;
             await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: true // Mark this level's exam as passed for the student
+                [`exam${level}`]: true
             });
         }
         
@@ -1587,12 +1587,11 @@ async function rejectExamResult(docId) {
             teacher_reviewed: true
         });
 
-        // Optionally, if rejecting means the student can re-take, you might set lectures.examX to false
         const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
         if (!lecturesSnapshot.empty) {
             const studentLectureDocId = lecturesSnapshot.docs[0].id;
             await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: false // Mark this level's exam as not passed
+                [`exam${level}`]: false
             });
         }
         
@@ -1622,10 +1621,8 @@ function confirmResetExamResult(docId, studentUid, level) {
 async function resetExamResult(docId, studentUid, level) {
     showLoading(true);
     try {
-        // Delete the exam result document
         await firestore.collection('exam_results').doc(docId).delete();
 
-        // Find the student's lectures document and reset their exam status for this level
         const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentUid).limit(1).get();
         if (!lecturesSnapshot.empty) {
             const studentLectureDocId = lecturesSnapshot.docs[0].id;
