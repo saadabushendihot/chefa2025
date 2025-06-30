@@ -44,7 +44,7 @@ function downloadReport() {
       showToast("ميزة تحميل التقرير قيد التطوير حالياً. يرجى المحاولة لاحقاً.", "var(--info-color)");
       return;
   }
-  showToast("جاري إنشاء تقرير PDF...", "var(--info-color)");
+  showToast("جاري إنشاء تقرير PDF...", "var(--info-info)");
   let el = document.getElementById('studentDataForPdf'); // Assuming you'd wrap relevant data in an ID for PDF
   if (!el) {
     el = document.querySelector('.container'); // Fallback to entire container if specific ID not found
@@ -496,7 +496,7 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
     return; // لا يوجد مستوى نشط أو الطالب غير مقبول
   }
 
-  // --- استعادة الكود الأصلي للشروط بدلاً من وضع التصحيح ---
+  // --- الكود الأصلي للشروط (تم استعادته) ---
   const levelText = getLevelText(lastActiveLevelIndex);
   showLoading(true);
 
@@ -554,9 +554,7 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
                     })
                 );
             } else {
-                s.mark_from_s```
-```javascript
-tudent_marks = null; // الملخصات المسودة لا تؤهل للامتحان
+                s.mark_from_student_marks = null; // الملخصات المسودة لا تؤهل للامتحان
                 console.log("Summary for lesson_id", s.lesson_id, "is not submitted:", s.status);
                 summaryAndMarkPromises.push(Promise.resolve(false));
             }
@@ -876,10 +874,14 @@ function processExamSubmission(isTimerSubmission = false) {
       }
     }
 
+    // هنا نقوم بتضمين البيانات الإضافية للسؤال في تفاصيل الإجابات
     details.push({
       question_id: q.id,
-      selected: selected,
-      correct: q.correct
+      question_text_at_submission: q.question, // NEW: نص السؤال وقت التسليم
+      question_mark_value: q.mark || 1,        // NEW: علامة السؤال وقت التسليم
+      selected_choices: selected,               // تم تغيير الاسم
+      correct_choices_at_submission: q.correct, // تم تغيير الاسم
+      mark_obtained_for_question: 0 // سيتم تحديثها لاحقاً في منطق التصحيح التفصيلي
     });
 
     if(q.correct.length > 1) {
@@ -893,9 +895,16 @@ function processExamSubmission(isTimerSubmission = false) {
       let gained = (countCorrect - countWrong) * perMark;
       if(gained < 0) gained = 0;
       gainedMark += gained;
+      // قم بتحديث mark_obtained_for_question للسؤال الحالي
+      details[i].mark_obtained_for_question = gained;
     }
     else {
-      if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
+      if(selected.length === 1 && q.correct.includes(selected[0])) {
+          gainedMark += mark;
+          details[i].mark_obtained_for_question = mark; // إذا كانت الإجابة صحيحة لسؤال خيار واحد
+      } else {
+          details[i].mark_obtained_for_question = 0; // إذا كانت الإجابة خاطئة لسؤال خيار واحد
+      }
     }
   });
   const formMsgEl = document.getElementById('formMsg'); // احصل على العنصر هنا
@@ -919,15 +928,18 @@ function processExamSubmission(isTimerSubmission = false) {
         return;
       }
       const resultDoc = {
+        student_uid: currentStudentUid, // NEW: إضافة UID الطالب
         student_email: currentStudentEmail,
         student_name: currentStudentName,
         level: currentExamLevel,
         score: gainedMark,
-        total: totalMark,
-        details: details,
+        total_marks_possible: totalMark, // تم تغيير الاسم
         submitted_at: firebase.firestore.Timestamp.now(),
+        exam_duration_taken: (20 * 60) - examTimeLeft, // NEW: المدة المستغرقة (تقريبي)
         teacher_reviewed: false,
-        approved: null
+        approved: null,
+        teacher_comment: null, // NEW: إضافة حقل تعليق المعلم
+        details: details, // يحتوي على الهيكل الجديد
       };
       firestore.collection('exam_results').add(resultDoc)
         .then(() => {
