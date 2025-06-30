@@ -76,13 +76,12 @@ function toggleSidebar() {
 }
 
 // --- Authentication State Listener و DOMContentLoaded ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => { // تأكد أن كل الأكواد التي تعتمد على DOM داخل هذا المستمع
     // إضافة مستمع حدث لزر تبديل القائمة الجانبية
     const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
     if (sidebarToggleBtn) {
         sidebarToggleBtn.addEventListener('click', toggleSidebar);
     }
-
     // Adjust textarea height automatically (basic)
     const messageInput = document.getElementById('messageInput');
     if (messageInput) {
@@ -408,14 +407,16 @@ function sendMessage(fileUrl = null, fileName = null, fileType = 'text') {
     fileName: fileName // Include file name if present
   };
 
+  firestore.collection('chatRooms').doc(currentChatRoomId).update({
+        lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText,
+        lastMessageSender: currentUser.displayName || currentUser.email
+      });
+
   firestore.collection('chatRooms').doc(currentChatRoomId).collection('messages').add(messageData)
     .then(() => {
       // Update lastMessageTimestamp in chat room for sorting
-      firestore.collection('chatRooms').doc(currentChatRoomId).update({
-        lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessageText: fileUrl ? `[ملف: ${fileName || 'مرفق'}]` : messageText, // Show file indicator in last message preview
-        lastMessageSender: currentUser.displayName || currentUser.email
-      });
+      
       messageInput.value = ''; // Clear text input
       messageInput.style.height = 'auto'; // Reset textarea height
       document.getElementById('fileInput').value = ''; // Clear file input
@@ -611,7 +612,6 @@ function openManageParticipantsModal() {
     currentChatParticipants = roomData.participants || [];
 
     // Display all users, pre-selecting current participants
-    currentParticipantsListDiv.innerHTML = '';
     allUsers.forEach(user => {
       const userDiv = document.createElement('div');
       userDiv.innerText = sanitizeText(user.name || user.email);
@@ -680,7 +680,7 @@ async function confirmDeleteChatRoom(chatRoomId) {
         // الحصول على الرمز المميز للمصادقة (Authentication Token) لإرساله مع الطلب
         const idToken = await auth.currentUser.getIdToken();
 
-        // استخدام Fetch API لدوال onRequest
+        // استخدام Fetch API لدالة onRequest
         const response = await fetch('https://us-central1-shefa-502fe.cloudfunctions.net/deleteChatRoom', {
             method: 'POST',
             headers: {
