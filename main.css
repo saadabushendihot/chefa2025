@@ -317,7 +317,9 @@ nav#main-nav-links {
 
 /* الحاويات الرئيسية */
 .container {
-  max-width: 1200px;
+  /* تم تعديل هذا الجزء لزيادة عرض الحاوية */
+  max-width: 1400px; /* زيادة عرض الحاوية */
+  width: 95vw;       /* استخدام عرض النافذة لمرونة أكبر */
   margin: 24px auto;
   padding: 28px;
   background: var(--surface-light);
@@ -1010,76 +1012,167 @@ nav#main-nav-links {
 
 
     /* Responsive Adjustments */
-    @media (max-width: 960px) {
+    @media (max-width: 992px) {
       body {
-        padding-top: 56px;
+        font-size: 15px;
       }
-      
-      .app-bar {
-        height: 56px;
+      .container {
+        /* تم تعديل هذا الجزء ليتناسب مع التعديل الأكبر */
+        max-width: 90vw;
+        padding: 20px;
+        margin-left: 15px;
+        margin-right: 15px;
       }
-      
+      .btn {
+        padding: 8px 16px;
+        font-size: 0.95rem;
+      }
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.3rem; }
+      h3 { font-size: 1.1rem; }
+
       .nav-link {
         height: 56px;
         padding: 0 12px;
         font-size: 0.875rem;
       }
-      
-      .notification-panel {
-        top: 56px;
-        width: 320px;
-        /* Re-center for smaller screens if needed, otherwise keep right-aligned */
-        /* right: 50%;
-        transform: translateX(50%); */
-      }
       .notification-bell {
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
+        font-size: 1.4rem;
+        margin-left: 15px;
       }
       .notification-badge {
-        width: 16px;
-        height: 16px;
+        top: -5px;
+        right: -5px;
+        padding: 2px 6px;
         font-size: 0.65rem;
-        top: 2px;
-        right: 2px;
       }
-      h1 { font-size: 1.8rem; }
-      h2 { font-size: 1.3rem; }
-      h3 { font-size: 1.1rem; }
+      .notification-panel {
+        width: 300px;
+      }
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
+      header, .app-bar {
+        padding: 12px 15px;
+        font-size: 1.2rem;
+      }
+      .app-bar-title {
+        font-size: 1.1rem;
+        margin-left: 10px;
+      }
+      .container {
+        /* تم تعديل هذا الجزء ليتناسب مع التعديل الأكبر */
+        max-width: unset; /* إزالة الحد الأقصى للعرض للسماح بملء الشاشة تقريبًا */
+        margin-top: 60px;
+        padding: 15px;
+        margin-left: 8px;
+        margin-right: 8px;
+      }
+      .btn {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+      }
+      .table th, .table td {
+        padding: 10px 14px;
+      }
+      .login-container {
+        margin: 40px auto;
+      }
+
+      /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
+      body.chat-page .main-container {
+        padding-top: 0;
+        flex-direction: column;
+      }
+      body.chat-page .chat-list-panel {
+        position: fixed;
+        top: 0;
+        right: -250px;
+        width: 250px;
+        height: 100%;
+        background: var(--surface);
+        box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+        z-index: 500;
+        transition: all 0.3s ease-in-out;
+        border-left: 1px solid var(--border-color);
+        flex-shrink: unset;
+      }
+      body.chat-page .chat-list-panel.open {
+        right: 0;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+      }
+      body.chat-page .chat-area {
+        width: 100%;
+        flex: 1;
+        overflow-y: auto;
+      }
+      body.chat-page .sidebar-toggle-btn {
+        display: flex;
+      }
+      body.chat-page .app-bar-title {
+        margin-right: auto;
+        margin-left: 0;
+      }
+    }
+
+    @media (max-width: 576px) {
+      body {
+        font-size: 14px;
+      }
+      header, .app-bar {
+        font-size: 1.1rem;
+        justify-content: space-around;
+        text-align: center;
+        padding: 10px 8px;
+      }
+      .app-bar-logo {
+        height: 35px;
+        margin-right: 8px;
+      }
       .app-bar-title {
         display: none;
       }
-      
-      .levels-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      .container {
+        padding: 10px;
+        margin-left: 8px;
+        margin-right: 8px;
+        margin-top: 55px;
       }
-      
-      .card-content {
-        padding: 16px; /* Slightly reduced for small screens */
+      .toast {
+        width: 90%;
+        left: 50%;
+        transform: translateX(-50%) translateY(100px);
+        bottom: 15px;
       }
-      
-      .table th,
-      .table td {
-        padding: 10px 14px; /* Reduced padding */
-      }
-      
       .notification-panel {
-        width: calc(100% - 32px);
-        right: 16px;
-        left: 16px;
-        /* No transform needed if using fixed left/right */
+        width: calc(100% - 30px);
+        right: 15px;
+        left: 15px;
       }
       .table-mark-input {
-        width: 60px;
-        font-size: 0.85rem;
-        padding: 6px 8px;
+        width: 50px;
+        font-size: 0.8rem;
+        padding: 5px 6px;
       }
       .table-mark-button {
         font-size: 0.75rem;
-        padding: 6px 12px;
+        padding: 5px 10px;
+      }
+      .lesson-summary-block {
+        padding: 15px;
+      }
+      .lesson-summary-block h4 {
+          font-size: 1.05rem;
+      }
+      .lesson-summary-block audio {
+          max-width: 100%;
+      }
+      .reply-area .btn {
+          padding: 6px 12px;
+          font-size: 0.85rem;
+      }
+      .login-container {
+        padding: 20px;
+        margin: 30px auto;
       }
     }
