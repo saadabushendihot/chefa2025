@@ -1,21 +1,7 @@
-// Toast & Loading
-function showToast(msg, color="var(--primary-color)") {
-  const toast = document.getElementById("toast");
-  if (!toast) {
-      console.error("Toast element not found!");
-      return;
-  }
-  toast.innerText = msg;
-  toast.style.background = color; // Use CSS variable
-  toast.className = "toast show";
-  setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
-}
-function showLoading(show) {
-  document.getElementById("loadingSpinner").style.display = show ? "block" : "none";
-}
+// Firebase Config: (يتم جلبه من firebase-config.js)
 
-// Dark Mode Toggle
-function toggleDarkMode() {
+// الوضع الليلي
+function toggleNightMode() {
   document.body.classList.toggle('dark-mode');
   // Save user preference
   if (document.body.classList.contains('dark-mode')) {
@@ -24,886 +10,1158 @@ function toggleDarkMode() {
     localStorage.setItem('theme', 'light');
   }
 }
-// Apply saved theme preference on load
-document.addEventListener('DOMContentLoaded', () => {
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark-mode');
-  }
-});
 
-// Student Search Filter
-function filterStudents() {
-  let val = document.getElementById('studentSearch').value.trim().toLowerCase();
-  let studentSelect = document.getElementById('studentSelect');
-  let options = studentSelect.querySelectorAll('option');
-  options.forEach((opt,i)=>{
-    if(i==0){ opt.style.display=""; return; }
-    let txt = opt.textContent.toLowerCase();
-    let email = allStudentsData[opt.value]?.email?.toLowerCase() || '';
-    opt.style.display =
-      (txt.includes(val)||email.includes(val)) ? "" : "none";
-  });
+// رسالة منبثقة (Toast)
+function showToast(msg, color="var(--primary-color)") {
+  const toast = document.getElementById("toast");
+  if (!toast) {
+      console.error("Toast element not found!");
+      return;
+  }
+  toast.innerText = msg;
+  toast.style.background = color;
+  toast.className = "toast show";
+  setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
 }
 
-// PDF Export
-function downloadStudentReport() {
-  let el = document.getElementById('selectedStudentDetails');
-  let studentName = document.getElementById('detailName').innerText || "student";
+// مؤشر تحميل
+function showLoading(show) {
+  const spinner = document.getElementById('loadingSpinner');
+  if (spinner) {
+      spinner.style.display = show ? 'block' : 'none';
+  }
+}
+
+// فتح الدعم الفني
+function openSupport() {
+  window.open("mailto:support@chefa.edu.sa?subject=دعم فني للطالب", "_blank");
+}
+
+// تنزيل تقرير PDF (مكتبة jsPDF مطلوبة)
+function downloadReport() {
+  if (typeof html2pdf === 'undefined') {
+      showToast("ميزة تحميل التقرير قيد التطوير حالياً. يرجى المحاولة لاحقاً.", "var(--info-color)");
+      return;
+  }
+  showToast("جاري إنشاء تقرير PDF...", "var(--info-info)");
+  let el = document.getElementById('studentDataForPdf');
+  if (!el) {
+    el = document.querySelector('.container');
+  }
+  let studentNameForPdf = currentStudentName || "التقرير";
   let opt = {
-    margin: 0.5, /* Increased margin for better print readability */
-    filename: `تقرير_${studentName}.pdf`,
+    margin: 0.5,
+    filename: `تقرير_${studentNameForPdf}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
     jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
   };
-  // Hide buttons and elements not needed in PDF
-  const elementsToHide = el.querySelectorAll('.btn, .form-group button, .table-mark-input, .table-mark-button, .reset-summary, #summaryDetailsBox .card-actions');
-  elementsToHide.forEach(el => el.classList.add('d-none'));
 
-  html2pdf().set(opt).from(el).save().finally(() => {
-    // Show hidden elements again after PDF generation
-    elementsToHide.forEach(el => el.classList.remove('d-none'));
+  let clonedElement = el.cloneNode(true);
+  let elementsToHideInPdf = clonedElement.querySelectorAll('.btn, .form-group button, .table-mark-input, .table-mark-button, .reset-summary, #summaryDetailsBox .card-actions, .app-bar, .spinner, #toast, .notification-bell, .notification-panel, .message-input-area, #examBox');
+  elementsToHideInPdf.forEach(elem => elem.style.display = 'none');
+  
+  html2pdf().set(opt).from(clonedElement).save().finally(() => {
+    showToast("تم إنشاء التقرير بنجاح!", "var(--success-color)");
   });
 }
 
-// Firebase Initialization
-if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
-var auth = firebase.auth();
-var firestore = firebase.firestore();
 
-var editLessonId = null;
-var allStudentsData = {};
-window.studentSummariesMap = {}; // Global variable to store summaries by docId
-window.lessonsMap = {}; // Global variable to store lesson titles by ID
-window.allSummaries = []; // Global array to store all summaries for filtering
-let currentStudentEmailForSummaries = '';
-let teacherSummariesListenerUnsubscribe = null; // Listener for teacher's real-time summaries
-let currentlyOpenSummaryDocId = null; // To track if a summary details box is open
-let teacherNotificationsListenerUnsubscribe = null; // Listener for teacher notifications
-let teacherNotificationsData = []; // Global array to store teacher notifications
-let teacherLoggedInEmail = ''; // To store logged-in teacher's email
+// فلترة النص لمنع HTML
+function sanitizeText(text) {
+  const div = document.createElement("div");
+  div.innerText = text;
+  return div.innerHTML;
+}
 
-// NEW: Global variables for exam results management
-let allExamResults = [];
-let examResultsListenerUnsubscribe = null;
-let currentlyOpenExamResultDocId = null;
+// عداد الوقت للاختبار
+let examTimerInterval, examTimeLeft = 0;
+function startExamTimer(minutes = 20) {
+  clearInterval(examTimerInterval);
+  examTimeLeft = minutes * 60;
+  updateExamTimer();
+  examTimerInterval = setInterval(() => {
+    examTimeLeft--;
+    updateExamTimer();
+    if (examTimeLeft <= 0) {
+      clearInterval(examTimerInterval);
+      showToast("انتهى وقت الاختبار! سيتم تسليم إجاباتك تلقائياً.", "var(--danger-color)");
+      processExamSubmission(true);
+    }
+  }, 1000);
+}
+function updateExamTimer() {
+  const el = document.getElementById('examTimer');
+  if (el && examTimeLeft > 0) {
+    const min = Math.floor(examTimeLeft/60);
+    const sec = examTimeLeft%60;
+    el.innerText = `(${min}:${sec<10?'0':''}${sec})`;
 
+    if (examTimeLeft === 30) {
+      const sound = document.getElementById('timeWarningSound');
+      if (sound) {
+        sound.play().catch(e => console.error("Error playing sound:", e));
+      }
+    }
+  } else if (el) {
+    el.innerText = "";
+  }
+}
+
+// المتغيرات
+let auth, firestore;
+let currentStudentEmail = "";
+let currentStudentName = "";
+let currentStudentUid = "";
+let lastActiveLevel = null;
+let lastActiveLevelIndex = null;
+let examQuestions = [];
+let randomizedExamQuestions = [];
+let examQuestionsLimit = null;
+let currentExamLevel = null;
+let studentSummaries = {};
+let summariesListenerUnsubscribe = null;
+let notificationsListenerUnsubscribe = null;
+let studentMarksListenerUnsubscribe = null;
+window.realtimeStudentMarks = {};
+
+const TEACHER_ADMIN_EMAIL = "saad.abushendi@gmail.com";
 
 // تعريف روابط التنقل لكل دور
 const navLinks = {
     teacher: [
-        { name: 'لوحة التحكم', href: 'dashboard.html' },
-        { name: 'إدارة الأسئلة', href: 'questions-admin.html' },
-        { name: 'الدردشة', href: 'chat.html' }
+        { name: 'لوحة التحكم', href: 'dashboard.html', icon: 'fas fa-tachometer-alt' },
+        { name: 'إدارة الأسئلة', href: 'questions-admin.html', icon: 'fas fa-question-circle' },
+        { name: 'الدردشة', href: 'chat.html', icon: 'fas fa-comments' }
     ],
     student: [
-        { name: 'لوحة الطالب', href: 'student.html' },
-        { name: 'الاختبار', href: 'student-quiz.html' },
-        { name: 'الدردشة', href: 'chat.html' }
+        { name: 'لوحة الطالب', href: 'student.html', icon: 'fas fa-user-graduate' },
+        { name: 'الدردشة', href: 'chat.html', icon: 'fas fa-comments' }
     ]
 };
 
-// دالة جديدة لرسم روابط التنقل بناءً على الدور
+// دالة رسم روابط التنقل بناءً على الدور
 function renderNavigation(role) {
     const navContainer = document.getElementById('main-nav-links');
     if (!navContainer) return;
 
-    navContainer.innerHTML = ''; // مسح الروابط الحالية
-    const linksToRender = navLinks[role] || []; // جلب الروابط بناءً على الدور
-    const currentPath = window.location.pathname.split('/').pop(); // اسم الملف الحالي
+    navContainer.innerHTML = '';
+    const linksToRender = navLinks[role] || [];
+    const currentPath = window.location.pathname.split('/').pop();
 
     linksToRender.forEach(link => {
         const a = document.createElement('a');
         a.href = link.href;
-        a.textContent = link.name;
         a.className = 'nav-link';
         if (currentPath === link.href) {
              a.classList.add('active');
         }
+        const icon = document.createElement('i');
+        icon.className = link.icon;
+        a.appendChild(icon);
+        const textSpan = document.createElement('span');
+        textSpan.textContent = link.name;
+        a.appendChild(textSpan);
+
         navContainer.appendChild(a);
     });
 }
 
 
-// Get Mark from student_marks collection
-function getMarkForSummary(summaryId, studentEmail) {
-  return firestore.collection('student_marks')
-    .where('summary_id', '==', summaryId)
-    .where('student_email', '==', studentEmail)
-    .limit(1)
-    .get()
-    .then((querySnapshot) => {
-      if (!querySnapshot.empty) {
-        return querySnapshot.docs[0].data().mark;
-      } else {
-        return ""; // No mark
-      }
-    })
-    .catch((error) => {
-      console.error('Error fetching mark:', error);
-      return "";
-    });
+// Firebase init
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+auth = firebase.auth();
+firestore = firebase.firestore();
+
+// تحويل رقم المستوى إلى نصه العربي
+function getLevelText(index) {
+  const names = ["", "الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع"];
+  return names[index] || "";
 }
 
-// Auth State Changed - Protection and Initial Data Load
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function getLevelNumber(levelName) {
+  switch (levelName.replace('المستوى ', '').replace('ال', '')) {
+    case "أول": case "الأول": return 1;
+    case "ثاني": case "الثاني": return 2;
+    case "ثالث": case "الثالث": return 3;
+    case "رابع": case "الرابع": return 4;
+    case "خامس": case "الخامس": return 5;
+    case "سادس": case "السادس": return 6;
+    case "سابع": case "السابع": return 7;
+    case "1": return 1; case "2": return 2; case "3": return 3; case "4": return 4; case "5": return 5; case "6": return 6; case "7": return 7;
+    default: return 0;
+  }
+}
+
+function getAllowedLevels(data) {
+  let allowed = [];
+  for(let i=1; i<=7; i++){
+    if(data['level'+i]) allowed.push(i);
+  }
+  return allowed;
+}
+
+// مراقبة الدخول
 auth.onAuthStateChanged(function(user) {
+  console.log("auth.onAuthStateChanged fired. User:", user); // NEW LOG
   if (user) {
+    console.log("User is logged in. UID:", user.uid, "Email:", user.email); // NEW LOG
     firestore.collection('users').doc(user.uid).get().then(function(doc) {
-      if (!doc.exists || doc.data().role !== "teacher") {
-        window.location.href = "login.html";
+      console.log("User doc fetched. Exists:", doc.exists, "Data:", doc.data()); // NEW LOG
+      if (!doc.exists || doc.data().role !== "student") {
+        console.warn("User is not a student or doc does not exist. Redirecting."); // NEW LOG
+        window.location.href = "dashboard.html";
+        return;
       } else {
-        teacherLoggedInEmail = user.email; // Store teacher's email
-        loadStudents();
-        loadLessons();
-        setupTeacherNotificationsListener(); // Setup listener for teacher notifications
-        renderNavigation(doc.data().role); // استدعاء دالة جديدة لرسم التنقل
-        loadExamResultsDashboard(); // NEW: Load exam results for the dashboard
+        console.log("User is a student. Loading student data."); // NEW LOG
+        loadStudentData(doc.data().email, doc.data().name);
+        setupNotificationsListener();
+        setupRealtimeMarksListener();
       }
-    }).catch(function(error) {
-      console.error("خطأ في جلب دور المستخدم:", error);
+    }).catch(function(err) {
+      console.error("Error fetching user role from Firestore:", err); // NEW LOG
+      showLoading(false); showToast("خطأ في جلب بيانات المستخدم", "var(--danger-color)");
       window.location.href = "login.html";
     });
   } else {
+    console.log("No user logged in. Redirecting to login.html"); // NEW LOG
     window.location.href = "login.html";
   }
 });
 
-// Toggle Sections (Add Student, Add Lesson, Send Notification)
-function toggleSection(sectionId){
-  var sec = document.getElementById(sectionId);
-  var iconId;
-  if (sectionId === 'addStudentSection') {
-    iconId = 'addStudentToggleIcon';
-  } else if (sectionId === 'addLessonSection') {
-    iconId = 'addLessonToggleIcon';
-  } else if (sectionId === 'sendNotificationSection') {
-    iconId = 'sendNotificationToggleIcon';
-  }
-
-  var icon = document.getElementById(iconId);
-  if (sec.style.display === "block") {
-    sec.style.display = "none";
-    // Reset icon based on section type
-    if (sectionId === 'sendNotificationSection') {
-      icon.innerText = "notifications"; // Material icon for bell
-    } else {
-      icon.innerText = "add"; // Material icon for add
+// Helper function to send notifications to the teacher
+async function sendTeacherNotification(messageContent, type, relatedId = null, relatedName = null) {
+    if (!currentStudentEmail || !currentStudentName || !messageContent) {
+        console.warn("Cannot send teacher notification: Missing student info or message content.");
+        return;
     }
-  } else {
-    sec.style.display = "block";
-    icon.innerText = "close"; // Material icon for close/X
-  }
+    try {
+        await firestore.collection('notifications').add({
+            message: messageContent,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            recipient_email: TEACHER_ADMIN_EMAIL,
+            is_read: false,
+            sender_email: currentStudentEmail,
+            sender_name: currentStudentName,
+            notification_type: type,
+            related_id: relatedId,
+            related_name: relatedName
+        });
+        console.log(`Notification sent to teacher: "${messageContent}"`);
+    } catch (error) {
+        console.error("Error sending teacher notification:", error);
+    }
 }
-// Hide sections on initial load
-document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('addStudentSection').style.display = "none";
-  document.getElementById('addLessonSection').style.display = "none";
-  document.getElementById('sendNotificationSection').style.display = "none";
-});
 
-// Notification UI functions
-function toggleTeacherNotificationPanel() {
-    const panel = document.getElementById('teacherNotificationPanel');
-    const bellIcon = document.querySelector('.app-bar .notification-bell');
 
-    if (panel.style.display === 'block') {
+// Notification functions for student UI
+function toggleNotificationPanel() {
+    const panel = document.getElementById('notificationPanel');
+    if (panel && panel.style.display === 'block') {
         panel.style.display = 'none';
-    } else {
-        // Position the panel dynamically (fixed to right side, just under bell)
-        const bellRect = bellIcon.getBoundingClientRect();
-        // panel.style.right = (window.innerWidth - bellRect.right) + 'px'; // Original was complex for RTL
-        panel.style.right = '16px'; // Keep it fixed at 16px from right
-        panel.style.top = (bellRect.bottom + 5) + 'px'; // 5px below the bell
-
+    } else if (panel) {
         panel.style.display = 'block';
-        // Mark all currently displayed notifications as read when panel is opened
-        const unreadItems = document.querySelectorAll('#teacherNotificationsList .notification-item.unread');
+        const unreadItems = document.querySelectorAll('.notification-item.unread');
         unreadItems.forEach(item => {
             const notificationId = item.dataset.id;
-            markTeacherNotificationAsRead(notificationId);
+            markNotificationAsRead(notificationId);
         });
     }
 }
 
-// Handle clicks outside the notification panel to close it
-document.addEventListener('click', function(event) {
-    const panel = document.getElementById('teacherNotificationPanel');
-    const bellIcon = document.querySelector('.app-bar .notification-bell');
-    const isClickInsidePanel = panel.contains(event.target);
-    const isClickOnBell = bellIcon.contains(event.target);
-
-    if (panel.style.display === 'block' && !isClickInsidePanel && !isClickOnBell) {
-        panel.style.display = 'none';
-    }
-});
-
-function setupTeacherNotificationsListener() {
-    if (!teacherLoggedInEmail) {
-        console.warn("Teacher email not available for notifications listener.");
+function setupNotificationsListener() {
+    if (!currentStudentEmail) {
+        console.warn("currentStudentEmail not yet available for notifications listener.");
         return;
     }
 
-    if (teacherNotificationsListenerUnsubscribe) {
-        teacherNotificationsListenerUnsubscribe();
+    if (notificationsListenerUnsubscribe) {
+        notificationsListenerUnsubscribe();
     }
 
-    // Listener for notifications addressed to the teacher's email or 'all'
-    teacherNotificationsListenerUnsubscribe = firestore.collection('notifications')
-        .where('recipient_email', 'in', [teacherLoggedInEmail, 'all', 'saad.abushendi@gmail.com']) // Added hardcoded admin email for flexibility
+    notificationsListenerUnsubscribe = firestore.collection('notifications')
+        .where('recipient_email', 'in', [currentStudentEmail, 'all'])
         .orderBy('timestamp', 'desc')
         .onSnapshot(function(snapshot) {
-            teacherNotificationsData = []; // Clear and repopulate
+            let notifications = [];
             let unreadCount = 0;
             snapshot.forEach(doc => {
                 const notification = { ...doc.data(), id: doc.id };
-                teacherNotificationsData.push(notification);
+                notifications.push(notification);
                 if (!notification.is_read) {
                     unreadCount++;
                 }
             });
-            renderTeacherNotificationsPanel(teacherNotificationsData, unreadCount);
+            renderNotifications(notifications, unreadCount);
         }, function(error) {
-            console.error("Error listening to teacher notifications:", error);
-            showToast("خطأ في تحميل إشعارات المعلم: " + error.message, "var(--error)");
+            console.error("Error listening to notifications:", error);
+            showToast("خطأ في تحميل الإشعارات: " + error.message, "var(--danger-color)");
         });
 }
 
-function renderTeacherNotificationsPanel(notifications, unreadCount) {
-    const notificationsListDiv = document.getElementById('teacherNotificationsList');
-    const unreadBadge = document.getElementById('unreadTeacherNotificationsBadge');
+function renderNotifications(notifications, unreadCount) {
+    const notificationsListDiv = document.getElementById('notificationsList');
+    const unreadBadge = document.getElementById('unreadNotificationsBadge');
 
-    if (unreadCount > 0) {
-        unreadBadge.innerText = unreadCount;
-        unreadBadge.classList.remove('d-none'); // Show the badge
-    } else {
-        unreadBadge.classList.add('d-none'); // Hide the badge
+    if (unreadBadge) {
+      if (unreadCount > 0) {
+          unreadBadge.innerText = unreadCount;
+          unreadBadge.style.display = 'block';
+      } else {
+          unreadBadge.style.display = 'none';
+      }
     }
 
-    if (notifications.length === 0) {
-        notificationsListDiv.innerHTML = '<p class="text-center" style="color: var(--text-secondary); padding: 16px;">لا توجد إشعارات حالياً.</p>';
-        return;
+
+    if (notificationsListDiv) {
+        if (notifications.length === 0) {
+            notificationsListDiv.innerHTML = '<p style="text-align: center; color: #888;">لا توجد إشعارات حالياً.</p>';
+            return;
+        }
+
+        let html = '';
+        notifications.forEach(n => {
+            const timestamp = n.timestamp ? new Date(n.timestamp.toDate()).toLocaleString('ar-EG') : '';
+            html += `
+                <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+                    ${n.message}
+                    <span class="timestamp">${timestamp}</span>
+                    ${!n.is_read ? `<button class="mark-read-btn" onclick="markNotificationAsRead('${n.id}')">قراءة</button>` : ''}
+                </div>
+            `;
+        });
+        notificationsListDiv.innerHTML = html;
     }
-
-    let html = '';
-    notifications.forEach(n => {
-        let timestampText = '';
-        if (n.timestamp && n.timestamp.toDate) {
-            try {
-                timestampText = new Date(n.timestamp.toDate()).toLocaleString('ar-EG');
-            } catch (e) {
-                console.error("Error parsing notification timestamp:", n.id, n.timestamp, e);
-                timestampText = '(تاريخ غير صالح)';
-            }
-        } else if (n.timestamp) {
-            try {
-                timestampText = new Date(n.timestamp).toLocaleString('ar-EG');
-            } catch (e) {
-                console.error("Error parsing notification timestamp (non-Firestore obj):", n.id, n.timestamp, e);
-                timestampText = '(تاريخ غير صالح)';
-            }
-        } else {
-            timestampText = '(لا يوجد تاريخ)';
-        }
-        
-        // Construct message based on notification_type and available data
-        let messageContent = n.message; // Default to generic message
-        if (n.notification_type === 'summary_submitted' && n.sender_name && n.related_name) {
-            messageContent = `قام الطالب ${n.sender_name} بتسليم تلخيص جديد لدرس "${n.related_name}".`;
-        } else if (n.notification_type === 'student_reply' && n.sender_name && n.related_name) {
-            messageContent = `قام الطالب ${n.sender_name} بالرد على تعليقك في درس "${n.related_name}".`;
-        } else if (n.notification_type === 'mark_update' && n.sender_name && n.related_name) {
-            messageContent = `تم وضع علامة جديدة لدرس "${n.related_name}".`;
-        } else if (n.notification_type === 'level_open' && n.sender_name && n.related_name) {
-            messageContent = `تم فتح ${n.related_name} للطالب ${n.sender_name}.`;
-        } else if (n.sender_name && n.message) { // Generic from student
-            messageContent = `إشعار من الطالب ${n.sender_name}: ${n.message}`;
-        }
-
-        html += `
-            <div class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
-                <p style="margin: 0; word-wrap: break-word;">${messageContent}</p>
-                <span class="notification-timestamp">${timestampText}</span>
-                ${!n.is_read ? `<button class="mark-read-btn" onclick="markTeacherNotificationAsRead('${n.id}')">قراءة</button>` : ''}
-            </div>
-        `;
-    });
-    notificationsListDiv.innerHTML = html;
 }
 
-function markTeacherNotificationAsRead(notificationId) {
+function markNotificationAsRead(notificationId) {
     firestore.collection('notifications').doc(notificationId).update({
         is_read: true
     }).catch(error => {
-        console.error("Error marking teacher notification as read:", error);
-        showToast("خطأ في تحديث حالة الإشعار: " + error.message, "var(--error)");
+        console.error("Error marking notification as read:", error);
+        showToast("خطأ في تحديث حالة الإشعار: " + error.message, "var(--danger-color)");
     });
 }
 
-// Add Student
-function addStudent(e) {
-  e.preventDefault();
-  var email = document.getElementById('studentEmail').value.trim().toLowerCase();
-  var name = document.getElementById('studentName').value.trim();
-  var courseNumber = document.getElementById('courseNumber').value.trim();
-  var msg = document.getElementById('addStudentMsg');
-  msg.innerText = '';
-  if (!validateEmail(email) || !name || !courseNumber) {
-    msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
-    return;
-  }
-  firestore.collection('lectures').where('email', '==', email).get().then(function(querySnapshot){
-    if (!querySnapshot.empty) {
-      msg.innerText = "هذا الطالب موجود بالفعل.";
-    } else {
-      let levelsObj = {};
-      let examsObj = {};
-      for (let i=1; i<=7; i++) {
-        levelsObj["level"+i] = false;
-        examsObj["exam"+i] = false;
-      }
-      firestore.collection('lectures').add({
-        email: email,
-        name: name,
-        course_number: courseNumber,
-        role: "student",
-        diagnosis_exam: false,
-        oral_exam: false,
-        accepted: "pending", // Default status for new students
-        teacher_notes: "", // Default empty notes
-        ...levelsObj,
-        ...examsObj
-      }).then(function(){
-        msg.style.color = "var(--secondary-color)"; // Green for success
-        msg.innerText = "تمت إضافة الطالب بنجاح!";
-        document.getElementById('addStudentForm').reset();
-        loadStudents();
-      }).catch(function(err){
-        msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
-      });
-    }
-  }).catch(function(error) {
-    console.error("خطأ في التحقق من وجود الطالب:", error);
-    msg.innerText = "حدث خطأ في التحقق من وجود الطالب.";
-  });
-}
-
-function validateEmail(email) {
-  var re = /\S+@\S+\.\S+/;
-  return re.test(email);
-}
-
-// Add Lesson
-function addLesson(e) {
-  e.preventDefault();
-  var id = Number(document.getElementById('lessonId').value.trim());
-  var title = document.getElementById('lessonTitle').value.trim();
-  var url = document.getElementById('lessonUrl').value.trim();
-  var voice = document.getElementById('lessonVoice').value.trim();
-  var level = document.getElementById('lessonLevel').value.trim();
-  var msg = document.getElementById('addLessonMsg');
-  msg.innerText = '';
-  if (!id || !title || !url || !level) {
-    msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
-    return;
-  }
-  firestore.collection('lessons').where('id', '==', id).get().then(function(querySnapshot){
-    if (!querySnapshot.empty) {
-      msg.innerText = "يوجد درس بنفس الرقم بالفعل.";
-    } else {
-      let lessonObj = {
-        id: id,
-        title: title,
-        url: url,
-        level: level
-      };
-      if (voice) lessonObj.voice = voice;
-      else lessonObj.voice = firebase.firestore.FieldValue.delete(); // Delete field if empty
-      firestore.collection('lessons').add(lessonObj).then(function(){
-        msg.style.color = "var(--secondary-color)";
-        msg.innerText = "تمت إضافة الدرس بنجاح!";
-        document.getElementById('addLessonForm').reset();
-        loadLessons();
-      }).catch(function(err){
-        msg.innerText = "حدث خطأ أثناء الإضافة: " + err.message;
-      });
-    }
-  }).catch(function(error) {
-    console.error("خطأ في التحقق من وجود الدرس:", error);
-    msg.innerText = "حدث خطأ في التحقق من وجود الدرس.";
-  });
-}
-
-// Load Students
-function loadStudents() {
-  showLoading(true);
-  firestore.collection('lectures').where('role', '==', 'student').get().then(function(querySnapshot){
-    let studentSelect = document.getElementById('studentSelect');
-    studentSelect.innerHTML = '<option value="">-- اختر طالباً لعرض بياناته --</option>';
-    allStudentsData = {};
-    querySnapshot.forEach(function(doc){
-      let data = doc.data();
-      allStudentsData[doc.id] = data;
-      let option = document.createElement('option');
-      option.value = doc.id;
-      option.textContent = data.name || 'غير معروف';
-      studentSelect.appendChild(option);
-    });
-    showLoading(false);
-    const currentSelectedStudentId = studentSelect.value;
-    if (currentSelectedStudentId && allStudentsData[currentSelectedStudentId]) {
-        showSelectedStudentDetails(currentSelectedStudentId);
-    } else {
-        document.getElementById('selectedStudentDetails').style.display = 'none';
-    }
-    if (querySnapshot.size === 1 && !currentSelectedStudentId) {
-        studentSelect.value = querySnapshot.docs[0].id;
-        showSelectedStudentDetails(querySnapshot.docs[0].id);
-    }
-  }).catch(function(error) {
-    showLoading(false);
-    showToast("خطأ في تحميل الطلاب", "var(--error)");
-    document.getElementById('msg').innerText = "خطأ في تحميل بيانات الطلاب.";
-  });
-}
-
-// Show Selected Student Details
-window.showSelectedStudentDetails = function(studentId) {
-  const studentDetailsDiv = document.getElementById('selectedStudentDetails');
-  const deleteStudentBtn = document.getElementById('deleteStudentBtn');
-  hideSummaryDetails(); // Close any open summary details box
-
-  // Unsubscribe from previous listener if exists (real-time summaries)
-  if (teacherSummariesListenerUnsubscribe) {
-      teacherSummariesListenerUnsubscribe();
-      teacherSummariesListenerUnsubscribe = null;
-  }
-
-  if (!studentId) {
-    studentDetailsDiv.style.display = 'none';
-    document.getElementById('teacherPDFBtn').style.display = "none";
-    deleteStudentBtn.style.display = "none";
-    // Reset notification recipient dropdown to default if no student is selected
-    document.getElementById('notificationRecipient').innerHTML = `
-        <option value="selectedStudent">الطالب المحدد حالياً</option>
-        <option value="allStudents">جميع الطلاب</option>
-    `;
-    document.getElementById('notificationRecipient').value = "selectedStudent";
-    return;
-  }
-  const student = allStudentsData[studentId];
-  if (student) {
-    document.getElementById('detailName').textContent = student.name || 'غير معروف';
-    document.getElementById('detailEmail').textContent = student.email || 'غير معروف';
-    document.getElementById('detailCourseNumber').textContent = student.course_number || 'غير معروف';
-    
-    // Populate admission status
-    document.getElementById('detailAcceptedStatus').value = student.accepted || "pending";
-    // Populate teacher notes
-    document.getElementById('detailTeacherNotes').value = student.teacher_notes || "";
-
-    const detailLevelsDiv = document.getElementById('detailLevels');
-    detailLevelsDiv.innerHTML = '';
-    let exams = {};
-    for (let i = 1; i <= 7; i++) {
-      exams['exam' + i] = Boolean(student['exam' + i]);
-    }
-    for (let i = 1; i <= 7; i++) {
-      const level = 'level' + i;
-      const isChecked = student[level] ? 'checked' : '';
-      let disabled = '';
-      if (i > 1 && !exams['exam' + (i - 1)]) {
-        disabled = 'disabled title="يجب اجتياز امتحان المستوى السابق أولاً"';
-      }
-      const levelItem = document.createElement('div');
-      levelItem.className = `level-item level-color-${i}`;
-      levelItem.innerHTML = `
-        <input type="checkbox" class="level-checkbox" id="level-${studentId}-${i}" data-id="${studentId}" data-level="${level}" ${isChecked} ${disabled} onchange="updateLevel(this)">
-        <label for="level-${studentId}-${i}">المستوى ${i}</label>
-      `;
-      detailLevelsDiv.appendChild(levelItem);
-    }
-    renderExamsTable(studentId, student);
-    document.getElementById('teacherPDFBtn').style.display = "";
-    deleteStudentBtn.style.display = "none"; // Hide delete button initially
-    deleteStudentBtn.dataset.studentId = studentId; // Set studentId for deletion
-    currentStudentEmailForSummaries = student.email; // Set current student email for summaries listener
-    loadStudentSummaries(student.email); // Load summaries for the selected student
-
-    // Update notification recipient dropdown
-    const notificationRecipientSelect = document.getElementById('notificationRecipient');
-    notificationRecipientSelect.innerHTML = `
-        <option value="${student.email}">الطالب المحدد حالياً: ${student.name || student.email}</option>
-        <option value="allStudents">جميع الطلاب</option>
-    `;
-    notificationRecipientSelect.value = student.email; // Set current student as default recipient
-
-    studentDetailsDiv.style.display = 'block';
-  } else {
-    studentDetailsDiv.style.display = 'none';
-    document.getElementById('teacherPDFBtn').style.display = "none";
-    deleteStudentBtn.style.display = "none";
-    document.getElementById('msg').innerText = "لم يتم العثور على بيانات لهذا الطالب.";
-    document.getElementById('notificationRecipient').innerHTML = `
-        <option value="selectedStudent">الطالب المحدد حالياً</option>
-        <option value="allStudents">جميع الطلاب</option>
-    `;
-    document.getElementById('notificationRecipient').value = "selectedStudent";
-    setTimeout(()=>{document.getElementById('msg').innerText='';}, 2000);
-  }
-};
-
-// Update Student Admission Status
-window.updateStudentAdmission = function(status) {
-    const studentId = document.getElementById('studentSelect').value;
-    if (!studentId) return;
-
-    firestore.collection('lectures').doc(studentId).update({
-        accepted: status
-    }).then(() => {
-        allStudentsData[studentId].accepted = status;
-        showToast('تم تحديث حالة القبول بنجاح!', 'var(--secondary-color)');
-    }).catch(err => {
-        showToast('خطأ في تحديث حالة القبول: ' + err.message, 'var(--error)');
-        console.error('Error updating admission status:', err);
-    });
-};
-
-// Save Teacher Notes
-window.saveTeacherNotes = function() {
-    const studentId = document.getElementById('studentSelect').value;
-    const notes = document.getElementById('detailTeacherNotes').value.trim();
-    if (!studentId) return;
-
-    firestore.collection('lectures').doc(studentId).update({
-        teacher_notes: notes
-    }).then(() => {
-        allStudentsData[studentId].teacher_notes = notes;
-        showToast('تم حفظ ملاحظات المعلم!', 'var(--secondary-color)');
-    }).catch(err => {
-        showToast('خطأ في حفظ الملاحظات: ' + err.message, 'var(--error)');
-        console.error('Error saving teacher notes:', err);
-    });
-};
-
-// Confirm and Delete Student
-window.confirmDeleteStudent = function() {
-    const studentId = document.getElementById('studentSelect').value;
-    const studentName = document.getElementById('detailName').textContent;
-    if (!studentId) {
-        showToast('الرجاء اختيار طالب أولاً للحذف.', 'var(--error)');
+// Real-time listener for student marks
+function setupRealtimeMarksListener() {
+    if (!currentStudentEmail) {
+        console.warn("currentStudentEmail not yet available for marks listener.");
         return;
     }
-    if (confirm(`هل أنت متأكد من حذف الطالب ${studentName}؟ هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناته الأساسية. (ملاحظة: يفضل استخدام Firebase Cloud Functions لحذف جميع البيانات المرتبطة تلقائياً).`)) {
-        deleteStudent(studentId);
-    }
-};
 
-async function deleteStudent(studentId) {
-    showLoading(true);
-    try {
-        await firestore.collection('lectures').doc(studentId).delete();
-        showToast('تم حذف الطالب بنجاح!', 'var(--secondary-color)');
-        loadStudents();
-    } catch (error) {
-        showToast('خطأ في حذف الطالب: ' + error.message, 'var(--error)');
-        console.error('Error deleting student:', error);
-    } finally {
-        showLoading(false);
+    if (studentMarksListenerUnsubscribe) {
+        studentMarksListenerUnsubscribe();
     }
+
+    studentMarksListenerUnsubscribe = firestore.collection('student_marks')
+        .where('student_email', '==', currentStudentEmail)
+        .onSnapshot(function(snapshot) {
+            window.realtimeStudentMarks = {};
+            snapshot.forEach(doc => {
+                const markData = doc.data();
+                window.realtimeStudentMarks[markData.summary_id] = markData.mark;
+            });
+            console.log("Realtime marks updated:", window.realtimeStudentMarks);
+            if (window.lastRenderedLessons && window.lastRenderedStudentSummaries) {
+                renderSummariesLessonsUI(window.lastRenderedLessons, window.lastRenderedStudentSummaries);
+            } else {
+                console.warn("Cannot re-render summaries from marks listener: lessons or studentSummaries not yet available globally.");
+            }
+
+        }, function(error) {
+            console.error("Error listening to student marks:", error);
+            showToast("خطأ في تحميل علامات الطلاب في الوقت الحقيقي: " + error.message, "var(--danger-color)");
+        });
 }
 
-// Render Exams Table (for individual student details)
-function renderExamsTable(studentId, studentObj) {
-  let html = `
-    <table class="table">
+
+// تحميل بيانات الطالب
+function loadStudentData(userEmail, userNameFromUserDoc) {
+  console.log("loadStudentData called for user:", userEmail, "Name:", userNameFromUserDoc); // NEW LOG
+  currentStudentEmail = userEmail;
+  showLoading(true);
+  firestore.collection('lectures').where('email', '==', userEmail).get().then(function(querySnapshot) {
+    showLoading(false);
+    console.log("Lectures query executed. Empty:", querySnapshot.empty, "Size:", querySnapshot.size); // NEW LOG
+    const msgEl = document.getElementById('msg');
+    if (querySnapshot.empty) {
+      if (msgEl) msgEl.innerText = "لا توجد بيانات لهذا المستخدم في النظام. تواصل مع الإدارة.";
+      console.warn("No student data found in 'lectures' collection for email:", userEmail); // NEW LOG
+    } else {
+      const data = querySnapshot.docs[0].data();
+      console.log("Student data from lectures:", data); // NEW LOG
+      currentStudentName = data.name || userNameFromUserDoc || "";
+      window.currentStudentFullData = data; // Store full student data globally
+
+      // Calculate lastActiveLevelIndex here explicitly
+      lastActiveLevelIndex = 0; // Reset
+      for (let i = 1; i <= 7; i++) {
+          if(data['level'+i]) {
+              lastActiveLevelIndex = i;
+          }
+      }
+      console.log("Calculated lastActiveLevelIndex on load:", lastActiveLevelIndex);
+
+      const studentNameEl = document.getElementById('studentName');
+      const studentNameInfoEl = document.getElementById('studentNameInfo');
+      const studentEmailEl = document.getElementById('studentEmail');
+      const courseNumberEl = document.getElementById('courseNumber');
+
+      if (studentNameEl) studentNameEl.innerText = currentStudentName;
+      if (studentNameInfoEl) studentNameInfoEl.innerText = currentStudentName;
+      if (studentEmailEl) studentEmailEl.innerText = userEmail || "";
+      if (courseNumberEl) courseNumberEl.innerText = data.course_number || "";
+      if (msgEl) msgEl.innerText = "";
+      
+      // لا توجد حاجة للتعامل مع examsBox هنا لأنها أزيلت من HTML
+
+
+      // حالة القبول
+      const admissionBox = document.getElementById('admissionStatusBox');
+      const status = data.accepted;
+      const isAccepted = (status === true || status === "مقبول" || status === "accepted");
+      const isRejected = (status === false || status === "مرفوض" || status === "rejected");
+
+      if (admissionBox) {
+        admissionBox.style.display = "block";
+        if (typeof status !== "undefined") {
+          if (isAccepted) {
+            admissionBox.className = "admission-status-box admission-accepted";
+            admissionBox.innerText = "تم قبولك في الدورة ✅";
+          } else if (isRejected) {
+            admissionBox.className = "admission-status-box admission-rejected";
+            admissionBox.innerText = "عذراً، لم يتم قبولك في الدورة.";
+          } else {
+            admissionBox.className = "admission-status-box admission-pending";
+            admissionBox.innerText = "طلبك قيد المراجعة...";
+          }
+        } else {
+          admissionBox.className = "admission-status-box admission-pending";
+          admissionBox.innerText = "طلبك قيد المراجعة...";
+        }
+      }
+
+      // Check for existing exam result on page load BEFORE rendering levels/eligibility
+      if (lastActiveLevelIndex > 0 && (data.accepted === true || data.accepted === "مقبول" || data.accepted === "accepted")) {
+          currentExamLevel = lastActiveLevelIndex; // Set global currentExamLevel
+          console.log("Primary eligibility met. Checking for existing exam result for level:", currentExamLevel); // NEW LOG
+          
+          firestore.collection('exam_results')
+              .where('student_email', '==', currentStudentEmail)
+              .where('level', '==', lastActiveLevelIndex)
+              .get()
+              .then(function(examResultsSnap){
+                  console.log("Exam results query executed. Empty:", examResultsSnap.empty, "Size:", examResultsSnap.size); // NEW LOG
+                  if (!examResultsSnap.empty) {
+                      console.log("Existing exam result found for level", lastActiveLevelIndex, ". Displaying result.");
+                      showExamResultOnly(examResultsSnap.docs[0].data());
+                      // We must return here to prevent subsequent rendering of eligibility checks
+                      return; 
+                  }
+                  console.log("No existing exam result found for level", lastActiveLevelIndex, ". Proceeding with eligibility check."); // NEW LOG
+                  renderLevelsExamsMergedTable(data); // This will call performExamEligibilityCheckAndProceed(data, false)
+                  loadActiveLessonsAndSummaries(getAllowedLevels(data));
+              }).catch(err => {
+                  console.error("Error checking for existing exam results on load:", err); // NEW LOG
+                  renderLevelsExamsMergedTable(data);
+                  loadActiveLessonsAndSummaries(getAllowedLevels(data));
+              });
+      } else {
+          console.log("Initial conditions (active level or accepted status) not met. Proceeding with eligibility check."); // NEW LOG
+          renderLevelsExamsMergedTable(data);
+          loadActiveLessonsAndSummaries(getAllowedLevels(data));
+      }
+    }
+  }).catch(function(err) {
+    console.error("Error fetching student data from 'lectures' collection:", err); // NEW LOG
+    showLoading(false);
+    const msgEl = document.getElementById('msg');
+    if (msgEl) msgEl.innerText = "خطأ في جلب البيانات: " + err.message;
+    showToast("خطأ في تحميل بيانات الطالب!", "var(--danger-color)");
+  });
+}
+
+/**
+ * دالة لعرض حالة أهلية الطالب للاختبار بشكل مفصل.
+ * يتم استدعاؤها من performExamEligibilityCheckAndProceed
+ * @param {object} eligibilityObject - كائن يحتوي على تفاصيل الأهلية.
+ * @param {boolean} eligibilityObject.overall_ready - هل الطالب جاهز لتقديم الاختبار.
+ * @param {string} eligibilityObject.overall_message - رسالة الحالة العامة.
+ * @param {object} eligibilityObject.checks - تفاصيل حالة كل شرط.
+ * @param {object} eligibilityObject.debug_info - معلومات تصحيح إضافية عن قيم الحقول.
+ */
+function renderExamEligibilityStatus(eligibilityObject) {
+    const examWarnMsgEl = document.getElementById('examWarnMsg');
+    const startExamBtn = document.getElementById('startExamBtn');
+    const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea');
+    const eligibilityTableBody = document.getElementById('eligibilityTableBody');
+
+    if (!examWarnMsgEl || !startExamBtn || !examEligibilityDetailsTableArea || !eligibilityTableBody) {
+        console.error("renderExamEligibilityStatus: One or more required elements (examWarnMsgEl, startExamBtn, examEligibilityDetailsTableArea, eligibilityTableBody) not found!");
+        return;
+    }
+
+    // عرض الرسالة العامة في examWarnMsg
+    let overallStatusHtml = `<div style="padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid;">`;
+
+    if (eligibilityObject.overall_ready) {
+        overallStatusHtml += `<p style="color: var(--success-color);">✅ ${eligibilityObject.overall_message}</p>`;
+        startExamBtn.style.display = ''; // إظهار زر الاختبار
+        examWarnMsgEl.style.backgroundColor = 'rgba(40, 167, 69, 0.1)'; // خلفية خضراء فاتحة
+        examWarnMsgEl.style.borderColor = 'var(--success-color)';
+    } else {
+        overallStatusHtml += `<p style="color: var(--danger-color);">❌ ${eligibilityObject.overall_message}</p>`;
+        startExamBtn.style.display = 'none'; // إخفاء زر الاختبار
+        overallStatusHtml += `<button class="btn" style="margin-top: 10px; background-color: var(--danger-color);" disabled>
+                                <i class="fas fa-times-circle"></i> الاختبار غير متاح
+                              </button>`; // زر معطل
+        examWarnMsgEl.style.backgroundColor = 'rgba(220, 53, 69, 0.1)';
+        examWarnMsgEl.style.borderColor = 'var(--danger-color)';
+    }
+
+    overallStatusHtml += `</div>`;
+    examWarnMsgEl.innerHTML = overallStatusHtml;
+    examWarnMsgEl.style.display = 'block';
+
+
+    // عرض الجدول التفصيلي للأهلية
+    examEligibilityDetailsTableArea.style.display = 'block';
+    let tableBodyHtml = '';
+
+    // قبول الطالب
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>حالة القبول:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.accepted_status.ready ? '✅ مقبول' : '❌ ' + eligibilityObject.checks.accepted_status.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.accepted_status.value} <br> <i>(حقل: lectures.accepted)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>lectures.accepted</li></ul></td>
+    </tr>`;
+
+    // المستوى النشط
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>المستوى النشط:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.level_active.ready ? '✅ مفعل: المستوى ' + eligibilityObject.checks.level_active.value : '❌ ' + eligibilityObject.checks.level_active.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.level_active.value} <br> <i>(حقل: lectures.levelX)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>lectures.level1, lectures.level2, ..., lectures.level7</li></ul></td>
+    </tr>`;
+
+    // توفر الدروس
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>توفر الدروس للمستوى:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.lessons_available.ready ? '✅ متوفرة (' + eligibilityObject.checks.lessons_available.count + ' درس)' : '❌ ' + eligibilityObject.checks.lessons_available.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">عدد الدروس المتاحة: ${eligibilityObject.checks.lessons_available.count} <br> <i>(حقل: lessons.level)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>lessons.level</li><li>lessons.id</li></ul></td>
+    </tr>`;
+
+    // تلاخيص الدروس والعلامات
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>حالة التلاخيص والعلامات:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.summaries_complete.ready ? '✅ مكتملة وبعلامات إيجابية (' + eligibilityObject.checks.summaries_complete.marked_positive_count + '/' + eligibilityObject.checks.summaries_complete.total_lessons + ' درس)' : '❌ ' + eligibilityObject.checks.summaries_complete.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">التلاخيص المسلمة: ${eligibilityObject.checks.summaries_complete.submitted_count} <br> العلامات الإيجابية: ${eligibilityObject.checks.summaries_complete.marked_positive_count} <br> <i>(حقول: summaries.status, student_marks.mark)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>summaries.student_email</li><li>summaries.lesson_id</li><li>summaries.status</li><li>student_marks.summary_id</li><li>student_marks.student_email</li><li>student_marks.mark</li></ul></td>
+    </tr>`;
+
+    eligibilityTableBody.innerHTML = tableBodyHtml;
+}
+
+/**
+ * دالة مساعدة للتحقق من أهلية الطالب لتقديم الاختبار.
+ * @param {object} studentData - بيانات الطالب من Firestore.
+ * @param {boolean} proceedIfEligible - إذا كانت true، سيتم محاولة عرض الاختبار مباشرة في حال الأهلية الكاملة.
+ * @returns {Promise<object>} - يعود بكائن الأهلية المفصل.
+ */
+async function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = false) {
+  const startExamBtn = document.getElementById('startExamBtn');
+  const warn = document.getElementById('examWarnMsg');
+
+  // تهيئة كائن الأهلية
+  const eligibility = {
+    overall_ready: true,
+    overall_message: "جاهز لتقديم الاختبار!",
+    checks: {
+        accepted_status: { ready: true, value: studentData.accepted, message: "" },
+        level_active: { ready: true, value: lastActiveLevelIndex, message: "" },
+        lessons_available: { ready: true, count: 0, total: 0, message: "" },
+        summaries_complete: { ready: true, submitted_count: 0, marked_positive_count: 0, total_lessons: 0, message: "" }
+    },
+    debug_info: {
+        student_data: studentData,
+        active_level_index: lastActiveLevelIndex,
+        current_student_email: currentStudentEmail
+    }
+  };
+
+  console.log("--- performExamEligibilityCheckAndProceed Started ---"); // NEW LOG
+  console.log("lastActiveLevelIndex:", lastActiveLevelIndex); // NEW LOG
+  console.log("studentData.accepted:", studentData.accepted); // NEW LOG
+
+  // Check 1: Initial eligibility (accepted, active level)
+  if (typeof lastActiveLevelIndex !== 'number' || lastActiveLevelIndex <= 0) {
+      eligibility.overall_ready = false;
+      eligibility.checks.level_active.ready = false;
+      eligibility.checks.level_active.message = 'لا يوجد مستوى نشط للطالب.';
+  }
+  if (studentData.accepted !== true && studentData.accepted !== "مقبول" && studentData.accepted !== "accepted") {
+      eligibility.overall_ready = false;
+      eligibility.checks.accepted_status.ready = false;
+      eligibility.checks.accepted_status.message = 'حالة قبول الطالب غير "مقبول".';
+  }
+
+  // إذا فشلت الشروط الأولية، نعرض الحالة ونخرج.
+  if (!eligibility.checks.level_active.ready || !eligibility.checks.accepted_status.ready) {
+      // بناء الرسالة العامة من الشروط الفاشلة
+      let messages = [];
+      if (!eligibility.checks.level_active.ready) messages.push(eligibility.checks.level_active.message);
+      if (!eligibility.checks.accepted_status.ready) messages.push(eligibility.checks.accepted_status.message);
+      eligibility.overall_message = 'الطالب غير جاهز: ' + messages.join(' و ');
+      renderExamEligibilityStatus(eligibility);
+      showLoading(false);
+      console.log("Initial conditions not met. Exiting performExamEligibilityCheckAndProceed."); // NEW LOG
+      return eligibility;
+  }
+
+  // إذا كانت الشروط الأولية مستوفاة، نواصل التحققات التفصيلية
+  try {
+      const levelText = getLevelText(lastActiveLevelIndex);
+      showLoading(true);
+
+      const lessonQuerySnapshot = await firestore.collection('lessons').where('level', '==', levelText).get();
+      const lessons = lessonQuerySnapshot.docs.map(doc => doc.data());
+      
+      eligibility.checks.lessons_available.count = lessons.length;
+      eligibility.checks.lessons_available.total = lessons.length;
+
+      if (lessons.length === 0) {
+          eligibility.overall_ready = false;
+          eligibility.checks.lessons_available.ready = false;
+          eligibility.checks.lessons_available.message = 'لا توجد دروس في هذا المستوى.';
+          eligibility.overall_message = 'الطالب غير جاهز: لا توجد دروس للمستوى النشط.';
+          renderExamEligibilityStatus(eligibility);
+          showLoading(false);
+          console.log("No lessons for this level. Exiting performExamEligibilityCheckAndProceed."); // NEW LOG
+          return eligibility;
+      }
+
+      let summaryAndMarkPromises = [];
+      const summariesSnap = await firestore.collection('summaries')
+          .where('student_email', '==', currentStudentEmail)
+          .where('lesson_id', 'in', lessons.map(l => l.id))
+          .get();
+
+      let summariesMapForExamCheck = {};
+      summariesSnap.forEach(doc => {
+          let s = { ...doc.data(), docId: doc.id };
+          summariesMapForExamCheck[s.lesson_id] = s;
+      });
+
+      let submittedCount = 0;
+      let markedPositiveCount = 0;
+
+      for (const lesson of lessons) {
+          const summary = summariesMapForExamCheck[lesson.id];
+          if (summary && summary.status === 'submitted') {
+              submittedCount++;
+              const markSnap = await firestore.collection('student_marks')
+                  .where('summary_id', '==', summary.docId)
+                  .where('student_email', '==', currentStudentEmail)
+                  .limit(1)
+                  .get();
+
+              if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark > 0) {
+                  markedPositiveCount++;
+              }
+          }
+      }
+
+      eligibility.checks.summaries_complete.submitted_count = submittedCount;
+      eligibility.checks.summaries_complete.marked_positive_count = markedPositiveCount;
+      eligibility.checks.summaries_complete.total_lessons = lessons.length;
+
+      if (submittedCount !== lessons.length || markedPositiveCount !== lessons.length) {
+          eligibility.overall_ready = false;
+          eligibility.checks.summaries_complete.ready = false;
+          eligibility.checks.summaries_complete.message = 'يجب تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+          eligibility.overall_message = 'الطالب غير جاهز: التلاخيص غير مكتملة أو لم يتم تصحيحها بشكل إيجابي.';
+      } else {
+          eligibility.overall_message = 'جاهز لتقديم الاختبار!';
+      }
+
+      renderExamEligibilityStatus(eligibility);
+
+      if (eligibility.overall_ready && proceedIfEligible) {
+          currentExamLevel = lastActiveLevelIndex;
+          checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
+          setTimeout(() => {
+              const examBoxEl = document.getElementById('examBox');
+              if (examBoxEl) examBoxEl.scrollIntoView({ behavior: 'smooth' });
+          }, 300);
+      }
+
+      showLoading(false);
+      console.log("--- performExamEligibilityCheckAndProceed Finished ---"); // NEW LOG
+      return eligibility;
+
+  } catch (error) {
+      console.error("Error in performExamEligibilityCheckAndProceed:", error); // NEW LOG
+      eligibility.overall_ready = false;
+      eligibility.overall_message = `حدث خطأ أثناء التحقق: ${error.message}`;
+      renderExamEligibilityStatus(eligibility);
+      showLoading(false);
+      return eligibility;
+  }
+}
+
+// المستويات + الامتحانات (مع تحسينات عرض)
+function renderLevelsExamsMergedTable(data) {
+  const levelsExamsTableArea = document.getElementById('levelsExamsTableArea');
+  if (!levelsExamsTableArea) {
+    console.error("levelsExamsTableArea element not found!"); // NEW LOG
+    return;
+  }
+
+  let html = `<div class="table-container">
+    <table class="levels-table" id="levelsExamsTable">
       <thead>
         <tr>
           <th>المستوى</th>
+          <th>الحالة</th>
           <th>حالة الامتحان</th>
-          <th>إجراء</th>
         </tr>
-      </thead>
-      <tbody>
-  `;
+      </thead><tbody>`;
+  lastActiveLevel = null;
+  lastActiveLevelIndex = null;
   for (let i = 1; i <= 7; i++) {
-    let examField = 'exam' + i;
-    let passed = Boolean(studentObj[examField]);
-    html += `
-      <tr>
+    const level = data['level'+i];
+    const exam = data['exam'+i];
+    if(level) { lastActiveLevel = 'المستوى ' + i; lastActiveLevelIndex = i; }
+    const levelStatus = level ? '<span class="level-on">مُفعل ✅</span>' : '<span class="level-off">غير مفعل ❌</span>';
+    let examLabel = '';
+    if (exam === true) {
+      examLabel = `<span class="exam-label">✅ اجتاز الامتحان</span>`;
+    } else if (exam === false) {
+      examLabel = `<span class="exam-label fail">❌ لم يجتز الامتحان</span>`;
+    } else if (level) {
+      examLabel = `<span class="exam-label wait">لم يبدأ بعد</span>`;
+    } else {
+      examLabel = `<span class="exam-label wait">—</span>`;
+    }
+    html += `<tr>
         <td>المستوى ${i}</td>
-        <td style="color:${passed ? 'var(--secondary-color)' : 'var(--danger-color)'};font-weight:bold;">
-          ${passed ? "مجتاز" : "غير مجتاز"}
-        </td>
-        <td>
-          <button class="btn ${passed ? 'btn-danger' : 'btn-success'}" style="padding:4px 10px;font-size:0.95rem;"
-            onclick="toggleExamStatus('${studentId}', 'exam${i}', ${passed})">
-            ${passed ? "إلغاء اجتياز" : "تحديد كمجتاز"}
-          </button>
-        </td>
-      </tr>
-    `;
+        <td>${levelStatus}</td>
+        <td>${examLabel}</td>
+      </tr>`;
   }
-  html += `</tbody></table>`;
-  document.getElementById('examsTableWrapper').innerHTML = html;
+  html += "</tbody></table></div>";
+
+  levelsExamsTableArea.innerHTML = html;
+
+  performExamEligibilityCheckAndProceed(data, false);
 }
 
-// Toggle Exam Status (for individual student details)
-window.toggleExamStatus = function(studentId, examField, currentValue) {
-  let updateObj = {};
-  updateObj[examField] = !currentValue;
-  firestore.collection('lectures').doc(studentId).update(updateObj).then(function(){
-    allStudentsData[studentId][examField] = !currentValue;
-    showSelectedStudentDetails(studentId);
-    document.getElementById('msg').style.color = 'var(--secondary-color)';
-    document.getElementById('msg').innerText = 'تم تحديث حالة الامتحان!';
-    // NEW: Send notification for level exam status change
-    const levelNum = examField.replace('exam', '');
-    const studentEmail = allStudentsData[studentId].email;
-    const studentName = allStudentsData[studentId].name || 'الطالب';
-    if (studentEmail) {
-        sendStudentSpecificNotification(
-            studentEmail,
-            `تم تحديث حالة امتحان المستوى ${levelNum} إلى: ${!currentValue ? 'اجتاز' : 'لم يجتز'}.`,
-            'exam_status_update',
-            `level_exam_${levelNum}`, // relatedId
-            `امتحان المستوى ${levelNum}` // relatedName
-        );
-    }
-    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1200);
-  }).catch(function(err){
-    document.getElementById('msg').innerText = "حدث خطأ أثناء تحديث الامتحان: " + err.message;
-  });
-};
 
-// Get Level Number From Text
-function getLevelNumFromText(levelText) {
-  if (!levelText) return 0;
-  const map = {
-    "الأول": 1, "اول": 1, "1": 1,
-    "الثاني": 2, "ثاني": 2, "2": 2,
-    "الثالث": 3, "ثالث": 3, "3": 3,
-    "الرابع": 4, "رابع": 4, "4": 4,
-    "الخامس": 5, "خامس": 5, "5": 5,
-    "السادس": 6, "سادس": 6, "6": 6,
-    "السابع": 7, "سابع": 7, "7": 7,
-  };
-  let txt = levelText.trim().replace('المستوى', '').replace(/\s/g, '', 'g'); // Added global flag to replace all occurrences
-  return map[txt] || 0;
-}
-
-// Load Lessons
-function loadLessons() {
-  firestore.collection('lessons').orderBy('id').get().then(function(querySnapshot){
-    let html = '';
-    window.lessonsMap = {}; // Clear and initialize global lessonsMap
-    querySnapshot.forEach(function(doc){
-      let data = doc.data();
-      window.lessonsMap[data.id] = data.title; // Store lesson title by ID globally
-      let levelNum = getLevelNumFromText(data.level);
-      let rowClass = levelNum ? `level-color-${levelNum}` : '';
-      if (editLessonId === doc.id) {
-        html += `
-          <tr class="${rowClass}">
-            <td><input type="number" id="editId" value="${data.id}" style="width:70px;" class="form-control" required></td>
-            <td><input type="text" id="editTitle" value="${data.title}" style="width:180px;" class="form-control" required></td>
-            <td><input type="text" id="editUrl" value="${data.url}" style="width:180px;" class="form-control" required></td>
-            <td>
-              <input type="text" id="editVoice" value="${data.voice ? data.voice : ''}" placeholder="رابط الصوت (اختياري)" style="width:180px;" class="form-control">
-            </td>
-            <td><input type="text" id="editLevel" value="${data.level}" style="width:90px;" class="form-control" required></td>
-            <td>
-              <button class="btn btn-success" onclick="saveLesson('${doc.id}')">حفظ</button>
-              <button class="btn btn-danger ml-1" onclick="cancelEditLesson()">إلغاء</button>
-            </td>
-            <td></td> </tr>
-        `;
+// التحقق من الاختبار
+function checkIfExamAlreadySubmitted(email, level) {
+  firestore.collection('exam_results')
+    .where('student_email', '==', email)
+    .where('level', '==', level)
+    .get()
+    .then(function(querySnapshot){
+      if (!querySnapshot.empty) {
+        showExamResultOnly(querySnapshot.docs[0].data());
       } else {
-        html += `<tr class="${rowClass}">
-            <td>${data.id || ''}</td>
-            <td>${data.title || ''}</td>
-            <td>
-              <a href="${data.url || ''}" target="_blank" class="btn-text">تحميل</a>
-            </td>
-            <td>
-              ${data.voice ? `<audio controls style="width:120px;">
-                <source src="${data.voice}" type="audio/mpeg">
-                </audio>` : ''}
-            </td>
-            <td>${data.level || ''}</td>
-            <td>
-              <button class="btn" onclick="editLesson('${doc.id}')">تعديل</button>
-            </td>
-            <td>
-                <button class="btn btn-danger" onclick="confirmDeleteLesson('${doc.id}', '${data.title}')">حذف</button>
-            </td>
-          </tr>`;
+        showExamBox(currentStudentName, currentStudentEmail, currentExamLevel);
       }
-    });
-    document.getElementById('lessonsList').innerHTML = html || '<tr><td colspan="7" class="text-center">لا يوجد دروس بعد.</td></tr>';
-  }).catch(function(error) {
-    console.error("خطأ في جلب بيانات الدروس:", error);
-    document.getElementById('editLessonMsg').innerText = "خطأ في تحميل بيانات الدروس.";
-  });
+    })
+    .catch(()=>{ showToast("خطأ في تحميل نتيجة الاختبار", "var(--danger-color)"); });
 }
 
-// Confirm Delete Lesson
-window.confirmDeleteLesson = function(docId, lessonTitle) {
-    if (confirm(`هل أنت متأكد من حذف الدرس "${lessonTitle}"؟ هذا الإجراء لا يمكن التراجع عنه. (ملاحظة: التلاخيص والعلامات المرتبطة بهذا الدرس لن تُحذف تلقائياً).`)) {
-        deleteLesson(docId);
+// إظهار نتيجة الاختبار فقط
+function showExamResultOnly(result) {
+  const examBoxEl = document.getElementById('examBox');
+  const questionsAreaEl = document.getElementById('questionsArea');
+  const formMsgEl = document.getElementById('formMsg');
+  const examStudentInfoEl = document.getElementById('examStudentInfo');
+  const examLevelInfoEl = document.getElementById('examLevelInfo');
+  const resultAreaEl = document.getElementById('resultArea');
+  const submitBtn = document.querySelector("#examForm button[type=submit]");
+  const exitExamBtnEl = document.getElementById('exitExamBtn');
+  const startExamBtn = document.getElementById('startExamBtn');
+  const examWarnMsgEl = document.getElementById('examWarnMsg');
+  const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea');
+
+  if (examBoxEl) examBoxEl.style.display = '';
+  if (questionsAreaEl) questionsAreaEl.innerHTML = '';
+  if (formMsgEl) formMsgEl.innerText = '';
+  if (examStudentInfoEl) examStudentInfoEl.innerHTML =
+    `<b>اسم الطالب:</b> ${currentStudentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${currentStudentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${result.level}`;
+  if (examLevelInfoEl) examLevelInfoEl.innerText = '';
+  
+  let passed = (result.score >= result.total_marks_possible * 0.5);
+  if (resultAreaEl) resultAreaEl.className = `result ${passed ? '' : 'fail'}`;
+
+  if (resultAreaEl) resultAreaEl.innerHTML = `<div style="font-size:1.3rem;font-weight:bold;">
+    درجتك: ${result.score} من ${result.total_marks_possible}
+    </div>`;
+
+  // Determine approval status message for examWarnMsg
+  let approvalStatusMessage = '';
+  if (result.approved === true) {
+      approvalStatusMessage = 'نتيجة معتمدة.';
+  } else if (result.approved === false) {
+      approvalStatusMessage = 'النتيجة غير معتمدة.';
+  } else {
+      approvalStatusMessage = 'لم يتم اعتماد العلامة حتى الآن.';
+  }
+
+  const overallIcon = passed ? '✅' : '❌';
+  const overallColor = passed ? 'var(--success-color)' : 'var(--danger-color)';
+  const backgroundColor = passed ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)';
+  const borderColor = passed ? 'var(--success-color)' : 'var(--danger-color)';
+
+  if (examWarnMsgEl) {
+      examWarnMsgEl.innerHTML = `
+          <div style="padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; text-align: center; border: 1px solid; background-color: ${backgroundColor}; border-color: ${borderColor};">
+              <p style="color: ${overallColor};">
+                  ${overallIcon} تم تقديم الاختبار بنتيجة ${result.score} من ${result.total_marks_possible}.
+                  <br>${approvalStatusMessage}
+              </p>
+          </div>
+      `;
+      examWarnMsgEl.style.display = 'block';
+  }
+  if(examEligibilityDetailsTableArea) {
+      examEligibilityDetailsTableArea.style.display = 'none';
+  }
+
+
+  if (submitBtn) submitBtn.style.display = "none";
+  if (exitExamBtnEl) exitExamBtnEl.style.display = "none";
+  if (startExamBtn) startExamBtn.style.display = "none";
+
+  clearInterval(examTimerInterval); updateExamTimer();
+}
+
+// إظهار نافذة الاختبار
+function showExamBox(studentName, studentEmail, level) {
+  const examBoxEl = document.getElementById('examBox');
+  const examStudentInfoEl = document.getElementById('examStudentInfo');
+  const examLevelInfoEl = document.getElementById('examLevelInfo');
+  const formMsgEl = document.getElementById('formMsg');
+  const resultAreaEl = document.getElementById('resultArea');
+  const submitBtn = document.querySelector("#examForm button[type=submit]");
+  const exitExamBtnEl = document.getElementById('exitExamBtn');
+  const startExamBtn = document.getElementById('startExamBtn');
+  const examWarnMsgEl = document.getElementById('examWarnMsg');
+  const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea');
+
+  if (startExamBtn) startExamBtn.style.display = "none";
+  if (examWarnMsgEl) examWarnMsgEl.style.display = "none";
+  if (examEligibilityDetailsTableArea) examEligibilityDetailsTableArea.style.display = 'none';
+
+
+  if (examBoxEl) examBoxEl.style.display = '';
+  if (examStudentInfoEl) examStudentInfoEl.innerHTML =
+    `<b>اسم الطالب:</b> ${studentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${studentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${getLevelText(level)}`;
+  firestore.collection('exam_settings').doc('level_' + level).get().then(function(settingDoc){
+    if(settingDoc.exists && settingDoc.data().question_num){
+      examQuestionsLimit = settingDoc.data().question_num;
+      if (examLevelInfoEl) examLevelInfoEl.innerText =
+        `عدد الأسئلة المخصصة لهذا المستوى: ${examQuestionsLimit}`;
+    } else {
+      examQuestionsLimit = null;
+      if (examLevelInfoEl) examLevelInfoEl.innerText =
+        'لم يتم تحديد عدد الأسئلة لهذا المستوى (سيتم عرض جميع الأسئلة).';
     }
+    loadExamQuestions(level);
+    startExamTimer(20);
+  });
+  if (formMsgEl) formMsgEl.innerText = '';
+  if (resultAreaEl) resultAreaEl.innerText = '';
+  if (submitBtn) submitBtn.style.display = "";
+  if (exitExamBtnEl) exitExamBtnEl.style.display = "";
+}
+
+// جلب أسئلة الاختبار
+function loadExamQuestions(level) {
+  firestore.collection('questions').where('level', '==', level).get().then(snap=>{
+    examQuestions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+    prepareRandomizedExam();
+    renderQuestions();
+  }).catch(()=>{ showToast("خطأ في تحميل الأسئلة", "var(--danger-color)"); });
+}
+
+// عشوائية الأسئلة والاختيارات
+function prepareRandomizedExam() {
+  let shuffled = shuffleArray(examQuestions.map(q => {
+    let choiceObjs = (q.choices||[]).map((choice, idx) => ({
+      text: choice,
+      origIndex: idx
+    }));
+    let shuffledChoices = shuffleArray(choiceObjs);
+    let newCorrect = [];
+    shuffledChoices.forEach((ch, ix) => {
+      if(q.correct && q.correct.includes(ch.origIndex)) newCorrect.push(ix);
+    });
+    return {
+      ...q,
+      choices: shuffledChoices.map(c => c.text),
+      correct: newCorrect
+    };
+  }));
+  randomizedExamQuestions = examQuestionsLimit ? shuffled.slice(0, examQuestionsLimit) : shuffled;
+}
+
+// عرض الأسئلة
+function renderQuestions() {
+  const questionsAreaEl = document.getElementById('questionsArea');
+  if (!questionsAreaEl) return;
+
+  let html = '';
+  randomizedExamQuestions.forEach((q, i) => {
+    let multiNote = '';
+    let scoringNote = '';
+    if (q.correct.length > 1) {
+      multiNote = '<span class="multi-note">(يحتمل أكثر من إجابة صحيحة)</span>';
+      scoringNote = `<div class="scoring-note">
+      ملاحظة: لكل إجابة صحيحة تختارها تحصل على جزء من العلامة، ولكل إجابة خاطئة تختارها يُخصم نفس الجزء من العلامة. لا يمكن أن تقل علامة السؤال عن الصفر.
+      </div>`;
+    }
+    let markText = `<span class="question-mark">[العلامة: ${q.mark || 1}]`;
+    html += `<div class="question-block">
+      <div class="question-title">${i+1}. ${q.question} ${multiNote} ${markText}</div>
+      <div class="choices-list">` +
+      (q.choices||[]).map((choice, idx) =>
+        `<div class="choice-row">
+          <label>
+            <input type="${q.correct.length>1?'checkbox':'radio'}" name="q${i}" value="${idx}">
+            ${choice}
+          </label>
+        </div>`
+      ).join('') +
+      `</div>
+      ${scoringNote}
+    </div>`;
+  });
+  questionsAreaEl.innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
+}
+
+
+// منع إغلاق الصفحة أثناء الاختبار بدون تأكيد
+window.onbeforeunload = function(e) {
+  const examBoxEl = document.getElementById('examBox');
+  if (examBoxEl && examBoxEl.style.display !== 'none') {
+    return "هل أنت متأكد أنك تريد مغادرة الصفحة؟ قد تفقد إجاباتك!";
+  }
 };
 
-// Delete Lesson
-async function deleteLesson(docId) {
-    showLoading(true);
-    try {
-        await firestore.collection('lessons').doc(docId).delete();
-        showToast('تم حذف الدرس بنجاح!', 'var(--secondary-color)');
-        loadLessons();
-    } catch (error) {
-        showToast('خطأ في حذف الدرس: ' + error.message, 'var(--error)');
-        console.error('Error deleting lesson:', error);
-    } finally {
-        showLoading(false);
+// الدالة الموحدة لمعالجة تسليم الاختبار
+function processExamSubmission(isTimerSubmission = false) {
+  let totalMark = 0, gainedMark = 0, empty = 0;
+  let details = [];
+  randomizedExamQuestions.forEach((q, i) => {
+    const nodes = document.getElementsByName('q'+i);
+    let selected = [];
+    nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
+
+    let mark = parseFloat(q.mark) || 1;
+    totalMark += mark;
+
+    if (selected.length === 0) {
+      if (!isTimerSubmission) {
+        empty++;
+      }
     }
-}
 
-// Edit Lesson
-window.editLesson = function(docId){
-  editLessonId = docId;
-  document.getElementById('editLessonMsg').innerText = '';
-  loadLessons();
-}
+    details.push({
+      question_id: q.id,
+      question_text_at_submission: q.question,
+      question_mark_value: q.mark || 1,
+      selected_choices: selected,
+      correct_choices_at_submission: q.correct,
+      mark_obtained_for_question: 0
+    });
 
-// Cancel Edit Lesson
-window.cancelEditLesson = function(){
-  editLessonId = null;
-  document.getElementById('editLessonMsg').innerText = '';
-  loadLessons();
-}
-
-// Save Lesson
-window.saveLesson = function(docId){
-  var id = Number(document.getElementById('editId').value.trim());
-  var title = document.getElementById('editTitle').value.trim();
-  var url = document.getElementById('editUrl').value.trim();
-  var voice = document.getElementById('editVoice').value.trim();
-  var level = document.getElementById('editLevel').value.trim();
-  var msg = document.getElementById('editLessonMsg');
-  msg.innerText = '';
-  if (!id || !title || !url || !level) {
-    msg.innerText = "يرجى تعبئة جميع الحقول بشكل صحيح.";
+    if(q.correct.length > 1) {
+      let perMark = mark / q.correct.length;
+      let countCorrect = 0;
+      let countWrong = 0;
+      selected.forEach(val => {
+        if(q.correct.includes(val)) countCorrect++;
+        else countWrong++;
+      });
+      let gained = (countCorrect - countWrong) * perMark;
+      if(gained < 0) gained = 0;
+      gainedMark += gained;
+      details[i].mark_obtained_for_question = gained;
+    }
+    else {
+      if(selected.length === 1 && q.correct.includes(selected[0])) {
+          gainedMark += mark;
+          details[i].mark_obtained_for_question = mark;
+      } else {
+          details[i].mark_obtained_for_question = 0;
+      }
+    }
+  });
+  const formMsgEl = document.getElementById('formMsg');
+  if (!isTimerSubmission && empty > 0) {
+    if (formMsgEl) formMsgEl.innerText = 'يرجى الإجابة على جميع الأسئلة!';
+    showToast("يرجى الإجابة على جميع الأسئلة!", "var(--danger-color)");
     return;
   }
-  let lessonObj = {
-    id: id,
-    title: title,
-    url: url,
-    level: level
-  };
-  if (voice) lessonObj.voice = voice;
-  else lessonObj.voice = firebase.firestore.FieldValue.delete();
-  firestore.collection('lessons').doc(docId).update(lessonObj).then(function(){
-    msg.style.color = "var(--secondary-color)";
-    msg.innerText = "تم تحديث الدرس بنجاح!";
-    editLessonId = null;
-    loadLessons();
-    setTimeout(()=>{msg.innerText='';}, 1500);
-  }).catch(function(err){
-    msg.innerText = "حدث خطأ أثناء التحديث: " + err.message;
-  });
+
+  gainedMark = Math.round(gainedMark * 100) / 100;
+
+  firestore.collection('exam_results')
+    .where('student_email', '==', currentStudentEmail)
+    .where('level', '==', currentExamLevel)
+    .get()
+    .then(function(querySnapshot){
+      if (!querySnapshot.empty) {
+        showExamResultOnly(querySnapshot.docs[0].data());
+        updateLevelExamTable(currentExamLevel, querySnapshot.docs[0].data());
+        showToast("تم إرسال الإجابات مسبقاً", "var(--danger-color)");
+        return;
+      }
+      const resultDoc = {
+        student_uid: currentStudentUid,
+        student_email: currentStudentEmail,
+        student_name: currentStudentName,
+        level: currentExamLevel,
+        score: gainedMark,
+        total_marks_possible: totalMark,
+        submitted_at: firebase.firestore.Timestamp.now(),
+        exam_duration_taken: (20 * 60) - examTimeLeft,
+        teacher_reviewed: false,
+        approved: null,
+        teacher_comment: null,
+        details: details,
+      };
+      firestore.collection('exam_results').add(resultDoc)
+        .then(() => {
+          const questionsAreaEl = document.getElementById('questionsArea');
+          const resultAreaEl = document.getElementById('resultArea');
+          const submitBtn = document.querySelector("#examForm button[type=submit]");
+          const exitExamBtnEl = document.getElementById('exitExamBtn');
+          const startExamBtn = document.getElementById('startExamBtn');
+
+          if (questionsAreaEl) questionsAreaEl.innerHTML = '';
+          if (formMsgEl) formMsgEl.innerText = '';
+          let passed = (gainedMark >= totalMark * 0.5);
+          if (resultAreaEl) resultAreaEl.className = `result ${passed ? '' : 'fail'}`;
+
+          if (resultAreaEl) resultAreaEl.innerHTML = `<div style="font-size:1.3rem;font-weight:bold;">
+            تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}
+            </div>`;
+          if (submitBtn) submitBtn.style.display = "none";
+          if (exitExamBtnEl) exitExamBtnEl.style.display = "none";
+          if (startExamBtn) startExamBtn.style.display = "none";
+          updateLevelExamTable(currentExamLevel, resultDoc);
+          showToast("تم إرسال الإجابات بنجاح", "var(--success-color)");
+          clearInterval(examTimerInterval); updateExamTimer();
+        })
+        .catch((error) => {
+          showResult(`درجتك: ${gainedMark} من ${totalMark}`);
+          if (formMsgEl) formMsgEl.innerText = 'حدث خطأ أثناء حفظ النتيجة: ' + error.message;
+          showToast("حدث خطأ أثناء حفظ النتيجة!", "var(--danger-color)");
+        });
+      if (formMsgEl) formMsgEl.innerText = '';
+    });
 }
 
-// Update Student Level
-window.updateLevel = function(checkbox) {
-  const docId = checkbox.getAttribute('data-id');
-  const level = checkbox.getAttribute('data-level');
-  const value = checkbox.checked;
-  const levelNum = parseInt(level.replace('level',''));
-  if (levelNum > 1) {
-    const previousExam = allStudentsData[docId]['exam'+(levelNum-1)];
-    if (!previousExam) {
-      checkbox.checked = false;
-      document.getElementById('msg').style.color = "var(--danger-color)";
-      document.getElementById('msg').innerText = "لا يمكن تفعيل هذا المستوى قبل اجتياز امتحان المستوى السابق.";
-      setTimeout(()=>{document.getElementById('msg').innerText='';}, 1500);
+
+function showFormMsg(msg) {
+  const formMsgEl = document.getElementById('formMsg');
+  if (formMsgEl) formMsgEl.innerText = msg;
+}
+function showResult(msg) {
+  const resultAreaEl = document.getElementById('resultArea');
+  if (resultAreaEl) resultAreaEl.innerText = msg;
+}
+
+// تحديث جدول الامتحان
+function updateLevelExamTable(level, result) {
+  let passed = (result.score >= result.total_marks_possible * 0.5);
+  let label = passed
+    ? `<span class="exam-label">✅ اجتاز الامتحان (${result.score} من ${result.total_marks_possible})</span>`
+    : `<span class="exam-label fail">❌ لم يجتز (${result.score} من ${result.total_marks_possible})</span>`;
+  let table = document.querySelectorAll(".levels-table tbody tr");
+  if(table && table.length >= level) {
+    let cell = table[level-1].querySelector("td:last-child");
+    if(cell) cell.innerHTML = label;
+  }
+}
+
+// تحميل الدروس والتلاخيص (مع التعديل الجديد)
+function loadActiveLessonsAndSummaries(activeLevels) {
+  if (summariesListenerUnsubscribe) {
+    summariesListenerUnsubscribe();
+    summariesListenerUnsubscribe = null;
+  }
+
+  const lessonsSummariesAreaEl = document.getElementById('lessonsSummariesArea');
+  if (!activeLevels.length) {
+    if (lessonsSummariesAreaEl) lessonsSummariesAreaEl.innerHTML = "<p style='text-align: center; color: var(--text-muted);'>لا توجد دروس متاحة حالياً في المستويات النشطة.</p>";
+    return;
+  }
+  showLoading(true);
+
+  firestore.collection('lessons').orderBy('id').get().then(function(lessonsSnap) {
+    window.lessonsMap = {};
+    let lessons = [];
+    lessonsSnap.forEach(function(doc) {
+      let lesson = doc.data();
+      window.lessonsMap[lesson.id] = lesson.title;
+      let levelNum = getLevelNumber(lesson.level);
+      if (activeLevels.includes(levelNum)) {
+        lessons.push(lesson);
+      }
+    });
+    lessons.sort((a, b) => a.id - b.id);
+    window.lastRenderedLessons = lessons;
+
+    if (lessons.length === 0) {
+      if (lessonsSummariesAreaEl) lessonsSummariesAreaEl.innerHTML = "<p style='text-align: center; color: var(--text-muted);'>لا توجد دروس متاحة حالياً في المستويات النشطة.</p>";
+      showLoading(false);
       return;
     }
-  }
-  firestore.collection('lectures').doc(docId).update({[level]: value}).then(function(){
-    document.getElementById('msg').style.color = 'var(--secondary-color)';
-    document.getElementById('msg').innerText = 'تم تحديث المستوى بنجاح!';
-    if (allStudentsData[docId]) {
-        allStudentsData[docId][level] = value;
-        showSelectedStudentDetails(docId);
-        // Send notification for level activation
-        if (value === true) { // Only notify when level is turned ON
-            const studentName = allStudentsData[docId].name || 'الطالب';
-            const studentEmail = allStudentsData[docId].email;
-            if (studentEmail) {
-                sendStudentSpecificNotification(
-                    studentEmail,
-                    `تهانينا، تم فتح المستوى ${levelNum} لك! يمكنك الآن الوصول إلى دروسه واختباره.`,
-                    'level_open',
-                    levelNum, // relatedId
-                    `المستوى ${levelNum}` // relatedName
-                );
-            }
-        }
-    }
-    setTimeout(()=>{document.getElementById('msg').innerText=''; document.getElementById('msg').style.color='var(--error)';}, 1500);
-  }).catch(function(err){
-    document.getElementById('msg').innerText = "خطأ أثناء التحديث: " + err.message;
-  });
-};
 
-// Load Student Summaries (with Realtime Listener)
-function loadStudentSummaries(email) {
-  showLoading(true);
-  currentStudentEmailForSummaries = email;
-
-  // Unsubscribe from previous listener if exists
-  if (teacherSummariesListenerUnsubscribe) {
-      teacherSummariesListenerUnsubscribe();
-      teacherSummariesListenerUnsubscribe = null;
-  }
-
-  // Get lessons first (they don't change often)
-  firestore.collection('lessons').orderBy('id').get().then(function(lessonsSnap) {
-    lessonsSnap.forEach(doc=>window.lessonsMap[doc.data().id]=doc.data().title); // Populate global lessonsMap
-
-    // Now set up a real-time listener for summaries of the CURRENTLY SELECTED student
-    teacherSummariesListenerUnsubscribe = firestore.collection('summaries')
-      .where('student_email', '==', currentStudentEmailForSummaries)
+    let lessonIds = lessons.map(l => l.id);
+    firestore.collection('summaries')
+      .where('student_email', '==', currentStudentEmail)
+      .where('lesson_id', 'in', lessonIds)
       .onSnapshot(function(snapshot) {
-        let changes = snapshot.docChanges(); // Get changes since last snapshot
+        let changes = snapshot.docChanges();
         let shouldShowToast = false;
         
-        // Re-fetch all summaries for the selected student to ensure complete data
-        window.allSummaries = [];
-        window.studentSummariesMap = {};
+        studentSummaries = {};
         snapshot.forEach(doc => {
           let s = { ...doc.data(), docId: doc.id };
-          window.allSummaries.push(s);
-          window.studentSummariesMap[s.docId] = s;
+          studentSummaries[s.docId] = s;
+          studentSummaries[s.lesson_id] = s;
 
-          // Check for specific changes for toast notification
           if (changes.some(change => change.type === "modified" && change.doc.id === doc.id)) {
               let oldDoc = changes.find(change => change.doc.id === doc.id)?.oldDoc?.data();
               if (oldDoc) {
-                  // If student_reply_comment was added/changed OR status changed to submitted
-                  if (s.student_reply_comment !== oldDoc.student_reply_comment || (s.status === 'submitted' && oldDoc.status === 'draft')) {
+                  if (s.teacher_comment !== oldDoc.teacher_comment || s.mark_from_student_marks !== oldDoc.mark_from_student_marks) {
                       shouldShowToast = true;
                   }
               }
           }
         });
 
-        // Fetch marks for all summaries (or just the changed ones)
-        let markPromises = window.allSummaries.map(s =>
+        let markPromises = Object.values(studentSummaries).map(s =>
             firestore.collection('student_marks')
             .where('summary_id', '==', s.docId)
-            .where('student_email', '==', currentStudentEmailForSummaries)
+            .where('student_email', '==', currentStudentEmail)
             .limit(1)
             .get()
             .then(markSnap => {
@@ -912,7 +1170,7 @@ function loadStudentSummaries(email) {
                 } else {
                     s.mark_from_student_marks = null;
                 }
-                return s; // Return the updated summary object
+                return s;
             }).catch(err => {
                 console.error("Error fetching mark for summary in listener:", s.docId, err);
                 s.mark_from_student_marks = null;
@@ -921,420 +1179,342 @@ function loadStudentSummaries(email) {
         );
 
         Promise.all(markPromises).then(updatedSummariesArray => {
-            // Rebuild window.allSummaries and window.studentSummariesMap from the updated array
-            window.allSummaries = updatedSummariesArray;
-            window.studentSummariesMap = {};
+            studentSummaries = {};
             updatedSummariesArray.forEach(s => {
-                window.studentSummariesMap[s.docId] = s;
+                studentSummaries[s.docId] = s;
+                studentSummaries[s.lesson_id] = s;
             });
+            window.lastRenderedStudentSummaries = updatedSummariesArray;
 
-            filterSummariesTable(); // Re-render with fresh data and filter
-
-            // Check if the currently open summary box corresponds to an updated summary
-            if (currentlyOpenSummaryDocId && window.studentSummariesMap[currentlyOpenSummaryDocId]) {
-                showSummaryDetails(currentlyOpenSummaryDocId); // Re-open and update content
-            }
-
+            renderSummariesLessonsUI(lessons, studentSummaries);
             if (shouldShowToast) {
-                showToast(`لديك رد جديد أو تحديث على تلخيص من ${allStudentsData[document.getElementById('studentSelect').value]?.name || 'الطالب'}!`, "var(--primary-color)");
+                showToast("لديك تعليق أو علامة جديدة من المعلم على أحد تلاخيصك!", "var(--primary-color)");
             }
             showLoading(false);
         }).catch(err => {
-            showToast("خطأ في تحديث العلامات في الوقت الحقيقي: " + err.message, "var(--error)");
+            showToast("خطأ في تحديث العلامات في الوقت الحقيقي: " + err.message, "var(--danger-color)");
             console.error("Promise.all error in listener:", err);
             showLoading(false);
         });
 
       }, function(error) {
-        showToast("خطأ في الاستماع لتحديثات التلاخيص: " + error.message, "var(--error)");
+        showToast("خطأ في الاستماع لتحديثات التلاخيص: " + error.message, "var(--danger-color)");
         console.error("Listener error:", error);
         showLoading(false);
       });
   }).catch(err => {
-    showToast("خطأ في تحميل الدروس للتلاخيص: " + err.message, "var(--error)");
+    showToast("خطأ في تحميل الدروس للتلاخيص: " + err.message, "var(--danger-color)");
     showLoading(false);
     console.error("Error fetching lessons for summaries:", err);
   });
 }
 
-// Filter Summaries Table
-function filterSummariesTable() {
-    const filterStatus = document.getElementById('summaryFilterStatus').value;
-    let filteredSummaries = window.allSummaries.filter(s => {
-        if (filterStatus === 'all') return true;
-        return s.status === filterStatus;
-    });
 
-    // Sort summaries by lesson_id
-    filteredSummaries.sort((a, b) => a.lesson_id - b.lesson_id);
+// عرض التلاخيص مع العلامة والتاريخ (مُعدلة)
+function renderSummariesLessonsUI(lessons, summariesMap) {
+  const lessonsSummariesAreaEl = document.getElementById('lessonsSummariesArea');
+  if (!lessonsSummariesAreaEl) return;
 
-    if (!filteredSummaries.length) {
-        document.getElementById('summariesTableWrapper').innerHTML = "<p class='text-center'><b>لا توجد تلاخيص مطابقة للفلتر.</b></p>";
-        hideSummaryDetails();
-        return;
+  let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`;
+  lessons.forEach(function(lesson){
+    let sum = summariesMap[lesson.id] || { docId: `new_draft_${lesson.id}`, summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" };
+    let submitted = sum.status === 'submitted';
+
+    let markToDisplay = '—';
+    let markBadgeClass = 'no-mark';
+
+    const realtimeMark = window.realtimeStudentMarks[sum.docId];
+    if (typeof realtimeMark !== 'undefined' && realtimeMark !== null) {
+        markToDisplay = 'العلامة: ' + realtimeMark;
+        if (realtimeMark > 0) {
+            markBadgeClass = 'positive-mark';
+        } else {
+            markBadgeClass = 'zero-mark';
+        }
+    } else if (submitted) {
+        if (typeof sum.mark_from_student_marks !== 'undefined' && sum.mark_from_student_marks !== null) {
+            markToDisplay = 'العلامة: ' + sum.mark_from_student_marks;
+            if (sum.mark_from_student_marks > 0) {
+                markBadgeClass = 'positive-mark';
+            } else {
+                markBadgeClass = 'zero-mark';
+            }
+        }
     }
 
-    let html = `
-    <table class="table">
-      <thead><tr>
-        <th>الدرس</th>
-        <th>الحالة</th>
-        <th>العلامة</th>
-        <th>تعديل العلامة</th>
-        <th>عرض التلخيص</th>
-        <th>إعادة التلخيص</th>
-      </tr></thead><tbody>`;
+    let time = '';
+    if (sum.timestamp) {
+        try {
+            const dateVal = sum.timestamp.toDate ? sum.timestamp.toDate() : sum.timestamp;
+            const dateObj = new Date(dateVal);
+            if (isNaN(dateObj.getTime())) {
+                console.warn("Invalid Date for summary:", sum.docId, "Timestamp value (raw):", sum.timestamp, "Parsed Date obj:", dateObj);
+                time = `<span style="color:var(--danger-color);font-size:0.97em;">(تاريخ غير صالح)</span>`;
+            } else {
+                time = `<span style="color:var(--text-muted);font-size:0.97em;">(${dateObj.toLocaleString('ar-EG')})</span>`;
+            }
+        } catch (e) {
+            console.error("Error parsing timestamp for summary:", sum.docId, "Timestamp value:", sum.timestamp, "Error:", e);
+            time = `<span style="color:var(--danger-color);font-size:0.97em;">(خطأ في التاريخ)</span>`;
+        }
+    } else {
+        console.warn("Timestamp is missing for summary:", sum.docId);
+        time = `<span style="color:var(--text-muted);font-size:0.97em;">(لا يوجد تاريخ)</span>`;
+    }
 
-    filteredSummaries.forEach(s => {
-        const isSubmitted = s.status === 'submitted';
-        html += `<tr>
-            <td>${window.lessonsMap[s.lesson_id] || s.lesson_id}</td>
-            <td><span class="summary-status ${s.status}">${s.status==='submitted' ? 'تم التسليم' : 'مسودة'}</span></td>
-            <td>${s.mark_from_student_marks !== null ? s.mark_from_student_marks : "—"}</td>
-            <td>
-              <input class="table-mark-input" id="markinp_${s.docId}" type="number" value="${s.mark_from_student_marks !== null ? s.mark_from_student_marks : ''}" min="0" max="100">
-              <button class="table-mark-button" onclick="saveSummaryMark('${s.docId}')">حفظ</button>
-            </td>
-            <td>
-                <button class="btn btn-outlined" onclick="showSummaryDetails('${s.docId}')">عرض</button>
-            </td>
-            <td>
-                ${isSubmitted ? `
-                    <button class="btn reset-summary" onclick="resetSummary('${s.docId}', '${s.student_email}')" title="إعادة التلخيص إلى مسودة">
-                        <i class="material-icons">refresh</i>
-                    </button>
-                ` : '—'}
-            </td>
-        </tr>`;
-    });
-    html += "</tbody></table>";
-    document.getElementById('summariesTableWrapper').innerHTML = html;
+
+    html += `
+    <div class="lesson-summary-block">
+      <div class="lesson-student-name">اسم الطالب: ${currentStudentName || ""}</div>
+      <h4>
+        (${lesson.id}) ${lesson.title}
+        <span class="lesson-mark-badge ${markBadgeClass}">
+          ${markToDisplay}
+        </span>
+        ${time}
+      </h4>
+      <div style="margin-bottom:10px;">
+        <a href="${lesson.url || "#"}" class="lesson-link" download target="_blank" style="margin-left:10px;">تحميل المحاضرة 📥</a>
+        ${lesson.voice ? `
+        <audio controls style="width:100%;max-width:300px;vertical-align:middle;">
+          <source src="${lesson.voice}" type="audio/mpeg">
+          متصفحك لا يدعم تشغيل الصوت.
+        </audio>
+        ` : ''}
+      </div>
+      <div style="margin:12px 0 5px 0;">
+        <textarea class="summary-text" id="sumtext_${lesson.id}" ${submitted ? 'readonly' : ''} placeholder="اكتب تلخيصك هنا...">${sum.summary_text || ''}</textarea>
+      </div>
+      ${submitted && sum.teacher_comment ? `
+        <div class="teacher-comment-display">
+            <strong>ملاحظة المعلم:</strong> ${sum.teacher_comment}
+        </div>
+      ` : ''}
+      ${submitted ? `
+        <div class="reply-area">
+            <label for="studentreply_${sum.docId}">تعليقك/ردك على الدرس:</label>
+            <textarea class="summary-text" id="studentreply_${sum.docId}" placeholder="اكتب ردك هنا...">${sum.student_reply_comment || ''}</textarea>
+            <button class="btn" onclick="saveStudentReply('${sum.docId}')">حفظ الرد</button>
+        </div>
+      ` : ''}
+      <div class="summary-actions">
+        <span class="summary-status ${sum.status}">${sum.status === 'submitted' ? 'تم التسليم النهائي' : 'مسودة (لم يتم التسليم)'}</span>
+        <button class="btn" style="margin-left:8px;" onclick="saveSummary(${lesson.id})" ${submitted ? 'disabled' : ''}>حفظ المسودة</button>
+        <button class="btn submit" onclick="submitSummary(${lesson.id})">تسليم نهائي</button>
+      </div>
+      <div id="sum_msg_${lesson.id}" style="margin-top:5px; color:var(--danger-color); font-size:0.97rem;"></div>
+    </div>
+    `;
+  });
+  lessonsSummariesAreaEl.innerHTML = html;
 }
 
-// Function to show and populate the inline summary details box
-function showSummaryDetails(docId) {
-    const summary = window.studentSummariesMap[docId];
+// Function to save student reply to teacher's comment (or initiate comment)
+function saveStudentReply(summaryDocId) {
+    console.log("--- saveStudentReply بدأ ---");
+    const replyTextarea = document.getElementById(`studentreply_${summaryDocId}`);
+    if (!replyTextarea) { console.error("Reply textarea not found for", summaryDocId); return; }
+    const replyText = sanitizeText(replyTextarea.value.trim());
+
+    const summary = studentSummaries[summaryDocId];
     if (!summary) {
-        showToast("تعذر العثور على التلخيص.", "var(--error)");
+        console.error("Error: Summary object is undefined for summaryDocId:", summaryDocId);
+        showToast("حدث خطأ: بيانات التلخيص غير موجودة. حاول تحديث الصفحة.", "var(--danger-color)");
+        return;
+    }
+    if (typeof summary.lesson_id === 'undefined' || summary.lesson_id === null) {
+        console.error("Error: summary.lesson_id is undefined or null for summaryDocId:", summaryDocId, summary);
+        showToast("حدث خطأ: رقم الدرس غير موجود للتلخيص. حاول تحديث الصفحة.", "var(--danger-color)");
+        return;
+    }
+    const lessonTitle = window.lessonsMap[summary.lesson_id];
+
+    console.log("summaryDocId received:", summaryDocId);
+    console.log("replyText:", replyText);
+    console.log("Summary object from studentSummaries:", summary);
+    console.log("summary.lesson_id:", summary.lesson_id);
+    console.log("lessonTitle (for notification):", lessonTitle);
+
+
+    if (!replyText) {
+        showToast("يرجى كتابة الرد أولاً.", "var(--danger-color)");
+        console.warn("Reply text is empty.");
         return;
     }
 
-    const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
-    const summaryDetailsBox = document.getElementById('summaryDetailsBox');
-
-    document.getElementById('summaryDetailsTitle').innerText = `تفاصيل تلخيص الدرس: ${lessonTitle}`;
-    document.getElementById('summaryDetailsContent').innerText = summary.summary_text;
-    document.getElementById('summaryDetailsComment').value = summary.teacher_comment || '';
-    document.getElementById('summaryDetailsMark').value = summary.mark_from_student_marks !== null ? summary.mark_from_student_marks : '';
-
-    // Populate student reply section
-    const studentReplySection = document.getElementById('studentReplySection');
-    const summaryDetailsStudentReply = document.getElementById('summaryDetailsStudentReply');
-    const clearStudentReplyBtn = document.getElementById('clearStudentReplyBtn');
-
-    if (summary.student_reply_comment) {
-        summaryDetailsStudentReply.innerText = summary.student_reply_comment;
-        studentReplySection.style.display = 'block';
-        clearStudentReplyBtn.dataset.docId = docId; // Set docId for clearing
-        clearStudentReplyBtn.onclick = () => clearStudentReply(docId); // Attach event listener
-    } else {
-        studentReplySection.style.display = 'none';
-        summaryDetailsStudentReply.innerText = '';
-    }
-
-    // Set dataset for save buttons
-    document.getElementById('saveSummaryDetailsCommentBtn').dataset.docId = docId;
-    document.getElementById('saveSummaryDetailsMarkBtn').dataset.docId = docId;
-
-    // Remove existing listeners to prevent duplicates and add new ones
-    const saveCommentBtn = document.getElementById('saveSummaryDetailsCommentBtn');
-    const saveMarkBtn = document.getElementById('saveSummaryDetailsMarkBtn');
-
-    saveCommentBtn.onclick = null;
-    saveMarkBtn.onclick = null;
-
-    saveCommentBtn.onclick = () => saveSummaryComment(saveCommentBtn.dataset.docId);
-    saveMarkBtn.onclick = () => saveSummaryMark(saveMarkBtn.dataset.docId);
-
-    summaryDetailsBox.style.display = 'block';
-    summaryDetailsBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-    currentlyOpenSummaryDocId = docId; // Set currently open summary ID
-}
-
-// Function to hide the inline summary details box
-function hideSummaryDetails() {
-    document.getElementById('summaryDetailsBox').style.display = 'none';
-    currentlyOpenSummaryDocId = null; // Clear currently open summary ID
-}
-
-// Function to clear student's reply
-function clearStudentReply(docId) {
-    if (!confirm('هل أنت متأكد من مسح رد الطالب؟ هذا الإجراء لا يمكن التراجع عنه.')) {
-        return;
-    }
-
-    showLoading(true);
-    firestore.collection('summaries').doc(docId).update({
-        student_reply_comment: firebase.firestore.FieldValue.delete()
-    }).then(() => {
-        showToast('تم مسح رد الطالب بنجاح!', 'var(--secondary-color)');
-        // Listener will handle refresh, no need to call loadStudentSummaries here
-    }).catch(error => {
-        showToast(`حدث خطأ أثناء مسح رد الطالب: ${error.message}`, 'var(--error)');
-        console.error('Error clearing student reply:', error);
-        showLoading(false);
-    });
-}
-
-// Save Summary Mark
-function saveSummaryMark(docId) {
-    let val = document.getElementById('summaryDetailsMark').value; // Use the value from the detail box input
-    // If coming from table row, use table-specific input (fallback/alternative)
-    if (!val && document.getElementById('markinp_' + docId)) {
-        val = document.getElementById('markinp_' + docId).value;
-    }
-
-    if (val === "" || isNaN(val)) {
-        showToast("يرجى إدخال علامة صالحة (رقم).", "var(--error)");
-        return;
-    }
-    val = Number(val); // Ensure it's a number
-
-    firestore.collection('summaries').doc(docId).get().then(summaryDoc => {
-        if (!summaryDoc.exists) {
-            showToast("خطأ: التلخيص غير موجود.", "var(--error)");
-            return;
-        }
-
-        const summaryData = summaryDoc.data();
-        if (summaryData.status === "draft") {
-            showToast("لا يمكن وضع علامة لتلخيص في حالة المسودة. يجب تسليمه أولاً.", "var(--error)");
-            return;
-        }
-
-        const studentName = document.getElementById('detailName').textContent || '';
-        const studentEmail = document.getElementById('detailEmail').textContent || '';
-        const courseNumber = document.getElementById('detailCourseNumber').textContent || '';
-        const lessonTitle = window.lessonsMap[summaryData.lesson_id] || summaryData.lesson_id;
-        const statusText = summaryData.status === 'submitted' ? 'تم التسليم' : 'مسودة';
-
-        const user = firebase.auth().currentUser;
-        if (!user) {
-            showToast("لم يتم التعرف على المستخدم الحالي! يرجى إعادة تسجيل الدخول.", "var(--error)");
-            return;
-        }
-
-        firestore.collection('student_marks')
-            .where('student_email', '==', studentEmail)
-            .where('summary_id', '==', docId)
-            .limit(1)
-            .get().then(querySnapshot => {
-                const dataToSave = {
-                    summary_id: docId,
-                    student_name: studentName,
-                    student_email: studentEmail,
-                    course_number: courseNumber,
-                    lesson_title: lessonTitle,
-                    status: statusText,
-                    mark: val
-                };
-                if (!querySnapshot.empty) {
-                    const docRef = querySnapshot.docs[0].ref;
-                    docRef.update(dataToSave).then(() => {
-                        showToast('تم تحديث العلامة بنجاح!', 'var(--secondary-color)');
-                        sendStudentSpecificNotification(
-                            studentEmail,
-                            `تم وضع علامة جديدة لدرسك "${lessonTitle}": ${val} نقطة.`,
-                            'mark_update',
-                            summaryData.lesson_id,
-                            lessonTitle
-                        );
-                        // No need to call loadStudentSummaries here, listener will handle refresh
-                    }).catch((err) => {
-                        showToast('خطأ أثناء تحديث العلامة:\n' + err.message, 'var(--error)');
-                        console.error(err);
-                    });
-                } else {
-                    firestore.collection('student_marks').add(dataToSave).then(() => {
-                        showToast('تم إضافة العلامة!', 'var(--secondary-color)');
-                        sendStudentSpecificNotification(
-                            studentEmail,
-                            `تم وضع علامة جديدة لدرسك "${lessonTitle}": ${val} نقطة.`,
-                            'mark_add',
-                            summaryData.lesson_id,
-                            lessonTitle
-                        );
-                        // No need to call loadStudentSummaries here, listener will handle refresh
-                    }).catch((err) => {
-                        showToast('خطأ أثناء إضافة العلامة:\n' + err.message, 'var(--error)');
-                        console.error(err);
-                    });
-                }
-            }).catch((err) => {
-                showToast('خطأ أثناء البحث عن العلامة:\n' + err.message, 'var(--error)');
-                console.error(err);
-            });
-    }).catch(err => {
-        showToast("خطأ في جلب بيانات التلخيص:\n" + err.message, 'var(--error)');
-        console.error(err);
-    });
-}
-
-// Save Summary Comment
-function saveSummaryComment(docId) {
-    const comment = document.getElementById('summaryDetailsComment').value.trim();
-    const summary = window.studentSummariesMap[docId];
-    const lessonTitle = window.lessonsMap[summary.lesson_id] || summary.lesson_id;
-    const studentEmail = summary.student_email;
-
-    firestore.collection('summaries').doc(docId).update({
-        teacher_comment: comment
-    }).then(() => {
-        showToast('تم حفظ التعليق بنجاح!', 'var(--secondary-color)');
-        if (studentEmail && comment) {
-            sendStudentSpecificNotification(
-                studentEmail,
-                `لديك تعليق جديد من المعلم على تلخيص درسك "${lessonTitle}".`,
-                'comment_add',
-                summary.lesson_id,
-                lessonTitle
-            );
-        }
-        // Listener will handle refresh, no need to call loadStudentSummaries here
-    }).catch(err => {
-        showToast('خطأ في حفظ التعليق: ' + err.message, 'var(--error)');
-        console.error('Error saving summary comment:', err);
-    });
-}
-
-// Reset Summary Status
-window.resetSummary = function(summaryDocId, studentEmail) {
-    if (!confirm('هل أنت متأكد من رغبتك في إعادة تعيين حالة هذا التلخيص إلى مسودة؟ سيتم حذف العلامة والتعليق ورد الطالب المرتبطين به.')) {
-        return;
-    }
-
-    showLoading(true);
-    // Update summary status to 'draft'
     firestore.collection('summaries').doc(summaryDocId).update({
-        status: 'draft',
-        teacher_comment: firebase.firestore.FieldValue.delete(),
-        student_reply_comment: firebase.firestore.FieldValue.delete()
+        student_reply_comment: replyText
     }).then(() => {
-        // Find and delete the corresponding mark in student_marks collection
-        return firestore.collection('student_marks')
-            .where('summary_id', '==', summaryDocId)
-            .where('student_email', '==', studentEmail)
-            .get();
-    }).then(markSnapshot => {
-        if (!markSnapshot.empty) {
-            const deletePromises = [];
-            markSnapshot.forEach(doc => {
-                deletePromises.push(doc.ref.delete());
-            });
-            return Promise.all(deletePromises);
-        }
-        return Promise.resolve();
-    }).then(() => {
-        showToast('تم إعادة تعيين التلخيص بنجاح إلى مسودة!', 'var(--secondary-color)');
-        // Listener will handle refresh, no need to call loadStudentSummaries here
-        hideSummaryDetails();
-        showLoading(false);
+        showToast("تم حفظ ردك بنجاح!", "var(--success-color)");
+        console.log("Reply saved to Firestore successfully.");
+        sendTeacherNotification(
+            `قام الطالب ${currentStudentName} بالرد على تعليقك في درس "${lessonTitle}".`,
+            'student_reply',
+            summary.lesson_id,
+            lessonTitle
+        );
+        console.log("Teacher notification sent for reply.");
     }).catch(error => {
-        showToast(`حدث خطأ أثناء إعادة تعيين التلخيص: ${error.message}`, 'var(--error)');
-        console.error('Error resetting summary:', error);
-        showLoading(false);
+        showToast(`حدث خطأ أثناء حفظ الرد: ${error.message}`, "var(--danger-color)");
+        console.error("Error saving student reply to Firestore:", error);
     });
-};
-
-// Helper function to send specific notifications to students
-async function sendStudentSpecificNotification(recipientEmail, messageContent, type, relatedId = null, relatedName = null) {
-    if (!recipientEmail || !messageContent) {
-        console.warn("Cannot send notification: Missing recipient email or message content.");
-        return;
-    }
-    try {
-        const currentUser = firebase.auth().currentUser;
-        if (!currentUser) {
-            console.error("Cannot send notification: Teacher not logged in.");
-            return;
-        }
-
-        await firestore.collection('notifications').add({
-            message: messageContent,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            recipient_email: recipientEmail,
-            is_read: false,
-            sender_email: currentUser.email,
-            sender_name: currentUser.displayName || 'المعلم',
-            notification_type: type,
-            related_id: relatedId,
-            related_name: relatedName
-        });
-        console.log(`Notification sent to ${recipientEmail} for type ${type}: "${messageContent}"`);
-    } catch (error) {
-        console.error("Error sending student specific notification:", error);
-    }
+    console.log("--- saveStudentReply انتهى ---");
 }
 
-// Send General Notification
-async function sendNotification(e) {
-    e.preventDefault();
-    const message = document.getElementById('notificationMessage').value.trim();
-    const recipientValueFromDropdown = document.getElementById('notificationRecipient').value;
-    const msgDiv = document.getElementById('addNotificationMsg');
-    msgDiv.innerText = '';
+// حفظ المسودة
+function saveSummary(lessonId) {
+  console.log("--- saveSummary بدأ ---");
+  const textarea = document.getElementById('sumtext_' + lessonId);
+  const msg = document.getElementById('sum_msg_' + lessonId);
+  if (!textarea || !msg) { console.error("Summary elements not found for", lessonId); return; }
+  const text = sanitizeText(textarea.value.trim());
+  msg.innerText = "";
 
-    if (!message) {
-        msgDiv.innerText = "الرجاء كتابة رسالة الإشعار.";
-        return;
-    }
+  console.log("lessonId for draft:", lessonId);
+  console.log("Text for draft:", text);
+  
+  let docRef;
+  const existingSummary = Object.values(studentSummaries).find(s => s.lesson_id === lessonId);
+  console.log("Existing summary for draft:", existingSummary);
 
-    showLoading(true);
+  if (!text) {
+    msg.innerText = "يرجى كتابة التلخيص أولاً.";
+    showToast("يرجى كتابة التلخيص!", "var(--danger-color)");
+    console.warn("Draft text is empty.");
+    return;
+  }
+  
+  if (existingSummary && existingSummary.docId && !existingSummary.docId.startsWith('new_draft_')) {
+      docRef = firestore.collection('summaries').doc(existingSummary.docId);
+      console.log("Existing summary docRef:", docRef.id);
+      if (existingSummary.status === "submitted") {
+          msg.innerText = "تم تسليم التلخيص النهائي ولا يمكن التعديل.";
+          showToast("تم تسليم التلخيص النهائي ولا يمكن التعديل.", "var(--danger-color)");
+          console.warn("Attempted to save draft for already submitted summary.");
+          return;
+      }
+  } else {
+      docRef = firestore.collection('summaries').doc();
+      console.log("New summary docRef (draft):", docRef.id);
+  }
 
-    let recipientEmailToSend = '';
-    if (recipientValueFromDropdown === 'allStudents') {
-        recipientEmailToSend = "all";
-    } else if (recipientValueFromDropdown.includes('@')) {
-        recipientEmailToSend = recipientValueFromDropdown;
-    } else {
-        msgDiv.innerText = "خطأ: لم يتم تحديد مستلم صحيح للإشعار.";
-        showLoading(false);
-        return;
-    }
+  const summaryData = {
+      student_email: currentStudentEmail,
+      student_name: currentStudentName || "",
+      lesson_id: lessonId,
+      summary_text: text,
+      status: "draft",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  console.log("Summary data to save (draft):", summaryData);
 
-    try {
-        const currentUser = firebase.auth().currentUser;
-        if (!currentUser) {
-            msgDiv.innerText = "خطأ: المعلم غير مسجل الدخول.";
-            showLoading(false);
-            return;
-        }
+  docRef.set(summaryData, { merge: true }).then(function(){
+      msg.style.color = "var(--success-color)";
+      msg.innerText = "تم حفظ المسودة.";
+      showToast("تم حفظ المسودة.", "var(--success-color)");
+      console.log("Draft saved to Firestore successfully.");
+      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
+  }).catch((error)=>{ 
+      showToast(`خطأ أثناء الحفظ: ${error.message}`, "var(--danger-color)");
+      console.error("Error saving draft to Firestore:", error);
+  });
+  console.log("--- saveSummary انتهى ---");
+}
 
-        await firestore.collection('notifications').add({
-            message: message,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            recipient_email: recipientEmailToSend,
-            is_read: false,
-            sender_email: currentUser.email,
-            sender_name: currentUser.displayName || 'المعلم',
-            notification_type: 'manual_send',
-            related_id: null,
-            related_name: null
-        });
+// تسليم النهائي
+function submitSummary(lessonId) {
+  console.log("--- submitSummary بدأ ---");
+  const textarea = document.getElementById('sumtext_' + lessonId);
+  const msg = document.getElementById('sum_msg_' + lessonId);
+  if (!textarea || !msg) { console.error("Summary elements not found for", lessonId); return; }
+  const text = sanitizeText(textarea.value.trim());
+  msg.innerText = "";
 
-        msgDiv.style.color = "var(--secondary-color)";
-        msgDiv.innerText = "تم إرسال الإشعار بنجاح!";
-        document.getElementById('notificationMessage').value = '';
-        showToast("تم إرسال الإشعار بنجاح!", "var(--secondary-color)");
-        setTimeout(() => { msgDiv.innerText = ''; }, 2000);
+  console.log("lessonId for submission:", lessonId);
+  console.log("Text for submission:", text);
 
-    } catch (error) {
-        msgDiv.innerText = "حدث خطأ أثناء إرسال الإشعار: " + error.message;
-        showToast("خطأ أثناء إرسال الإشعار!", "var(--error)");
-    } finally {
-        showLoading(false);
-    }
+  if (!text) {
+    msg.innerText = "يرجى كتابة التلخيص أولاً.";
+    showToast("يرجى كتابة التلخيص!", "var(--danger-color)");
+    console.warn("Submission text is empty.");
+    return;
+  }
+  
+  let docRef;
+  const existingSummary = Object.values(studentSummaries).find(s => s.lesson_id === lessonId);
+  console.log("Existing summary for submission:", existingSummary);
+
+  if (existingSummary && existingSummary.docId && !existingSummary.docId.startsWith('new_draft_')) {
+      docRef = firestore.collection('summaries').doc(existingSummary.docId);
+      console.log("Existing summary docRef:", docRef.id);
+      if (existingSummary.status === "submitted") {
+          msg.innerText = "تم تسليم التلخيص بالفعل.";
+          showToast("تم تسليم التلخيص بالفعل.", "var(--danger-color)");
+          console.warn("Attempted to submit already submitted summary.");
+          return;
+      }
+  } else {
+      docRef = firestore.collection('summaries').doc();
+      console.log("New summary docRef (submission):", docRef.id);
+  }
+
+  const summaryData = {
+      summary_text: text,
+      status: "submitted",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  console.log("Summary data to save (submission):", summaryData);
+  
+  if (!existingSummary || existingSummary.docId.startsWith('new_draft_')) {
+      summaryData.student_email = currentStudentEmail;
+      summaryData.student_name = currentStudentName || "";
+      summaryData.lesson_id = lessonId;
+  }
+
+  const lessonTitle = window.lessonsMap[lessonId];
+  console.log("Lesson title (for notification):", lessonTitle);
+
+  docRef.set(summaryData, { merge: true }).then(function(){
+      msg.style.color = "var(--success-color)";
+      msg.innerText = "تم تسليم التلخيص بنجاح.";
+      showToast("تم تسليم التلخيص بنجاح!", "var(--success-color)");
+      console.log("Summary submitted to Firestore successfully.");
+      sendTeacherNotification(
+          `قام الطالب ${currentStudentName} بتسليم تلخيص جديد لدرس "${lessonTitle}".`,
+          'summary_submitted',
+          lessonId,
+          lessonTitle
+      );
+      console.log("Teacher notification sent for submission.");
+      setTimeout(()=>{msg.innerText=''; msg.style.color="var(--danger-color)";}, 1500);
+  }).catch((error)=>{ 
+      showToast(`خطأ أثناء التسليم: ${error.message}`, "var(--danger-color)");
+      console.error("Error submitting summary to Firestore:", error);
+  });
+  console.log("--- submitSummary انتهى ---");
+}
+
+// تسجيل الخروج
+function logout() {
+  if (teacherSummariesListenerUnsubscribe) {
+    teacherSummariesListenerUnsubscribe();
+    teacherSummariesListenerUnsubscribe = null;
+  }
+  if (teacherNotificationsListenerUnsubscribe) {
+      teacherNotificationsListenerUnsubscribe();
+      teacherNotificationsListenerUnsubscribe = null;
+  }
+  if (studentMarksListenerUnsubscribe) {
+      studentMarksListenerUnsubscribe();
+      studentMarksListenerUnsubscribe = null;
+  }
+  if (examResultsListenerUnsubscribe) {
+      examResultsListenerUnsubscribe();
+      examResultsListenerUnsubscribe = null;
+  }
+  auth.signOut().then(()=>{window.location.href='login.html';}).catch(function(error) {
+    console.error("Error in تسجيل الخروج:", error);
+  });
 }
 
 // NEW: Exam Results Dashboard Functions
@@ -1508,7 +1688,6 @@ async function saveExamResultComment(docId) {
             teacher_comment: comment
         });
         showToast('تم حفظ الملاحظة بنجاح!', 'var(--secondary-color)');
-        // Update allExamResults in memory
         const resultIndex = allExamResults.findIndex(r => r.id === docId);
         if (resultIndex !== -1) {
             allExamResults[resultIndex].teacher_comment = comment;
@@ -1540,12 +1719,11 @@ async function approveExamResult(docId) {
             teacher_reviewed: true
         });
 
-        // Update student's lectures.examX status
         const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
         if (!lecturesSnapshot.empty) {
             const studentLectureDocId = lecturesSnapshot.docs[0].id;
             await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: true // Mark this level's exam as passed for the student
+                [`exam${level}`]: true
             });
         }
         
@@ -1589,12 +1767,11 @@ async function rejectExamResult(docId) {
             teacher_reviewed: true
         });
 
-        // Optionally, if rejecting means the student can re-take, you might set lectures.examX to false
         const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentEmail).limit(1).get();
         if (!lecturesSnapshot.empty) {
             const studentLectureDocId = lecturesSnapshot.docs[0].id;
             await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: false // Mark this level's exam as not passed
+                [`exam${level}`]: false
             });
         }
         
@@ -1624,21 +1801,19 @@ function confirmResetExamResult(docId, studentUid, level) {
 async function resetExamResult(docId, studentUid, level) {
     showLoading(true);
     try {
-        // Delete the exam result document
         await firestore.collection('exam_results').doc(docId).delete();
 
-        // Find the student's lectures document and reset their exam status for this level
-        const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentUid).limit(1).get(); // Use studentUid (email) to find student doc
+        const lecturesSnapshot = await firestore.collection('lectures').where('email', '==', studentUid).limit(1).get();
         if (!lecturesSnapshot.empty) {
             const studentLectureDocId = lecturesSnapshot.docs[0].id;
             await firestore.collection('lectures').doc(studentLectureDocId).update({
-                [`exam${level}`]: false // Set exam status for this level to false (not passed)
+                [`exam${level}`]: false
             });
         }
         
         showToast('تمت إعادة تعيين الاختبار بنجاح. يمكن للطالب إعادة الاختبار الآن.', 'var(--secondary-color)');
         sendStudentSpecificNotification(
-            studentUid, // Student's email
+            studentUid,
             `تم إعادة تعيين اختبار المستوى ${level} الخاص بك. يمكنك الآن إعادة تقديم الاختبار.`,
             'exam_reset',
             level,
@@ -1656,7 +1831,6 @@ async function resetExamResult(docId, studentUid, level) {
 
 // Logout
 function logout() {
-  // Unsubscribe from listeners before logging out
   if (teacherSummariesListenerUnsubscribe) {
     teacherSummariesListenerUnsubscribe();
     teacherSummariesListenerUnsubscribe = null;
@@ -1669,7 +1843,7 @@ function logout() {
       studentMarksListenerUnsubscribe();
       studentMarksListenerUnsubscribe = null;
   }
-  if (examResultsListenerUnsubscribe) { // NEW: Unsubscribe exam results listener
+  if (examResultsListenerUnsubscribe) {
       examResultsListenerUnsubscribe();
       examResultsListenerUnsubscribe = null;
   }
