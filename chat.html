@@ -4,18 +4,14 @@
   <meta charset="UTF-8">
   <title>صفحة الدردشة - شفاء</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
-  <script src="firebase-config.js"></script>
+  
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="main.css"> 
   <link rel="stylesheet" href="chat-layout.css">
-</head>
-<body class="chat-page"> <header class="app-bar">
+  
+  </head>
+<body class="chat-page" dir="rtl"> <header class="app-bar">
     <button class="btn sidebar-toggle-btn" id="sidebarToggleBtn">
         <i class="fas fa-bars"></i> </button>
     <h1 class="app-bar-title">منصة شفاء - الدردشة</h1>
@@ -27,14 +23,15 @@
   </header>
 
   <div class="main-container">
-    <div class="chat-list-panel" id="chatListPanel"> <div class="chat-list-header">
+    <div class="chat-list-panel" id="chatListPanel">
+      <div class="chat-list-header">
         <h5>المحادثات</h5>
         <button class="btn" id="createChatBtn" style="font-size:0.85em; padding: 5px 10px; display: none;" onclick="openCreateChatModal()">
             <i class="fas fa-plus" style="margin-left: 5px;"></i> إنشاء
         </button>
       </div>
       <div id="chatRoomsList">
-        <p style="text-align: center; color: #888; padding: 20px;">جاري تحميل المحادثات...</p>
+        <p style="text-align: center; color: #888;">جاري تحميل المحادثات...</p>
       </div>
     </div>
 
@@ -50,7 +47,8 @@
       </div>
       <div id="messageDisplay">
         </div>
-      <div class="spinner" id="loadingSpinner"></div> </div>
+      <div class="spinner" id="loadingSpinner"></div>
+    </div>
   </div>
 
   <div class="message-input-area">
@@ -58,7 +56,8 @@
     <button class="btn attach-btn" onclick="document.getElementById('fileInput').click()" title="إرفاق ملف">
         <i class="fas fa-paperclip"></i>
     </button>
-    <div id="fileUploadSpinner"></div> <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
+    <div id="fileUploadSpinner"></div>
+    <textarea id="messageInput" placeholder="اكتب رسالتك هنا..." rows="1"></textarea>
     <button class="btn" id="sendMessageBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> إرسال</button>
   </div>
 
@@ -101,6 +100,12 @@
 
   <div id="toast" class="toast"></div>
 
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+  <script src="firebase-config.js"></script>
   <script src="chat.js"></script>
 </body>
 </html>
