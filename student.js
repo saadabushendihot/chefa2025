@@ -128,7 +128,7 @@ const navLinks = {
     ],
     student: [
         { name: 'لوحة الطالب', href: 'student.html', icon: 'fas fa-user-graduate' },
-        { name: 'الاختبار', href: 'student-quiz.html', icon: 'fas fa-pencil-alt' },
+        // تم إزالة رابط الاختبار هنا لأنه مدمج داخل صفحة الطالب
         { name: 'الدردشة', href: 'chat.html', icon: 'fas fa-comments' }
     ]
 };
@@ -519,11 +519,12 @@ function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = 
         Promise.all(summaryAndMarkPromises).then(() => {
           let allRequiredSummariesPresentAndMarked = true;
 
+          // إذا لم تكن هناك دروس، فليس هناك ما يجب التحقق منه، وبالتالي يعتبر مؤهلاً.
           if (lessons.length === 0) {
             allRequiredSummariesPresentAndMarked = true;
-          } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) {
+          } else if (Object.keys(summariesMapForExamCheck).length !== lessons.length) { // لم يتم تقديم كل التلاخيص
             allRequiredSummariesPresentAndMarked = false;
-          } else {
+          } else { // تم تقديم كل التلاخيص، لكن يجب التحقق من حالتهم وعلاماتهم
             for (let i = 0; i < lessons.length; i++) {
               const lessonId = lessons[i].id;
               const summary = summariesMapForExamCheck[lessonId];
@@ -781,7 +782,7 @@ function processExamSubmission(isTimerSubmission = false) {
   let totalMark = 0, gainedMark = 0, empty = 0;
   let details = [];
   randomizedExamQuestions.forEach((q, i) => {
-    const nodes = document.getElementsByName('q${i}');
+    const nodes = document.getElementsByName('q'+i);
     let selected = [];
     nodes.forEach(input => { if(input.checked) selected.push(parseInt(input.value)); });
 
@@ -910,7 +911,7 @@ function loadActiveLessonsAndSummaries(activeLevels) {
   }
 
   if (!activeLevels.length) {
-    document.getElementById('lessonsSummariesArea').innerHTML = "";
+    document.getElementById('lessonsSummariesArea').innerHTML = "<p style='text-align: center; color: var(--text-muted);'>لا توجد دروس متاحة حالياً في المستويات النشطة.</p>";
     return;
   }
   showLoading(true);
