@@ -100,14 +100,12 @@ document.addEventListener('DOMContentLoaded', () => { // تأكد أن كل ال
                     currentUserRole = doc.data().role;
                     document.getElementById('currentUserInfo').innerText = `مرحباً، ${doc.data().name || user.email} (${currentUserRole === 'teacher' ? 'معلم' : 'طالب'})`;
                     
-                    // إظهار أزرار الإدارة للمعلم
+                    // هذا الجزء يحدد رؤية زر "حذف الدردشة" بناءً على الدور
+                    const deleteChatBtn = document.getElementById('deleteChatBtn'); // جلب الزر
                     if (currentUserRole === 'teacher') {
-                        document.getElementById('createChatBtn').style.display = 'inline-block';
-                        document.getElementById('manageParticipantsBtn').style.display = 'inline-block';
-                        document.getElementById('deleteChatBtn').classList.remove('d-none'); // إظهار زر حذف الدردشة للمعلم
+                        deleteChatBtn.classList.remove('d-none'); // إظهار الزر للمعلم
                     } else {
-                        // إخفاء زر حذف الدردشة إذا لم يكن معلمًا (تأكيد)
-                        document.getElementById('deleteChatBtn').classList.add('d-none');
+                        deleteChatBtn.classList.add('d-none'); // إخفاء الزر للطالب
                     }
 
                     loadChatRooms(); // Start loading chat rooms after role is determined
@@ -200,10 +198,10 @@ function selectChatRoom(chatRoomId) {
       chatListPanel.classList.remove('open');
   }
 
-  // تفعيل زر الحذف إذا كان المستخدم معلمًا
+  // هذا الجزء يحدد تفعيل وظيفة الحذف للزر بناءً على الدور
   const deleteChatBtn = document.getElementById('deleteChatBtn');
   if (deleteChatBtn && currentUserRole === 'teacher') {
-      deleteChatBtn.onclick = () => confirmDeleteChatRoom(chatRoomId);
+      deleteChatBtn.onclick = () => confirmDeleteChatRoom(chatRoomId); // تفعيل الزر للمعلم
   } else if (deleteChatBtn) {
       deleteChatBtn.onclick = null; // تعطيل الزر إذا لم يكن معلمًا
   }
@@ -395,17 +393,6 @@ function sendMessage(fileUrl = null, fileName = null, fileType = 'text') {
     showToast("الرجاء اختيار محادثة.", "#e63946");
     return;
   }
-
-  const messageData = {
-    senderId: currentUser.uid,
-    senderName: currentUser.displayName || currentUser.email,
-    text: messageText,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    readBy: [currentUser.uid], // Mark as read by sender immediately
-    type: fileUrl ? (fileType.startsWith('image/') ? 'image' : 'file') : 'text', // Set message type
-    fileUrl: fileUrl, // Include file URL if present
-    fileName: fileName // Include file name if present
-  };
 
   firestore.collection('chatRooms').doc(currentChatRoomId).update({
         lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(),
