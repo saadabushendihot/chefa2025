@@ -746,7 +746,7 @@ function showExamResultOnly(result) {
   const examLevelInfoEl = document.getElementById('examLevelInfo');
   const resultAreaEl = document.getElementById('resultArea');
   const goToExamBtnEl = document.getElementById('goToExamBtn');
-  const submitBtn = document.querySelector("button[type=submit]");
+  const submitBtn = document.querySelector("#examForm button[type=submit]"); // تحديد أكثر دقة
   const exitExamBtnEl = document.getElementById('exitExamBtn');
 
   if (examBoxEl) examBoxEl.style.display = '';
@@ -776,7 +776,7 @@ function showExamBox(studentName, studentEmail, level) {
   const examLevelInfoEl = document.getElementById('examLevelInfo');
   const formMsgEl = document.getElementById('formMsg');
   const resultAreaEl = document.getElementById('resultArea');
-  const submitBtn = document.querySelector("button[type=submit]");
+  const submitBtn = document.querySelector("#examForm button[type=submit]"); // تحديد أكثر دقة
   const exitExamBtnEl = document.getElementById('exitExamBtn');
 
   if (examBoxEl) examBoxEl.style.display = '';
@@ -866,17 +866,6 @@ function renderQuestions() {
   questionsAreaEl.innerHTML = html || '<div class="msg">لا توجد أسئلة حالياً.</div>';
 }
 
-// تأكيد قبل الخروج من الاختبار
-// يجب أن يكون هذا داخل DOMContentLoaded أو يتم استدعاؤه بعد تحميل DOM
-// document.getElementById('exitExamBtn').onclick = function(){
-//   if (confirm("هل أنت متأكد أنك تريد الخروج؟ لن تحفظ إجاباتك!")) {
-//     document.getElementById('examBox').style.display = 'none';
-//     document.getElementById('questionsArea').innerHTML = "";
-//     document.getElementById('formMsg').innerText = "";
-//     document.getElementById('resultArea').innerText = "";
-//     clearInterval(examTimerInterval); updateExamTimer();
-//   }
-// };
 
 // منع إغلاق الصفحة أثناء الاختبار بدون تأكيد
 window.onbeforeunload = function(e) {
@@ -962,7 +951,7 @@ function processExamSubmission(isTimerSubmission = false) {
         .then(() => {
           const questionsAreaEl = document.getElementById('questionsArea');
           const resultAreaEl = document.getElementById('resultArea');
-          const submitBtn = document.querySelector("button[type=submit]");
+          const submitBtn = document.querySelector("#examForm button[type=submit]");
           const exitExamBtnEl = document.getElementById('exitExamBtn');
           const goToExamBtnEl = document.getElementById('goToExamBtn');
 
@@ -991,12 +980,6 @@ function processExamSubmission(isTimerSubmission = false) {
     });
 }
 
-// ربط نموذج الاختبار بالدالة الجديدة
-// يجب أن يكون هذا داخل DOMContentLoaded أو يتم استدعاؤه بعد تحميل DOM
-// document.getElementById('examForm').onsubmit = function(e){
-//   e.preventDefault();
-//   processExamSubmission(false); // تسليم يدوي
-// };
 
 function showFormMsg(msg) {
   const formMsgEl = document.getElementById('formMsg');
@@ -1142,7 +1125,7 @@ function renderSummariesLessonsUI(lessons, summariesMap) {
   const lessonsSummariesAreaEl = document.getElementById('lessonsSummariesArea'); // احصل على العنصر هنا
   if (!lessonsSummariesAreaEl) return;
 
-  let html = ''; // Removed h3 as it's now in card-header
+  let html = `<h3 style="color:#2260af; margin-bottom:10px;">تلخيصات دروسك</h3>`; // Removed h3 as it's now in card-header
   lessons.forEach(function(lesson){
     // Ensure teacher_comment and student_reply_comment are initialized even if null in DB
     let sum = summariesMap[lesson.id] || { docId: `new_draft_${lesson.id}`, summary_text: "", status: "draft", teacher_comment: "", student_reply_comment: "" };
