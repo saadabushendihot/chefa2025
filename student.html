@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -455,8 +454,21 @@
       const warn = document.getElementById('examWarnMsg');
 
       if (!lastActiveLevelIndex || !studentData.accepted) {
-        btn.style.display = "none";
-        warn.innerText = ''; // مسح أي تحذيرات سابقة
+        if (btn) btn.style.display = "none";
+        if (warn) {
+            // التحقق من أن lastActiveLevelIndex هو رقم صالح وأكبر من صفر
+            if (typeof lastActiveLevelIndex !== 'number' || lastActiveLevelIndex <= 0) {
+                warn.innerText = 'لا يوجد مستوى نشط للطالب. يرجى تفعيل مستوى واحد على الأقل للطالب عبر لوحة تحكم المعلم.';
+            } else if (studentData.accepted !== true) { // التأكد من أن accepted هي true بشكل صريح
+                warn.innerText = 'حالة قبول الطالب في الدورة غير "مقبول". يرجى مراجعة حالة القبول عبر لوحة تحكم المعلم.';
+            } else {
+                // في حالة لم يتم تفعيل الرسالة بشكل صحيح، كحل احتياطي
+                warn.innerText = 'خطأ غير معروف في التحقق الأولي. الرجاء التأكد من تفعيل مستوى الطالب وحالة القبول.';
+            }
+            warn.style.display = 'block'; // تأكد من إظهار رسالة التحذير
+            warn.style.color = 'var(--danger-color)'; // لتوضيح أنها رسالة مهمة
+            warn.style.fontWeight = 'bold'; // لتكون بارزة
+        }
         return; // لا يوجد مستوى نشط أو الطالب غير مقبول
       }
 
@@ -469,8 +481,9 @@
         const lessonIds = lessons.map(l=>l.id);
 
         if(!lessonIds.length) {
-          btn.style.display = "none";
-          warn.innerText = 'لا توجد دروس في هذا المستوى.';
+          if (btn) btn.style.display = "none";
+          if (warn) warn.innerText = 'لا توجد دروس في هذا المستوى.';
+          if (warn) warn.style.display = 'block'; // Show warning
           showLoading(false);
           return;
         }
@@ -494,7 +507,7 @@
                         .get()
                         .then(markSnap => {
                             // الشرط الجديد: يجب أن تكون العلامة أكبر من صفر
-                            if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark !== undefined && markSnap.docs[0].data().mark > 0) {
+                            if (!markSnap.empty && markSnap.docs[0].data().mark !== null && markSnap.docs[0].data().mark > 0) {
                                 s.mark_from_student_marks = markSnap.docs[0].data().mark;
                                 return true;
                             }
@@ -531,8 +544,9 @@
               }
 
               if(allRequiredSummariesPresentAndMarked){
-                  btn.style.display="";
-                  warn.innerText = '';
+                  if (btn) btn.style.display="";
+                  if (warn) warn.innerText = '';
+                  if (warn) warn.style.display = 'none'; // Hide warning
                   if (proceedIfEligible) { // فقط إذا كانت الدالة قد استدعيت بهدف المتابعة للامتحان
                       currentExamLevel = lastActiveLevelIndex;
                       checkIfExamAlreadySubmitted(currentStudentEmail, currentExamLevel);
@@ -541,26 +555,30 @@
                       }, 300);
                   }
               } else {
-                  btn.style.display="none";
-                  warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+                  if (btn) btn.style.display="none";
+                  if (warn) warn.innerText = 'لا يمكن تقديم الاختبار إلا بعد تسليم جميع التلاخيص وتصحيحها بعلامة أكبر من صفر.';
+                  if (warn) warn.style.display = 'block'; // Show warning
               }
               showLoading(false); // إخفاء مؤشر التحميل بعد التحقق
             }).catch(error => {
                 console.error("Error in Promise.all for summary/mark check:", error);
-                btn.style.display="none";
-                warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
+                if (btn) btn.style.display="none";
+                if (warn) warn.innerText = 'حدث خطأ في التحقق من التلاخيص (فشل جلب العلامات).';
+                if (warn) warn.style.display = 'block'; // Show warning
                 showLoading(false);
             });
           }).catch(error => {
               console.error("Error fetching summaries for exam check:", error);
-              btn.style.display="none";
-              warn.innerText = 'حدث خطأ في جلب التلاخيص.';
+              if (btn) btn.style.display="none";
+              if (warn) warn.innerText = 'حدث خطأ في جلب التلاخيص.';
+              if (warn) warn.style.display = 'block'; // Show warning
               showLoading(false);
           });
       }).catch(error => {
           console.error("Error fetching lessons for exam check:", error);
-          btn.style.display="none";
-          warn.innerText = 'حدث خطأ في جلب الدروس.';
+          if (btn) btn.style.display="none";
+          if (warn) warn.innerText = 'حدث خطأ في جلب الدروس.';
+          if (warn) warn.style.display = 'block'; // Show warning
           showLoading(false);
       });
     }
@@ -686,7 +704,7 @@
       firestore.collection('questions').where('level', '==', level).get().then(snap=>{
         examQuestions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
         prepareRandomizedExam();
-        renderExamQuestions();
+        renderQuestions();
       }).catch(()=>{ showToast("خطأ في تحميل الأسئلة", "#e63946"); });
     }
 
@@ -712,7 +730,7 @@
     }
 
     // عرض الأسئلة
-    function renderExamQuestions() {
+    function renderQuestions() {
       let html = '';
       randomizedExamQuestions.forEach((q, i) => {
         let multiNote = '';
@@ -798,64 +816,19 @@
           gainedMark += gained;
         }
         else {
+          // سؤال بإجابة واحدة فقط: العلامة كاملة إذا كانت الإجابة صحيحة فقط
           if(selected.length === 1 && q.correct.includes(selected[0])) gainedMark += mark;
         }
       });
-
-      // عرض رسالة تحذير للأسئلة الفارغة فقط إذا كان التسليم يدوياً
-      if (!isTimerSubmission && empty > 0) {
+      if (empty>0) {
         showFormMsg('يرجى الإجابة على جميع الأسئلة!');
-        showToast("يرجى الإجابة على جميع الأسئلة!", "#e63946");
-        return; // إيقاف التسليم اليدوي إذا كانت هناك أسئلة فارغة
+        return;
       }
-
+      // تقريب العلامة النهائية إلى منزلتين
       gainedMark = Math.round(gainedMark * 100) / 100;
-
-      firestore.collection('exam_results')
-        .where('student_email', '==', currentStudentEmail)
-        .where('level', '==', currentExamLevel)
-        .get()
-        .then(function(querySnapshot){
-          if (!querySnapshot.empty) {
-            showExamResultOnly(querySnapshot.docs[0].data());
-            updateLevelExamTable(currentExamLevel, querySnapshot.docs[0].data());
-            showToast("تم إرسال الإجابات مسبقاً", "#e63946");
-            return;
-          }
-          const resultDoc = {
-            student_email: currentStudentEmail,
-            student_name: currentStudentName,
-            level: currentExamLevel,
-            score: gainedMark,
-            total: totalMark,
-            details: details,
-            submitted_at: firebase.firestore.Timestamp.now(),
-            teacher_reviewed: false,
-            approved: null
-          };
-          firestore.collection('exam_results').add(resultDoc)
-            .then(() => {
-              document.getElementById('questionsArea').innerHTML = '';
-              document.getElementById('formMsg').innerText = '';
-              document.getElementById('resultArea').innerHTML = `<div style="font-size:1.3rem;color:#219e4b;font-weight:bold;">
-                تم حفظ نتيجتك بنجاح! درجتك: ${gainedMark} من ${totalMark}
-                </div>`;
-              document.querySelector("button[type=submit]").style.display = "none";
-              document.getElementById('exitExamBtn').style.display = "none";
-              let btn = document.getElementById('goToExamBtn');
-              if(btn) btn.style.display = "none";
-              updateLevelExamTable(currentExamLevel, resultDoc);
-              showToast("تم إرسال الإجابات بنجاح", "#1dad87");
-              clearInterval(examTimerInterval); updateExamTimer();
-            })
-            .catch((error) => {
-              showResult(`درجتك: ${gainedMark} من ${totalMark}`);
-              showFormMsg('حدث خطأ أثناء حفظ النتيجة: ' + error.message);
-              showToast("حدث خطأ أثناء حفظ النتيجة!", "#e63946");
-            });
-          showFormMsg('');
-        });
-    }
+      showResult(`درجتك: ${gainedMark} من ${totalMark}`);
+      showFormMsg('');
+    };
 
     // ربط نموذج الاختبار بالدالة الجديدة
     document.getElementById('examForm').onsubmit = function(e){
@@ -883,7 +856,7 @@
       }
     }
 
-    // تحميل الدروس والتلاخيص مع عرض العلامة وتاريخ التسليم (مُعدلة)
+    // تحميل الدروس والتلاخيص (مع التعديل الجديد)
     function loadActiveLessonsAndSummaries(activeLevels) {
       if (!activeLevels.length) {
         document.getElementById('lessonsSummariesArea').innerHTML = "";
