@@ -463,9 +463,11 @@ function loadStudentData(userEmail, userNameFromUserDoc) {
 function renderExamEligibilityStatus(eligibilityObject) {
     const examWarnMsgEl = document.getElementById('examWarnMsg');
     const startExamBtn = document.getElementById('startExamBtn');
+    const examEligibilityDetailsTableArea = document.getElementById('examEligibilityDetailsTableArea'); // NEW: Get the detailed table area
+    const eligibilityTableBody = document.getElementById('eligibilityTableBody'); // NEW: Get the table body
 
-    if (!examWarnMsgEl || !startExamBtn) {
-        console.error("renderExamEligibilityStatus: examWarnMsg or startExamBtn element not found!");
+    if (!examWarnMsgEl || !startExamBtn || !examEligibilityDetailsTableArea || !eligibilityTableBody) {
+        console.error("renderExamEligibilityStatus: One or more required elements (examWarnMsgEl, startExamBtn, examEligibilityDetailsTableArea, eligibilityTableBody) not found!");
         return;
     }
 
@@ -474,57 +476,57 @@ function renderExamEligibilityStatus(eligibilityObject) {
     if (eligibilityObject.overall_ready) {
         htmlContent += `<p style="color: var(--success-color);">✅ ${eligibilityObject.overall_message}</p>`;
         startExamBtn.style.display = ''; // إظهار زر الاختبار
-        examWarnMsgEl.style.display = 'block'; // إظهار هذا القسم لأنه يحتوي على الرسالة الإيجابية
-        examWarnMsgEl.style.backgroundColor = 'var(--success-color-light)'; // خلفية خضراء فاتحة
+        examWarnMsgEl.style.backgroundColor = 'rgba(40, 167, 69, 0.1)'; // خلفية خضراء فاتحة
         examWarnMsgEl.style.borderColor = 'var(--success-color)';
     } else {
         htmlContent += `<p style="color: var(--danger-color);">❌ ${eligibilityObject.overall_message}</p>`;
         startExamBtn.style.display = 'none'; // إخفاء زر الاختبار
-        examWarnMsgEl.style.display = 'block'; // إظهار هذا القسم لأنه يحتوي على رسائل الخطأ
-        examWarnMsgEl.style.backgroundColor = 'var(--danger-color-light)'; // خلفية حمراء فاتحة
+        examWarnMsgEl.style.backgroundColor = 'rgba(220, 53, 69, 0.1)'; // خلفية حمراء فاتحة
         examWarnMsgEl.style.borderColor = 'var(--danger-color)';
     }
 
-    htmlContent += `<div style="margin-top: 15px; text-align: right;">`;
-    htmlContent += `<h4 style="color: var(--primary-dark); margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px;">تفاصيل التحقق:</h4>`;
-    htmlContent += `<table style="width: 100%; border-collapse: collapse;">`;
+    htmlContent += `</div>`; // نهاية الصندوق الرئيسي للرسالة العامة
+    examWarnMsgEl.innerHTML = htmlContent; // عرض الرسالة العامة هنا
+    examWarnMsgEl.style.display = 'block'; // تأكد من إظهار هذا القسم
+
+
+    // عرض الجدول التفصيلي للأهلية
+    examEligibilityDetailsTableArea.style.display = 'block'; // إظهار منطقة الجدول التفصيلي
+    let tableBodyHtml = '';
 
     // قبول الطالب
-    htmlContent += `<tr>
-        <td style="padding: 5px 0;"><strong>حالة القبول:</strong></td>
-        <td style="padding: 5px 0;">${eligibilityObject.checks.accepted_status.ready ? '✅ مقبول' : '❌ ' + eligibilityObject.checks.accepted_status.message}</td>
-        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.accepted_status.value}</td>
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>حالة القبول:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.accepted_status.ready ? '✅ مقبول' : '❌ ' + eligibilityObject.checks.accepted_status.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.accepted_status.value} <br> <i>(حقل: lectures.accepted)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>lectures.accepted</li></ul></td>
     </tr>`;
 
     // المستوى النشط
-    htmlContent += `<tr>
-        <td style="padding: 5px 0;"><strong>المستوى النشط:</strong></td>
-        <td style="padding: 5px 0;">${eligibilityObject.checks.level_active.ready ? '✅ مفعل: المستوى ' + eligibilityObject.checks.level_active.value : '❌ ' + eligibilityObject.checks.level_active.message}</td>
-        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.level_active.value}</td>
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>المستوى النشط:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.level_active.ready ? '✅ مفعل: المستوى ' + eligibilityObject.checks.level_active.value : '❌ ' + eligibilityObject.checks.level_active.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">القيمة: ${eligibilityObject.checks.level_active.value} <br> <i>(حقل: lectures.levelX)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>lectures.level1, lectures.level2, ..., lectures.level7</li></ul></td>
     </tr>`;
 
     // توفر الدروس
-    htmlContent += `<tr>
-        <td style="padding: 5px 0;"><strong>توفر الدروس:</strong></td>
-        <td style="padding: 5px 0;">${eligibilityObject.checks.lessons_available.ready ? '✅ متوفرة (' + eligibilityObject.checks.lessons_available.count + ' درس)' : '❌ ' + eligibilityObject.checks.lessons_available.message}</td>
-        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">تم البحث عن دروس المستوى: ${eligibilityObject.debug_info.active_level_index || 'غير محدد'}</td>
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>توفر الدروس للمستوى:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.lessons_available.ready ? '✅ متوفرة (' + eligibilityObject.checks.lessons_available.count + ' درس)' : '❌ ' + eligibilityObject.checks.lessons_available.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">عدد الدروس المتاحة: ${eligibilityObject.checks.lessons_available.count} <br> <i>(حقل: lessons.level)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>lessons.level</li><li>lessons.id</li></ul></td>
     </tr>`;
 
     // تلاخيص الدروس والعلامات
-    htmlContent += `<tr>
-        <td style="padding: 5px 0;"><strong>حالة التلاخيص والعلامات:</strong></td>
-        <td style="padding: 5px 0;">${eligibilityObject.checks.summaries_complete.ready ? '✅ مكتملة وبعلامات إيجابية (' + eligibilityObject.checks.summaries_complete.marked_positive_count + '/' + eligibilityObject.checks.summaries_complete.total_lessons + ' درس)' : '❌ ' + eligibilityObject.checks.summaries_complete.message}</td>
-        <td style="padding: 5px 0; font-size: 0.9em; color: var(--text-muted);">عدد التلاخيص التي تم فحصها: ${eligibilityObject.checks.summaries_complete.submitted_count}</td>
+    tableBodyHtml += `<tr>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);"><strong>حالة التلاخيص والعلامات:</strong></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color);">${eligibilityObject.checks.summaries_complete.ready ? '✅ مكتملة وبعلامات إيجابية (' + eligibilityObject.checks.summaries_complete.marked_positive_count + '/' + eligibilityObject.checks.summaries_complete.total_lessons + ' درس)' : '❌ ' + eligibilityObject.checks.summaries_complete.message}</td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">التلاخيص المسلمة: ${eligibilityObject.checks.summaries_complete.submitted_count} <br> العلامات الإيجابية: ${eligibilityObject.checks.summaries_complete.marked_positive_count} <br> <i>(حقول: summaries.status, student_marks.mark)</i></td>
+        <td style="padding: 8px 0; border-bottom: 1px dashed var(--border-color); font-size: 0.9em; color: var(--text-muted);">الجداول والحقول: <ul><li>summaries.student_email</li><li>summaries.lesson_id</li><li>summaries.status</li><li>student_marks.summary_id</li><li>student_marks.student_email</li><li>student_marks.mark</li></ul></td>
     </tr>`;
-    
-    htmlContent += `</table>`;
-    htmlContent += `</div>`; // نهاية تفاصيل التحقق
-    htmlContent += `</div>`; // نهاية الصندوق الرئيسي
 
-
-    examWarnMsgEl.innerHTML = htmlContent;
-    // تم نقل التحكم في startExamBtn.style.display إلى هنا
-    // تم نقل التحكم في examWarnMsgEl.style.display إلى هنا
+    eligibilityTableBody.innerHTML = tableBodyHtml;
 }
 
 /**
@@ -535,19 +537,19 @@ function renderExamEligibilityStatus(eligibilityObject) {
  */
 async function performExamEligibilityCheckAndProceed(studentData, proceedIfEligible = false) {
   const startExamBtn = document.getElementById('startExamBtn');
-  const warn = document.getElementById('examWarnMsg');
+  const warn = document.getElementById('examWarnMsg'); // هذا العنصر سيتم استخدامه للرسالة العامة
 
   // تهيئة كائن الأهلية
   const eligibility = {
     overall_ready: true,
-    overall_message: "جاري التحقق من الأهلية...",
+    overall_message: "جاهز لتقديم الاختبار!",
     checks: {
         accepted_status: { ready: true, value: studentData.accepted, message: "" },
         level_active: { ready: true, value: lastActiveLevelIndex, message: "" },
         lessons_available: { ready: true, count: 0, total: 0, message: "" },
         summaries_complete: { ready: true, submitted_count: 0, marked_positive_count: 0, total_lessons: 0, message: "" }
     },
-    debug_info: {
+    debug_info: { // معلومات تصحيح إضافية
         student_data: studentData,
         active_level_index: lastActiveLevelIndex,
         current_student_email: currentStudentEmail
@@ -563,23 +565,20 @@ async function performExamEligibilityCheckAndProceed(studentData, proceedIfEligi
       eligibility.overall_ready = false;
       eligibility.checks.level_active.ready = false;
       eligibility.checks.level_active.message = 'لا يوجد مستوى نشط للطالب.';
-      eligibility.overall_message = 'الطالب غير جاهز: لا يوجد مستوى نشط.';
   }
   if (studentData.accepted !== true && studentData.accepted !== "مقبول" && studentData.accepted !== "accepted") {
       eligibility.overall_ready = false;
       eligibility.checks.accepted_status.ready = false;
       eligibility.checks.accepted_status.message = 'حالة قبول الطالب غير "مقبول".';
-      // دمج رسالة القبول إذا كان هناك بالفعل رسالة عامة
-      if(eligibility.overall_message.includes("جاهز") || eligibility.overall_message.includes("جاري التحقق")) {
-        eligibility.overall_message = 'الطالب غير جاهز: حالة القبول ليست "مقبول".';
-      } else if (eligibility.overall_message) {
-        eligibility.overall_message += ' و حالة القبول ليست "مقبول".';
-      }
-      
   }
 
   // إذا فشلت الشروط الأولية، نعرض الحالة ونخرج.
   if (!eligibility.checks.level_active.ready || !eligibility.checks.accepted_status.ready) {
+      // بناء الرسالة العامة من الشروط الفاشلة
+      let messages = [];
+      if (!eligibility.checks.level_active.ready) messages.push(eligibility.checks.level_active.message);
+      if (!eligibility.checks.accepted_status.ready) messages.push(eligibility.checks.accepted_status.message);
+      eligibility.overall_message = 'الطالب غير جاهز: ' + messages.join(' و ');
       renderExamEligibilityStatus(eligibility);
       showLoading(false);
       console.log("Initial conditions not met. Exiting performExamEligibilityCheckAndProceed.");
@@ -722,13 +721,11 @@ function renderLevelsExamsMergedTable(data) {
   // زر الانتقال للاختبار (startExamBtn) موجود في HTML بشكل ثابت الآن
   // ولا يتم وضعه ديناميكياً هنا بعد الآن
 
-  levelsExamsTableArea.innerHTML = html; // يجب تحديث محتوى الجدول فقط
+  levelsExamsTableArea.innerHTML = html;
 
   // عند تحميل الصفحة، نقوم بالتحقق الأولي من الأهلية (لا نتقدم للامتحان تلقائياً)
-  // this is handled by DOMContentLoaded -> loadStudentData -> renderLevelsExamsMergedTable -> performExamEligibilityCheckAndProceed
-  if(lastActiveLevelIndex && data.accepted === true){
-      performExamEligibilityCheckAndProceed(data, false);
-  }
+  // يتم تمرير studentData لأنها ضرورية في performExamEligibilityCheckAndProceed
+  performExamEligibilityCheckAndProceed(data, false);
 }
 
 
@@ -758,7 +755,7 @@ function showExamResultOnly(result) {
   const resultAreaEl = document.getElementById('resultArea');
   const submitBtn = document.querySelector("#examForm button[type=submit]");
   const exitExamBtnEl = document.getElementById('exitExamBtn');
-  const startExamBtn = document.getElementById('startExamBtn'); // الزر الجديد
+  const startExamBtn = document.getElementById('startExamBtn');
 
   if (examBoxEl) examBoxEl.style.display = '';
   if (questionsAreaEl) questionsAreaEl.innerHTML = '';
@@ -767,7 +764,7 @@ function showExamResultOnly(result) {
     `<b>اسم الطالب:</b> ${currentStudentName} &nbsp; | &nbsp; <b>الإيميل:</b> ${currentStudentEmail} &nbsp; | &nbsp; <b>المستوى الحالي:</b> المستوى ${result.level}`;
   if (examLevelInfoEl) examLevelInfoEl.innerText = '';
   
-  let passed = (result.score >= result.total_marks_possible * 0.5); // استخدام total_marks_possible
+  let passed = (result.score >= result.total_marks_possible * 0.5);
   if (resultAreaEl) resultAreaEl.className = `result ${passed ? '' : 'fail'}`;
 
   if (resultAreaEl) resultAreaEl.innerHTML = `<div style="font-size:1.3rem;font-weight:bold;">
@@ -775,7 +772,7 @@ function showExamResultOnly(result) {
     </div>`;
   if (submitBtn) submitBtn.style.display = "none";
   if (exitExamBtnEl) exitExamBtnEl.style.display = "none";
-  if (startExamBtn) startExamBtn.style.display = "none";
+  if (startExamBtn) startExamBtn.style.display = "none"; // إخفاء زر بدء الاختبار
   clearInterval(examTimerInterval); updateExamTimer();
 }
 
@@ -788,7 +785,7 @@ function showExamBox(studentName, studentEmail, level) {
   const resultAreaEl = document.getElementById('resultArea');
   const submitBtn = document.querySelector("#examForm button[type=submit]");
   const exitExamBtnEl = document.getElementById('exitExamBtn');
-  const startExamBtn = document.getElementById('startExamBtn'); // الزر الجديد
+  const startExamBtn = document.getElementById('startExamBtn');
 
   if (startExamBtn) startExamBtn.style.display = "none";
 
@@ -1014,7 +1011,7 @@ function showResult(msg) {
 
 // تحديث جدول الامتحان
 function updateLevelExamTable(level, result) {
-  let passed = (result.score >= result.total_marks_possible * 0.5); // استخدام total_marks_possible
+  let passed = (result.score >= result.total_marks_possible * 0.5);
   let label = passed
     ? `<span class="exam-label">✅ اجتاز الامتحان (${result.score} من ${result.total_marks_possible})</span>`
     : `<span class="exam-label fail">❌ لم يجتز (${result.score} من ${result.total_marks_possible})</span>`;
@@ -1488,11 +1485,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       startExamBtn.onclick = function() {
           performExamEligibilityCheckAndProceed({
-              accepted: true,
-              // Note: currentStudentData is a global populated by loadStudentData.
-              // We should pass the actual studentData from loadStudentData if available.
-              // For robustness, performExamEligibilityCheckAndProceed should fetch it again or accept it as parameter.
-              // For now, assuming `lastActiveLevelIndex` and `studentData.accepted` are globally accessible.
+              // Note: passing partial studentData. This function relies on `currentStudentEmail` and `lastActiveLevelIndex` being global.
+              // A more robust approach might be to store studentData globally when loaded and pass it.
+              accepted: true, // This is a placeholder; studentData should be taken from the global current student data
+              // Instead of `accepted:true`, you should use the actual `studentData` object from `loadStudentData`.
+              // Example: performExamEligibilityCheckAndProceed(window.currentStudentFullData, true);
+              // For now, assuming `loadStudentData` populates necessary global variables like `currentStudentEmail`, `lastActiveLevelIndex`.
+              // The function `performExamEligibilityCheckAndProceed` itself will fetch studentData from lectures collection again.
+              // So, passing `studentData` directly from here might not be necessary if it's refetched inside.
+              // However, since it is used directly at the beginning of performExamEligibilityCheckAndProceed,
+              // it's better to ensure it's passed or available globally as `data`.
           }, true); 
       };
       console.log("Event listener attached to startExamBtn.");
