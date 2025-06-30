@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="main.css">
@@ -17,7 +18,7 @@
     <h1 class="app-bar-title">منصة شفاء</h1> <div class="app-bar-spacer"></div>
 
     <nav id="main-nav-links">
-      </nav>
+        </nav>
 
     <div class="d-flex align-items-center">
       <button class="btn" id="supportBtn" onclick="openSupport()">الدعم الفني</button>
@@ -33,39 +34,73 @@
   </header>
   <div class="container">
     <h2>مرحباً، <span id="studentName"></span></h2>
-    <div class="info">
-      <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
-      <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
-      <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
-    </div>
-    <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
     <div id="msg"></div>
     <div class="spinner" id="loadingSpinner"></div>
-    <div id="levelsExamsTableArea"></div>
-    <div id="examWarnMsg"></div>
-    <div class="exams-box" id="examsBox" style="display:none;">
-      <div class="exams-title">الامتحانات العامة</div>
-      <div class="exam-row"><b>امتحان تشخيصي:</b> <span id="diagnosisExamMark"></span></div>
-      <div class="exam-row"><b>امتحان 1:</b> <span id="exam1Mark"></span></div>
-      <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
-      <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
-    </div>
-    <div style="text-align:center;margin:15px 0;">
-      <button class="btn" id="downloadReportBtn" onclick="downloadReport()">تحميل تقرير الدرجات PDF</button>
-    </div>
-    <div id="lessonsSummariesArea"></div>
 
-    <div id="examBox" style="display:none; margin-top:30px;">
-      <div class="student-info" id="examStudentInfo"></div>
-      <div class="level-info" id="examLevelInfo"></div>
-      <h2>أسئلة الاختبار <span id="examTimer" style="font-size:1.1rem;color:#e63946;"></span></h2>
-      <form id="examForm">
-        <div id="questionsArea"></div>
-        <div class="msg" id="formMsg"></div>
-        <button type="submit" class="btn">إرسال الإجابات</button>
-        <button type="button" class="btn signout" id="exitExamBtn" style="margin-right:8px;">خروج من الاختبار</button>
-      </form>
-      <div class="result" id="resultArea"></div>
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4 class="mb-0">معلومات الحساب</h4>
+        </div>
+        <div class="card-content">
+            <div class="info">
+                <div><b>البريد الإلكتروني:</b> <span id="studentEmail"></span></div>
+                <div><b>اسم الطالب:</b> <span id="studentNameInfo"></span></div>
+                <div><b>رقم المقرر:</b> <span id="courseNumber"></span></div>
+            </div>
+            <div id="admissionStatusBox" class="admission-status-box admission-pending" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="card mt-3" id="examsBoxWrapper" style="display:none;"> <div class="card-header">
+            <h4 class="mb-0">الامتحانات العامة</h4>
+        </div>
+        <div class="card-content">
+            <div class="exams-box">
+                <div class="exam-row"><b>امتحان تشخيصي:</b> <span id="diagnosisExamMark"></span></div>
+                <div class="exam-row"><b>امتحان 1:</b> <span id="exam1Mark"></span></div>
+                <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
+                <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
+            </div>
+            <div style="text-align:center;margin:15px 0;">
+                <button class="btn" id="downloadReportBtn" onclick="downloadReport()">
+                    <i class="fas fa-file-pdf" style="margin-left: 8px;"></i> تحميل تقرير الدرجات PDF
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4 class="mb-0">حالة المستويات ونتائج الامتحانات</h4>
+        </div>
+        <div class="card-content" id="levelsExamsTableArea">
+            </div>
+        <div id="examWarnMsg" class="warn-message" style="display: none;"></div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h4 class="mb-0">تلخيصات دروسك</h4>
+        </div>
+        <div class="card-content" id="lessonsSummariesArea">
+            </div>
+    </div>
+
+    <div id="examBox" class="card mt-3" style="display:none;">
+      <div class="card-header">
+        <h4 class="mb-0">أسئلة الاختبار <span id="examTimer" style="font-size:0.9em;color:var(--danger-color);margin-right:10px;"></span></h4>
+      </div>
+      <div class="card-content">
+        <div class="student-info" id="examStudentInfo"></div>
+        <div class="level-info" id="examLevelInfo"></div>
+        <form id="examForm">
+          <div id="questionsArea"></div>
+          <div class="msg" id="formMsg"></div>
+          <button type="submit" class="btn">إرسال الإجابات</button>
+          <button type="button" class="btn signout" id="exitExamBtn" style="margin-right:8px;">خروج من الاختبار</button>
+        </form>
+        <div class="result" id="resultArea"></div>
+      </div>
     </div>
   </div>
   <div id="toast" class="toast"></div>
