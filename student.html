@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="main.css">
-  </head>
+</head>
 <body>
   <header>
     <span>لوحة الطالب</span>
@@ -31,13 +31,7 @@
     <div class="spinner" id="loadingSpinner"></div>
     <div id="levelsExamsTableArea"></div>
     <div id="examWarnMsg"></div>
-    <div class="exams-box" id="examsBox" style="display:none;">
-      <div class="exams-title">الامتحانات العامة</div>
-      <div class="exam-row"><b>امتحان تشخيصي:</b> <span id="diagnosisExamMark"></span></div>
-      <div class="exam-row"><b>امتحان 1:</b> <span id="exam1Mark"></span></div>
-      <div class="exam-row"><b>امتحان شفوي:</b> <span id="oralExamMark"></span></div>
-      <div class="exam-row"><b>العلامة النهائية العامة:</b> <span id="fExam"></span></div>
-    </div>
+    
     <div style="text-align:center;margin:15px 0;">
       <button class="btn" id="downloadReportBtn" onclick="downloadReport()">تحميل تقرير الدرجات PDF</button>
     </div>
