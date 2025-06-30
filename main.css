@@ -63,6 +63,7 @@
 html {
   scroll-behavior: smooth;
   height: 100%; /* مهم لبعض التخطيطات لضبط ارتفاع الأقسام الداخلية */
+  /* overflow: hidden; تم إزالته من هنا، فقط لـ chat-page في الـ media queries */
 }
 
 body {
@@ -447,1136 +448,914 @@ nav#main-nav-links {
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s ease;
-}
-.table-mark-button:hover {
-    background-color: var(--secondary-dark);
-}
+    }
+    .table-mark-button:hover {
+        background-color: var(--secondary-dark);
+    }
 
 
-/* النماذج (Forms) - مظهر موحد */
-.form-group {
-  margin-bottom: 20px;
-}
+    /* النماذج (Forms) - مظهر موحد */
+    .form-group {
+      margin-bottom: 20px;
+    }
 
-.form-label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--text-dark);
-  font-size: 0.95rem;
-  font-weight: 500;
-}
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text-dark);
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
 
-.form-control {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: var(--surface-light);
-  color: var(--text-dark);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-sizing: border-box;
-}
+    .form-control {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      background-color: var(--surface-light);
+      color: var(--text-dark);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+    }
 
-.form-control:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
-  outline: none;
-}
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
+      outline: none;
+    }
 
-.form-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000000'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: left 12px center;
-  background-size: 24px;
-  padding-left: 40px;
-  padding-right: 12px;
-}
-.dark-mode .form-select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
-}
+    .form-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000000'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: left 12px center;
+      background-size: 24px;
+      padding-left: 40px;
+      padding-right: 12px;
+    }
+    .dark-mode .form-select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0e0e0'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    }
 
-textarea.form-control {
-  min-height: 100px;
-  resize: vertical;
-}
+    textarea.form-control {
+      min-height: 100px;
+      resize: vertical;
+    }
 
-/* شارات الحالة (Status Badges) */
-.summary-status {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  display: inline-block;
-  white-space: nowrap;
-  text-transform: capitalize;
-  border: 1px solid;
-}
-.summary-status.submitted {
-  background-color: #e3f6ed;
-  color: #219e4b;
-  border-color: #b7eecd;
-}
-.summary-status.draft {
-  background-color: #fff4e0;
-  color: #b96d0d;
-  border-color: #ffda8d;
-}
-
-/* صندوق الإشعارات (Notification Panel) - مظهر موحد */
-.notification-bell {
-  position: relative;
-  font-size: 1.6rem;
-  cursor: pointer;
-  color: var(--surface-light);
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.notification-bell:hover {
-  transform: scale(1.1);
-  color: var(--secondary-light);
-}
-
-.notification-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  background-color: var(--danger-color);
-  color: var(--surface-light);
-  border-radius: 50%;
-  padding: 3px 8px;
-  font-size: 0.7rem;
-  font-weight: bold;
-  line-height: 1;
-  min-width: 15px;
-  text-align: center;
-  box-shadow: 0 0 5px var(--shadow-medium);
-  border: 1px solid var(--surface-light);
-}
-
-.notification-panel {
-  display: none;
-  position: fixed;
-  top: 70px;
-  right: 15px;
-  width: 350px;
-  max-height: 450px;
-  overflow-y: auto;
-  background-color: var(--surface-light);
-  border-radius: 12px;
-  box-shadow: 0 8px 16px var(--shadow-medium);
-  z-index: 1100;
-  padding: 15px;
-  text-align: right;
-  border: 1px solid var(--border-color);
-  box-sizing: border-box;
-  animation: fadeInDown 0.3s ease-out;
-}
-
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.notification-panel h5 {
-  margin-top: 0;
-  margin-bottom: 15px;
-  color: var(--primary-dark);
-  font-size: 1.15rem;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
-  font-weight: 600;
-}
-
-.notification-item {
-  padding: 10px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  font-size: 0.95rem;
-  color: var(--text-dark);
-  line-height: 1.4;
-}
-
-.notification-item:last-child {
-  border-bottom: none;
-}
-
-.notification-item.unread {
-  background-color: rgba(66, 103, 178, 0.08);
-  font-weight: 600;
-  padding: 10px;
-  margin: 0 -15px;
-  border-radius: 8px;
-}
-
-.notification-item .timestamp {
-  display: block;
-  font-size: 0.8em;
-  color: var(--text-muted);
-  margin-top: 5px;
-}
-
-.notification-item .mark-read-btn {
-    background-color: var(--secondary-color);
-    color: var(--surface-light);
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    margin-top: 8px;
-    display: inline-block;
-    transition: background-color 0.2s ease;
-}
-.notification-item .mark-read-btn:hover {
-    background-color: var(--secondary-dark);
-}
-
-/* ------------------------------------ */
-/* 5. أنماط خاصة بصفحة الطالب (student.html) وبعض الأنماط المشابهة في صفحات أخرى */
-/* ------------------------------------ */
-
-.info {
-  background: var(--background-light);
-  border-radius: 9px;
-  padding: 15px 20px;
-  margin: 16px 0;
-  box-shadow: 0 2px 5px var(--shadow-light);
-  border: 1px solid var(--border-color);
-  color: var(--text-dark);
-}
-.info b {
-    color: var(--primary-dark);
-}
-
-.admission-status-box {
-    padding: 10px 18px;
-    border-radius: 7px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 20px;
-    border: 1px solid;
-    box-shadow: 0 1px 3px var(--shadow-light);
-}
-.admission-status-box.admission-pending {
-    background-color: #fff3cd;
-    color: #856404;
-    border-color: #ffeeba;
-}
-.admission-status-box.admission-accepted {
-    background-color: #d4edda;
-    color: #155724;
-    border-color: #c3e6cb;
-}
-.admission-status-box.admission-rejected {
-    background-color: #f8d7da;
-    color: #721c24;
-    border-color: #f5c6cb;
-}
-
-/* مربعات الامتحان العامة */
-.exams-box {
-    background: var(--surface-light);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 8px var(--shadow-light);
-    margin-top: 30px;
-    border: 1px solid var(--border-color);
-}
-.exams-title {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: var(--primary-dark);
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    text-align: center;
-}
-.exam-row {
-    padding: 8px 0;
-    border-bottom: 1px dashed var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 1.05rem;
-}
-.exam-row:last-child {
-    border-bottom: none;
-    font-weight: bold;
-    font-size: 1.15rem;
-    color: var(--secondary-dark);
-}
-.exam-row b {
-    color: var(--text-dark);
-}
-
-.levels-table, .exams-table {
-  width: 100%; border-collapse: collapse; margin-top: 26px; margin-bottom: 12px;
-  background: var(--surface-light); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px var(--shadow-light);
-  border: 1px solid var(--border-color);
-}
-.levels-table th, .levels-table td,
-.exams-table th, .exams-table td {
-  padding: 12px 10px; border-bottom:1px solid var(--border-color); text-align:center; font-size: 1rem;
-}
-.levels-table th, .exams-table th {
-  background: var(--background-light);
-  color: var(--primary-dark);
-  font-weight: bold;
-}
-.level-on {color: var(--success-color); font-weight: bold;}
-.level-off {color: var(--danger-color); font-weight: bold;}
-.exam-label {
-  display: inline-block; padding: 4px 16px; border-radius: 20px; font-size: 0.95rem; font-weight: bold;
-  border: 1px solid;
-  min-width: 90px;
-  text-align: center;
-}
-.exam-label.true, .exam-label.pass {
-  background: #e3f6ed; color: #219e4b; border-color: #b7eecd;
-}
-.exam-label.false, .exam-label.fail {
-  background: #ffecec; color: #e63946; border-color: #ffbcbc;
-}
-.exam-label.wait {
-  background: #f5f7fb; color: #555; border-color: #d2d8e6;
-}
-.exams-table tr:last-child td, .levels-table tr:last-child td { border-bottom: none; }
-.exams-title-bar {
-  font-size: 1.25rem; background: var(--background-light); padding: 10px 0;
-  border-radius: 12px 12px 0 0; color: var(--primary-dark); border-bottom: 2px solid var(--border-color); font-weight:bold;
-  text-align:center; letter-spacing: 1px;
-}
-.exams-table {margin-bottom: 26px; margin-top: 18px;}
-#examWarnMsg {
-    color: var(--danger-color);
-    font-weight: bold;
-    margin: 15px 0;
-    text-align: center;
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* مربعات الاختبار */
-#examBox {
-    background: var(--surface-light);
-    border-radius: 12px;
-    padding: 28px 20px;
-    box-shadow: 0 2px 10px var(--shadow-light);
-    margin-top: 30px;
-    border: 1px solid var(--border-color);
-}
-.student-info, .level-info {
-    background: var(--background-light);
-    padding: 12px 18px;
-    border-radius: 9px;
-    margin-bottom: 20px;
-    display: inline-block;
-    font-size: 1.05em;
-    border: 1px solid var(--border-color);
-    color: var(--text-dark);
-}
-.question-block {
-    background: var(--background-light);
-    border-radius: 10px;
-    padding: 18px 15px;
-    margin: 25px 0;
-    box-shadow: 0 2px 8px var(--shadow-light);
-    border: 1px solid var(--border-color);
-}
-.question-title {
-    font-weight: bold;
-    margin-bottom: 12px;
-    font-size: 1.1rem;
-    color: var(--primary-dark);
-}
-.multi-note {
-    color: var(--warning-color);
-    font-size: 0.95em;
-    margin-right: 8px;
-    font-weight: normal;
-}
-.question-mark {
-    color: var(--secondary-dark);
-    margin-right: 12px;
-    font-weight: normal;
-}
-.choices-list {
-    margin-bottom: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.choice-row label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-size: 1rem;
-    color: var(--text-dark);
-}
-.choice-row input[type="radio"], .choice-row input[type="checkbox"] {
-    margin-left: 10px;
-    transform: scale(1.2);
-    accent-color: var(--primary-color);
-}
-.msg {
-    color: var(--danger-color);
-    margin-bottom: 16px;
-    text-align: center;
-    font-weight: bold;
-}
-.result {
-    font-size: 1.5rem;
-    color: var(--success-color);
-    font-weight: bold;
-    text-align: center;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #e3f6ed;
-    border-radius: 8px;
-    border: 1px solid #b7eecd;
-}
-.scoring-note {
-    color: var(--info-color);
-    font-size: 0.9em;
-    margin-top: 10px;
-    padding: 8px;
-    background-color: #e6f2ff;
-    border-radius: 6px;
-    border: 1px solid #cce5ff;
-}
-#examForm .btn {
-    margin-left: 10px;
-    margin-top: 20px;
-}
-#examForm .btn.signout {
-    background: var(--danger-color);
-}
-#examForm .btn.signout:hover {
-    background: #c82333;
-}
-
-/* تنسيق شارات العلامات (Lesson Mark Badges) */
-.lesson-mark-badge {
-  display:inline-block;
-  font-weight:bold;
-  border-radius:15px;
-  padding:2px 14px;
-  font-size:0.95em;
-  margin-right:10px;
-  min-width:50px;
-  vertical-align:middle;
-  text-align: center;
-  border: 1px solid;
-}
-.lesson-mark-badge.positive-mark {
-    background:#e3f6ed;
-    color:#219e4b;
-    border-color:#b7eecd;
-}
-.lesson-mark-badge.zero-mark {
-    background:#ffecf0;
-    color:#e63946;
-    border-color:#ffbcbc;
-}
-.lesson-mark-badge.no-mark {
-    background:#f5f7fb;
-    color:#555;
-    border-color:#d2d8e6;
-}
-
-/* تحسينات تصميم مربع التلخيص (Lesson Summary Block) */
-.lesson-summary-block {
-  background: var(--surface-light);
-  border-radius: 12px;
-  margin: 25px 0;
-  padding: 25px;
-  box-shadow: 0 4px 15px var(--shadow-medium);
-  border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
-}
-.lesson-summary-block:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px var(--shadow-strong);
-}
-.lesson-summary-block h4 {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-color);
-    color: var(--primary-dark);
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.lesson-summary-block h4 span {
-    margin-left: 10px;
-}
-.lesson-summary-block .lesson-student-name {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-    text-align: left;
-    padding-bottom: 5px;
-    border-bottom: 1px dashed var(--border-color);
-}
-.lesson-summary-block .lesson-link {
-    font-weight: bold;
-    margin-left: 15px;
-    color: var(--secondary-dark);
-    transition: color 0.2s ease;
-}
-.lesson-summary-block .lesson-link:hover {
-    color: var(--secondary-color);
-    text-decoration: underline;
-}
-.lesson-summary-block audio {
-    width: 100%;
-    max-width: 300px;
-    margin-top: 10px;
-    vertical-align: middle;
-}
-textarea.summary-text {
-  width:100%;height:120px;padding:12px;border-radius:8px;border:1px solid var(--border-color);
-  resize:vertical;font-size:1rem; box-sizing: border-box; background:var(--background-light);
-  font-family: 'Tajawal',Arial,sans-serif; color: var(--text-dark); line-height: 1.7;
-  transition: border-color 0.15s, box-shadow 0.15s; direction: rtl;
-}
-textarea.summary-text:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(66, 103, 178, 0.2);
-    outline: none;
-}
-.summary-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 15px;
-}
-.summary-actions .summary-status {
-    margin-left: auto;
-    align-self: center;
-}
-
-/* New styles for teacher comment display */
-.teacher-comment-display, .student-reply-display {
-  background: var(--background-light);
-  padding: 15px;
-  border-radius: 8px;
-  margin-top: 15px;
-  font-size: 0.98rem;
-  color: var(--text-dark);
-  border: 1px solid var(--border-color);
-  line-height: 1.6;
-  word-break: break-word;
-  box-shadow: 0 1px 3px var(--shadow-light);
-}
-.teacher-comment-display strong, .student-reply-display strong {
-  color: var(--primary-dark);
-  display: block;
-  margin-bottom: 8px;
-  font-size: 1rem;
-}
-
-/* Style for reply textarea */
-.reply-area {
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px dashed var(--border-color);
-}
-.reply-area label {
-    font-weight: bold;
-    display: block;
-    margin-bottom: 8px;
-    color: var(--primary-dark);
-    font-size: 1rem;
-}
-.reply-area textarea {
-    width: 100%;
-    height: 80px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-    resize: vertical;
-    font-size: 1rem;
-    box-sizing: border-box;
-    background: var(--background-light);
-    font-family: 'Tajawal',Arial,sans-serif;
-    color: var(--text-dark);
-}
-.reply-area .btn {
-    margin-top: 12px;
-    padding: 8px 18px;
-    font-size: 0.95rem;
-}
-
-/* أنماط خاصة بصفحة تسجيل الدخول */
-.login-container {
-    max-width: 420px;
-    margin: 80px auto;
-    background: var(--surface-light);
-    border-radius: 12px;
-    padding: 35px 30px;
-    box-shadow: 0 4px 15px var(--shadow-medium);
-    border: 1px solid var(--border-color);
-}
-.login-container h2 {
-    text-align: center;
-    color: var(--primary-dark);
-    margin-bottom: 25px;
-    font-size: 1.8rem;
-}
-.login-container label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--text-dark);
-}
-.login-container input[type="email"],
-.login-container input[type="password"] {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 1.05rem;
-    background-color: var(--background-light);
-    color: var(--text-dark);
-}
-.login-container .btn {
-    width: 100%;
-    margin-top: 15px;
-    padding: 12px 0;
-    font-size: 1.1rem;
-    border-radius: 8px;
-}
-.login-container .google-btn {
-    margin-top: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 15px;
-    background-color: var(--surface-light);
-    color: var(--text-dark);
-    border: 1px solid var(--border-color);
-    box-shadow: none;
-}
-.login-container .google-btn:hover {
-    background-color: #f0f0f0;
-    box-shadow: none;
-}
-.login-container .google-btn img {
-    margin-left: 10px;
-}
-.login-container #msg {
-    color: var(--danger-color);
-    text-align: center;
-    margin-top: 20px;
-    font-weight: bold;
-}
-/* إعادة توحيد زر الخروج في صفحة index.html الأصلية */
-.logout-btn {
-    background: var(--danger-color);
-    color: var(--surface-light);
-    padding: 8px 20px;
-    border-radius: 6px;
-    border: none;
-    font-size: 1em;
-    margin-right: 15px;
-}
-.logout-btn:hover {
-    background: #c82333;
-}
-#student-redirect {
-    color: var(--primary-color);
-    font-weight: bold;
-    margin-top: 24px;
-    font-size: 1.1em;
-    text-align: center;
-}
-#welcomeBox {
-    background: var(--surface-light);
-    padding: 30px 24px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px var(--shadow-light);
-    margin: 40px auto;
-    max-width: 450px;
-    text-align: center;
-    border: 1px solid var(--border-color);
-}
-#welcomeBox h2 {
-    color: var(--primary-dark);
-    margin-bottom: 15px;
-}
-#welcomeBox p {
-    color: var(--text-dark);
-    font-size: 1.05rem;
-    margin-bottom: 20px;
-}
-
-/* ------------------------------------ */
-/* 7. الوضع الليلي (Dark Mode) - قواعد عامة ومحددة للمكونات */
-/* ------------------------------------ */
-
-.dark-mode body {
-  background-color: var(--background-light);
-  color: var(--text-dark);
-}
-
-.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6 {
-  color: var(--primary-light);
-}
-
-.dark-mode a {
-  color: var(--secondary-light);
-}
-
-.dark-mode a:hover {
-  color: var(--secondary-color);
-}
-
-.dark-mode .btn {
-  background-color: var(--primary-dark);
-  color: var(--text-dark);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-}
-
-.dark-mode .btn:hover {
-  background-color: var(--primary-color);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
-}
-
-.dark-mode header, .dark-mode .app-bar {
-  background-color: #1a1a1a;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.4);
-}
-
-.dark-mode .container,
-.dark-mode .card,
-.dark-mode .table-container,
-.dark-mode .modal-content,
-.dark-mode #examBox,
-.dark-mode .login-container,
-.dark-mode #welcomeBox {
-  background: var(--surface-light);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  border-color: var(--border-color);
-}
-
-.dark-mode .card-header,
-.dark-mode .card-actions,
-.dark-mode .table th,
-.dark-mode .chat-list-header,
-.dark-mode .chat-header,
-.dark-mode .info,
-.dark-mode .student-info,
-.dark-mode .level-info,
-.dark-mode .question-block,
-.dark-mode textarea.summary-text,
-.dark-mode .teacher-comment-display,
-.dark-mode .student-reply-display,
-.dark-mode .reply-area textarea,
-.dark-mode .scoring-note,
-.dark-mode .exams-title,
-.dark-mode .exams-title-bar,
-.dark-mode .levels-table th,
-.dark-mode .exams-table th {
-  background-color: #2a2a2a;
-  border-bottom-color: var(--border-color);
-  color: var(--text-dark);
-}
-.dark-mode .exams-title-bar, .dark-mode .levels-table th, .dark-mode .exams-table th {
-    color: var(--primary-light);
-}
-
-.dark-mode .table td {
-  border-bottom-color: var(--border-color);
-}
-
-.dark-mode .table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.dark-mode .form-label {
-  color: var(--text-dark);
-}
-
-.dark-mode .form-control {
-  background-color: #2a2a2a;
-  border-color: var(--border-color);
-  color: var(--text-dark);
-}
-
-.dark-mode .form-control:focus {
-  border-color: var(--primary-light);
-  box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
-}
-
-.dark-mode .toast {
-  background-color: var(--text-dark);
-  color: var(--surface-light);
-}
-
-.dark-mode .spinner {
-  border-color: var(--border-color);
-  border-top-color: var(--primary-light);
-}
-
-.dark-mode .notification-bell {
-  color: var(--text-dark);
-}
-
-.dark-mode .notification-panel {
-  background-color: var(--surface-light);
-  border-color: var(--border-color);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-}
-
-.dark-mode .notification-panel h5 {
-  color: var(--primary-light);
-  border-bottom-color: var(--border-color);
-}
-
-.dark-mode .notification-item {
-  color: var(--text-dark);
-  border-bottom-color: var(--border-color);
-}
-
-.dark-mode .notification-item.unread {
-  background-color: rgba(137, 180, 245, 0.15);
-}
-
-.dark-mode .notification-item .timestamp {
-  color: var(--text-muted);
-}
-
-.dark-mode .notification-item .mark-read-btn {
-  background-color: var(--secondary-dark);
-  color: var(--text-dark);
-}
-
-/* الوضع الليلي لأنماط صفحة الطالب */
-.dark-mode .info {
-    background: #2a2a2a;
-    border-color: var(--border-color);
-}
-.dark-mode .info b {
-    color: var(--primary-light);
-}
-.dark-mode .admission-status-box.admission-pending {
-    background-color: #4a3a0e;
-    color: #e0d08a;
-    border-color: #a09060;
-}
-.dark-mode .admission-status-box.admission-accepted {
-    background-color: #2a5a3a;
-    color: #8acb9e;
-    border-color: #6a9b7e;
-}
-.dark-mode .admission-status-box.admission-rejected {
-    background-color: #6a2a2a;
-    color: #f0a0a0;
-    border-color: #c06060;
-}
-.dark-mode .exams-box {
-    background: var(--surface-light);
-    border-color: var(--border-color);
-}
-.dark-mode .exams-title {
-    color: var(--primary-light);
-    border-bottom-color: var(--border-color);
-}
-.dark-mode .exam-row {
-    border-bottom-color: var(--border-color);
-}
-.dark-mode .exam-row b {
-    color: var(--text-dark);
-}
-.dark-mode .exam-row:last-child {
-    color: var(--secondary-light);
-}
-
-.dark-mode #examWarnMsg {
-    background-color: #4a2a2a;
-    color: #f0a0a0;
-    border-color: #6a3a3a;
-}
-.dark-mode #examBox h2 {
-    color: var(--primary-light);
-}
-.dark-mode .question-title {
-    color: var(--primary-light);
-}
-.dark-mode .multi-note {
-    color: var(--warning-color);
-}
-.dark-mode .question-mark {
-    color: var(--secondary-light);
-}
-.dark-mode .choice-row label {
-    color: var(--text-dark);
-}
-.dark-mode .result {
-    background-color: #2a5a3a;
-    color: var(--success-color);
-    border-color: #6a9b7e;
-}
-.dark-mode .scoring-note {
-    background-color: #2a3a5a;
-    color: var(--info-color);
-    border-color: #4a6a9a;
-}
-.dark-mode .lesson-mark-badge.positive-mark {
-    background:#2a5a3a;
-    color:#69f0ae;
-    border-color:#6a9b7e;
-}
-.dark-mode .lesson-mark-badge.zero-mark {
-    background:#6a2a2a;
-    color:#ef9a9a;
-    border-color:#c06060;
-}
-.dark-mode .lesson-mark-badge.no-mark {
-    background:#3a3a3a;
-    color:#aaaaaa;
-    border-color:#5a5a5a;
-}
-.dark-mode .lesson-summary-block {
-  background: var(--surface-light);
-  border-color: var(--border-color);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-.dark-mode .lesson-summary-block:hover {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
-}
-.dark-mode .lesson-summary-block h4 {
-    color: var(--primary-light);
-    border-bottom-color: var(--border-color);
-}
-.dark-mode .lesson-summary-block .lesson-link {
-    color: var(--secondary-light);
-}
-.dark-mode textarea.summary-text {
-    background: #2a2a2a;
-    border-color: var(--border-color);
-    color: var(--text-dark);
-}
-.dark-mode textarea.summary-text:focus {
-    border-color: var(--primary-light);
-    box-shadow: 0 0 0 3px rgba(137, 180, 245, 0.2);
-}
-.dark-mode .teacher-comment-display, .dark-mode .student-reply-display {
-  background: #2a2a2a;
-  color: var(--text-dark);
-  border-color: var(--border-color);
-}
-.dark-mode .teacher-comment-display strong, .dark-mode .student-reply-display strong {
-  color: var(--primary-light);
-}
-.dark-mode .reply-area label {
-    color: var(--primary-light);
-}
-.dark-mode .reply-area textarea {
-    background: #2a2a2a;
-    border-color: var(--border-color);
-    color: var(--text-dark);
-}
-.dark-mode .login-container {
-    background: var(--surface-light);
-    border-color: var(--border-color);
-}
-.dark-mode .login-container h2 {
-    color: var(--primary-light);
-}
-.dark-mode .login-container label {
-    color: var(--text-dark);
-}
-.dark-mode .login-container input {
-    background-color: #2a2a2a;
-    border-color: var(--border-color);
-    color: var(--text-dark);
-}
-.dark-mode .login-container .google-btn {
-    background-color: var(--surface-light);
-    color: var(--text-dark);
-    border-color: var(--border-color);
-}
-.dark-mode .login-container #msg {
-    color: var(--danger-color);
-}
-.dark-mode #welcomeBox {
-    background: var(--surface-light);
-    border-color: var(--border-color);
-}
-.dark-mode #welcomeBox h2 {
-    color: var(--primary-light);
-}
-.dark-mode #welcomeBox p {
-    color: var(--text-dark);
-}
-
-/* ------------------------------------ */
-/* 8. التجاوبية (Responsiveness) - قواعد عامة ومحددة للمكونات */
-/* ------------------------------------ */
-
-@media (max-width: 992px) {
-  body {
-    font-size: 15px;
-  }
-  .container {
-    padding: 20px;
-    margin-left: 15px;
-    margin-right: 15px;
-  }
-  .btn {
-    padding: 8px 16px;
-    font-size: 0.95rem;
-  }
-  h1 { font-size: 2rem; }
-  h2 { font-size: 1.5rem; }
-  h3 { font-size: 1.25rem; }
-
-  .nav-link {
-    height: 56px;
-    padding: 0 12px;
-    font-size: 0.875rem;
-  }
-  .notification-bell {
-    font-size: 1.4rem;
-    margin-left: 15px;
-  }
-  .notification-badge {
-    top: -5px;
-    right: -5px;
-    padding: 2px 6px;
-    font-size: 0.65rem;
-  }
-  .notification-panel {
-    width: 300px;
-  }
-}
-
-@media (max-width: 768px) {
-  header, .app-bar {
-    padding: 12px 15px;
-    font-size: 1.2rem;
-  }
-  .app-bar-title {
-    font-size: 1.1rem;
-    margin-left: 10px;
-  }
-  .container {
-    margin-top: 60px;
-    padding: 15px;
-  }
-  .btn {
-    padding: 6px 12px;
-    font-size: 0.9rem;
-  }
-  .table th, .table td {
-    padding: 10px 14px;
-  }
-  .login-container {
-    margin: 40px auto;
-  }
-
-  /* أنماط القائمة الجانبية في صفحة الدردشة للجوال */
-  body.chat-page .main-container {
-    padding-top: 0;
-    flex-direction: column;
-  }
-  body.chat-page .chat-list-panel {
-    position: fixed;
-    top: 0;
-    right: -250px; /* لإخفائها خارج الشاشة في البداية (لجهة اليمين في RTL) */
-    width: 250px;
-    height: 100%;
-    background: var(--surface-light);
-    box-shadow: -2px 0 10px rgba(0,0,0,0.3);
-    z-index: 500;
-    transition: all 0.3s ease-in-out;
-    border-left: 1px solid var(--border-color);
-    flex-shrink: unset;
-  }
-  body.chat-page .chat-list-panel.open {
-    right: 0;
-    box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-  }
-  body.chat-page .chat-area {
-    width: 100%;
-    flex: 1;
-    overflow-y: auto;
-  }
-  body.chat-page .sidebar-toggle-btn {
-    display: flex;
-  }
-  body.chat-page .app-bar-title {
-    margin-right: auto;
-    margin-left: 0;
-  }
-}
-
-@media (max-width: 576px) {
-  body {
-    font-size: 14px;
-  }
-  header, .app-bar {
-    font-size: 1.1rem;
-    justify-content: space-around;
-    text-align: center;
-    padding: 10px 8px;
-  }
-  .app-bar-logo {
-    height: 35px;
-    margin-right: 8px;
-  }
-  .app-bar-title {
-    display: none;
-  }
-  .container {
-    padding: 10px;
-    margin-left: 8px;
-    margin-right: 8px;
-    margin-top: 55px;
-  }
-  .toast {
-    width: 90%;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    bottom: 15px;
-  }
-  .notification-panel {
-    width: calc(100% - 30px);
-    right: 15px;
-    left: 15px;
-  }
-  .table-mark-input {
-    width: 50px;
-    font-size: 0.8rem;
-    padding: 5px 6px;
-  }
-  .table-mark-button {
-    font-size: 0.7rem;
-    padding: 5px 10px;
-  }
-  .lesson-summary-block {
-    padding: 15px;
-  }
-  .lesson-summary-block h4 {
-      font-size: 1.05rem;
-  }
-  .lesson-summary-block audio {
-      max-width: 100%;
-  }
-  .reply-area .btn {
+    /* شارات الحالة (Status Badges) */
+    .summary-status {
       padding: 6px 12px;
+      border-radius: 20px;
       font-size: 0.85rem;
+      font-weight: bold;
+      display: inline-block;
+      white-space: nowrap;
+      text-transform: capitalize;
+      border: 1px solid;
+    }
+    .summary-status.submitted {
+      background-color: #e3f6ed;
+      color: #219e4b;
+      border-color: #b7eecd;
+    }
+    .summary-status.draft {
+      background-color: #fff4e0;
+      color: #b96d0d;
+      border-color: #ffda8d;
+    }
+
+    /* صندوق الإشعارات (Notification Panel) - مظهر موحد */
+    .notification-bell {
+      position: relative;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: var(--surface-light);
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+
+    .notification-bell:hover {
+      transform: scale(1.1);
+      color: var(--secondary-light);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: var(--danger-color);
+      color: var(--surface-light);
+      border-radius: 50%;
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      line-height: 1;
+      min-width: 15px;
+      text-align: center;
+      box-shadow: 0 0 5px var(--shadow-medium);
+      border: 1px solid var(--surface-light);
+    }
+
+    .notification-panel {
+      display: none;
+      position: fixed;
+      top: 70px;
+      right: 15px;
+      width: 350px;
+      max-height: 450px;
+      overflow-y: auto;
+      background-color: var(--surface);
+      border-radius: 12px;
+      box-shadow: var(--elevation-8);
+      z-index: 1100;
+      padding: 15px;
+      text-align: right;
+      border: 1px solid var(--border-color);
+      box-sizing: border-box;
+      animation: fadeInDown 0.3s ease-out;
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .notification-panel h5 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: var(--primary-dark);
+      font-size: 1.125rem;
+      border-bottom: 1px solid var(--divider);
+      padding-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .notification-item {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--divider);
+      font-size: 0.95rem;
+    }
+
+    .notification-item.unread {
+      background-color: rgba(98, 0, 238, 0.08); /* More noticeable unread background */
+    }
+
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+
+    .notification-timestamp {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 6px;
+      text-align: right;
+      display: block;
+    }
+    .notification-item .mark-read-btn {
+        background-color: var(--secondary-color);
+        color: var(--on-secondary);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        margin-top: 10px;
+        display: inline-block;
+        transition: background-color 0.2s ease;
+    }
+    .notification-item .mark-read-btn:hover {
+        background-color: var(--secondary-dark);
+    }
+
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 14px 28px; /* Increased padding */
+      background-color: #323232;
+      color: white;
+      border-radius: 8px; /* Consistent border radius */
+      box-shadow: var(--elevation-6);
+      z-index: 1200;
+      opacity: 0;
+      transform: translateY(100px);
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* More engaging animation */
+      font-size: 1rem; /* Larger font */
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Spinner */
+    .spinner {
+      display: none;
+      width: 50px; /* Larger spinner */
+      height: 50px; /* Larger spinner */
+      margin: 30px auto; /* More margin */
+      border: 5px solid rgba(0, 0, 0, 0.1); /* Thicker border */
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 0.8s ease-in-out infinite; /* Slightly faster animation */
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Utility Classes */
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .text-left { text-align: left; }
+    .mt-1 { margin-top: 8px; } /* Increased base margin units */
+    .mt-2 { margin-top: 12px; }
+    .mt-3 { margin-top: 20px; }
+    .mt-4 { margin-top: 28px; }
+    .mt-5 { margin-top: 36px; }
+    .mb-1 { margin-bottom: 8px; }
+    .mb-2 { margin-bottom: 12px; }
+    .mb-3 { margin-bottom: 20px; }
+    .mb-4 { margin-bottom: 28px; }
+    .mb-5 { margin-bottom: 36px; }
+    .d-none { display: none; }
+    .d-flex { display: flex; }
+    .align-items-center { align-items: center; }
+    .justify-content-between { justify-content: space-between; }
+    .ml-2 { margin-right: 12px; margin-left: 0; } /* For RTL, this means space to the right of the element */
+    .mr-1 { margin-left: 8px; margin-right: 0; } /* Adjusted for RTL icon spacing */
+
+
+    /* Responsive Adjustments */
+    @media (max-width: 960px) {
+      body {
+        padding-top: 56px;
+      }
+      
+      .app-bar {
+        height: 56px;
+      }
+      
+      .nav-link {
+        height: 56px;
+        padding: 0 12px;
+        font-size: 0.875rem;
+      }
+      
+      .notification-panel {
+        top: 56px;
+        width: 320px;
+        /* Re-center for smaller screens if needed, otherwise keep right-aligned */
+        /* right: 50%;
+        transform: translateX(50%); */
+      }
+      .notification-bell {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+      }
+      .notification-badge {
+        width: 16px;
+        height: 16px;
+        font-size: 0.65rem;
+        top: 2px;
+        right: 2px;
+      }
+      h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.3rem; }
+      h3 { font-size: 1.1rem; }
+    }
+
+    @media (max-width: 600px) {
+      .app-bar-title {
+        display: none;
+      }
+      
+      .levels-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      }
+      
+      .card-content {
+        padding: 16px; /* Slightly reduced for small screens */
+      }
+      
+      .table th,
+      .table td {
+        padding: 10px 14px; /* Reduced padding */
+      }
+      
+      .notification-panel {
+        width: calc(100% - 32px);
+        right: 16px;
+        left: 16px;
+        /* No transform needed if using fixed left/right */
+      }
+      .table-mark-input {
+        width: 60px;
+        font-size: 0.85rem;
+        padding: 6px 8px;
+      }
+      .table-mark-button {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+      }
+    }
+
+    /* Dark Mode Overrides */
+    .dark-mode .app-bar { background-color: #1a1a1a; } /* Deeper dark background */
+    .dark-mode .card { background-color: var(--surface); }
+    .dark-mode .card:hover { box-shadow: var(--elevation-4); }
+    .dark-mode .card-header { 
+      border-bottom-color: var(--divider); 
+      background-color: #242424; /* Slightly darker header for contrast */
+      color: var(--on-surface);
+    }
+    .dark-mode .card-actions {
+      background-color: #242424; /* Consistent with header */
+    }
+    .dark-mode .form-label { color: var(--text-secondary); }
+    .dark-mode .form-control {
+      background-color: #1e1e1e; /* Darker input background */
+      border-color: var(--divider);
+      color: var(--text-primary);
+    }
+    
+    .dark-mode .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.2); /* Light primary color tint for focus */
+    }
+    
+    .dark-mode .form-select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ffffff'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+    }
+    
+    .dark-mode .table th { background-color: var(--primary-dark); }
+    .dark-mode .table td { border-bottom-color: var(--divider); }
+    .dark-mode .table tr:hover { background-color: rgba(255, 255, 255, 0.08); } /* More noticeable hover in dark mode */
+    
+    .dark-mode .level-item { border-color: var(--divider); }
+    .dark-mode .level-item:hover { box-shadow: var(--elevation-2); }
+
+    .dark-mode .level-color-1 { background-color: rgba(187, 134, 252, 0.08); }
+    .dark-mode .level-color-2 { background-color: rgba(3, 218, 198, 0.08); }
+    .dark-mode .level-color-3 { background-color: rgba(255, 179, 0, 0.08); }
+    .dark-mode .level-color-4 { background-color: rgba(255, 0, 0, 0.08); }
+    .dark-mode .level-color-5 { background-color: rgba(0, 150, 136, 0.08); }
+    .dark-mode .level-color-6 { background-color: rgba(233, 30, 99, 0.08); }
+    .dark-mode .level-color-7 { background-color: rgba(121, 85, 72, 0.08); }
+    
+    .dark-mode .notification-panel { background-color: var(--surface); }
+    .dark-mode .notification-header { border-bottom-color: var(--divider); }
+    .dark-mode .notification-item { border-bottom-color: var(--divider); }
+    .dark-mode .notification-item.unread { background-color: rgba(187, 134, 252, 0.12); } /* Darker unread for contrast */
+    .dark-mode .notification-timestamp { color: var(--text-secondary); }
+
+    .dark-mode .toast { background-color: #424242; }
+    .dark-mode .spinner { border-top-color: var(--primary-color); }
+
+    /* PDF download styling adjustments for better print */
+    @media print {
+        body {
+            font-family: 'Tajawal', sans-serif !important;
+            color: black !important;
+            background-color: white !important;
+        }
+        .app-bar, .app-bar-spacer, .nav-link, .btn, .toast, .spinner, .d-none, .table-mark-input, .table-mark-button, .reset-summary, .notification-bell, .notification-panel {
+            display: none !important;
+        }
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ccc !important;
+            margin-bottom: 16px !important;
+            border-radius: 0 !important;
+        }
+        .card-header, .card-actions {
+            background-color: #f0f0f0 !important;
+            border-bottom: 1px solid #ccc !important;
+            color: black !important;
+            padding: 10px 15px !important;
+            border-radius: 0 !important;
+        }
+        .card-content {
+            padding: 15px !important;
+        }
+        .table {
+            min-width: unset !important;
+            width: 100% !important;
+            border-collapse: collapse !important;
+        }
+        .table th, .table td {
+            border: 1px solid #ddd !important;
+            padding: 8px 10px !important;
+            background-color: white !important;
+            color: black !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+        }
+        .table th {
+            background-color: #eee !important;
+            font-weight: bold !important;
+        }
+        .form-group {
+            margin-bottom: 10px !important;
+        }
+        .form-control {
+            border: 1px solid #ccc !important;
+            padding: 8px !important;
+            border-radius: 0 !important;
+            background-color: white !important;
+            color: black !important;
+        }
+        .levels-grid {
+            display: block !important;
+            gap: 0 !important;
+        }
+        .level-item {
+            border: 1px solid #ccc !important;
+            margin-bottom: 5px !important;
+            padding: 8px !important;
+            background-color: #f9f9f9 !important;
+            border-radius: 0 !important;
+        }
+        .level-item input[type="checkbox"] {
+            display: inline-block !important;
+            margin-right: 5px !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        .summary-status {
+            padding: 3px 8px !important;
+            border-radius: 5px !important;
+            font-size: 0.75rem !important;
+        }
+        .summary-status.submitted {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+        }
+        .summary-status.draft {
+            background-color: #ffeeba !important;
+            color: #856404 !important;
+        }
+        #summaryDetailsContent, #summaryDetailsStudentReply {
+            border: 1px solid #ccc !important;
+            padding: 8px !important;
+            background-color: #fefefe !important;
+        }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-bar">
+    <img src="https://i.ibb.co/cSpS2NDk/logo-1.png" alt="شعار المركز" class="app-bar-logo">
+    <h1 class="app-bar-title">لوحة المعلم - إدارة الطلاب والدروس</h1>
+    <div class="app-bar-spacer"></div>
+    <nav>
+      <a href="dashboard.html" class="nav-link active">لوحة التحكم</a>
+      <a href="questions-admin.html" class="nav-link">إدارة الأسئلة</a>
+    </nav>
+    <div class="d-flex align-items-center">
+      <button class="btn ml-2" onclick="toggleDarkMode()">
+        <i class="material-icons">brightness_4</i>
+      </button>
+      <div class="notification-bell" onclick="toggleTeacherNotificationPanel()">
+        <i class="material-icons">notifications</i>
+        <span id="unreadTeacherNotificationsBadge" class="notification-badge d-none">0</span>
+      </div>
+      <button class="btn btn-danger ml-2" onclick="logout()">
+        <i class="material-icons mr-1">logout</i> تسجيل الخروج
+      </button>
+    </div>
+  </header>
+
+  <div id="teacherNotificationPanel" class="notification-panel">
+    <div class="notification-header">
+      <h5 class="mb-0">إشعارات الطلاب</h5>
+    </div>
+    <div id="teacherNotificationsList">
+      <p class="text-center" style="color: var(--text-secondary); padding: 16px;">لا توجد إشعارات حالياً.</p>
+    </div>
+  </div>
+
+  <main class="container" style="max-width: 1200px; margin: 24px auto; padding: 0 20px;"> <div class="spinner" id="loadingSpinner"></div>
+    <div id="toast" class="toast"></div>
+
+    <div class="card">
+      <div class="card-header">
+        <h4 class="mb-0">ضبط عدد الأسئلة في الامتحان لكل مستوى</h4>
+      </div>
+      <div class="card-content">
+        <form id="settingsForm" onsubmit="return false;">
+          <div class="table-container">
+            <table class="table settings-table">
+              <thead>
+                <tr>
+                  <th>المستوى</th>
+                  <th>عدد الأسئلة</th>
+                  <th>عدد العلامات</th>
+                  <th>الوقت (دقيقة)</th>
+                  <th>إجراء</th>
+                </tr>
+              </thead>
+              <tbody id="settingsTbody">
+                <tr><td colspan="5" class="text-center" style="color:var(--text-secondary)">جاري التحميل...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="card mt-3">
+      <div class="card-header">
+        <h4 id="formTitle" class="mb-0">إضافة سؤال جديد</h4>
+      </div>
+      <div class="card-content">
+        <form id="questionForm">
+          <div class="form-group">
+            <label for="qText" class="form-label">نص السؤال:</label>
+            <textarea id="qText" class="form-control" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="qLevel" class="form-label">المستوى:</label>
+            <select id="qLevel" class="form-control form-select">
+              <option value="1">المستوى 1</option>
+              <option value="2">المستوى 2</option>
+              <option value="3">المستوى 3</option>
+              <option value="4">المستوى 4</option>
+              <option value="5">المستوى 5</option>
+              <option value="6">المستوى 6</option>
+              <option value="7">المستوى 7</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="qMark" class="form-label">علامة السؤال:</label>
+            <input type="number" id="qMark" class="form-control" min="1" value="1" required style="max-width:120px;">
+          </div>
+          <div class="form-group">
+            <label class="form-label">الخيارات:</label>
+            <div class="choices-area" id="choicesArea"></div>
+            <button type="button" class="btn btn-outlined mt-2" onclick="addChoice()">
+                <i class="material-icons mr-1">add</i> خيار جديد
+            </button>
+          </div>
+          <div class="card-actions">
+            <button type="submit" class="btn btn-success">
+                <i class="material-icons mr-1">save</i> حفظ السؤال
+            </button>
+            <button type="button" class="btn btn-outlined ml-2" onclick="resetForm()">
+                <i class="material-icons mr-1">cancel</i> إلغاء
+            </button>
+          </div>
+          <div class="mt-2 text-center" id="formMsg" style="color: var(--error);"></div>
+          <input type="hidden" id="editId">
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h4 class="mb-0">قائمة الأسئلة</h4>
+            <div class="d-flex align-items-center">
+                <label for="filterLevel" class="form-label mb-0" style="margin-left: 10px;">تصفية حسب المستوى:</label>
+                <select id="filterLevel" class="form-control form-select" onchange="renderQuestionsTable()" style="width: auto; display: inline-block;">
+                    <option value="">الكل</option>
+                    <option value="1">المستوى 1</option>
+                    <option value="2">المستوى 2</option>
+                    <option value="3">المستوى 3</option>
+                    <option value="4">المستوى 4</option>
+                    <option value="5">المستوى 5</option>
+                    <option value="6">المستوى 6</option>
+                    <option value="7">المستوى 7</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-content">
+            <div class="table-container">
+                <table class="table" id="questionsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>السؤال</th>
+                            <th>المستوى</th>
+                            <th>العلامة</th>
+                            <th>الخيارات</th>
+                            <th>عدد الصحيحة</th>
+                            <th>تعديل</th>
+                            <th>حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionsTbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+  </main>
+
+<script>
+// Toast & Loading Functions
+function showToast(msg, color="var(--primary-color)") {
+  const toast = document.getElementById("toast");
+  if (!toast) {
+      console.error("Toast element not found!");
+      return;
   }
-  .login-container {
-    padding: 20px;
-    margin: 30px auto;
+  toast.innerText = msg;
+  toast.style.background = color;
+  toast.className = "toast show";
+  setTimeout(()=>{ toast.className = toast.className.replace("show", ""); }, 2500);
+}
+function showLoading(show) {
+  const spinner = document.getElementById("loadingSpinner");
+  if (spinner) {
+      spinner.style.display = show ? "block" : "none";
   }
 }
+
+// Dark Mode Toggle
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  // Save user preference
+  if (document.body.classList.contains('dark-mode')) {
+    localStorage.setItem('theme', 'dark');
+  } else {
+    localStorage.setItem('theme', 'light');
+  }
+}
+// Apply saved theme preference on load
+document.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+});
+
+
+if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+var auth = firebase.auth();
+var firestore = firebase.firestore();
+
+let questions = [];
+const LEVELS = [1,2,3,4,5,6,7];
+
+// حماية الصفحة - فقط للمعلمين
+auth.onAuthStateChanged(function(user) {
+  if (user) {
+    firestore.collection('users').doc(user.uid).get().then(function(doc) {
+      if (!doc.exists || doc.data().role !== "teacher") {
+        window.location.href = "login.html";
+      } else {
+        startQuestionsAdmin();
+        loadSettingsTable();
+      }
+    }).catch(function(error) {
+      window.location.href = "login.html";
+    });
+  } else {
+    window.location.href = "login.html";
+  }
+});
+
+function logout() {
+  auth.signOut().then(()=>{window.location.href='login.html';});
+}
+
+// إعدادات عدد الأسئلة لكل مستوى
+function loadSettingsTable() {
+  showLoading(true);
+  const tbody = document.getElementById('settingsTbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color:var(--text-secondary)">جاري التحميل...</td></tr>';
+  firestore.collection('exam_settings').get().then(snapshot => {
+    let data = {};
+    snapshot.forEach(doc => {
+      data[doc.id] = doc.data(); // Get all data for the level (question_num, total_marks, exam_duration)
+    });
+    let rows = '';
+    LEVELS.forEach(lvl => {
+      let questionNum = data[`level_${lvl}`]?.question_num !== undefined ? data[`level_${lvl}`].question_num : '';
+      let totalMarks = data[`level_${lvl}`]?.total_marks !== undefined ? data[`level_${lvl}`].total_marks : ''; // New field
+      let examDuration = data[`level_${lvl}`]?.exam_duration !== undefined ? data[`level_${lvl}`].exam_duration : ''; // New field
+
+      rows += `
+        <tr>
+          <td>المستوى ${lvl}</td>
+          <td>
+            <input type="number" min="1" id="input_qnum_${lvl}" value="${questionNum}" placeholder="عدد الأسئلة" class="form-control" required>
+          </td>
+          <td>
+            <input type="number" min="1" id="input_tmarks_${lvl}" value="${totalMarks}" placeholder="عدد العلامات" class="form-control" required>
+          </td>
+          <td>
+            <input type="number" min="1" id="input_duration_${lvl}" value="${examDuration}" placeholder="الوقت (دقيقة)" class="form-control" required>
+          </td>
+          <td class="text-center">
+            <button type="button" class="btn btn-success" onclick="saveLevel(${lvl})">
+                <i class="material-icons">save</i>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = rows;
+    showLoading(false);
+  }).catch(error => {
+      showToast(`خطأ في تحميل الإعدادات: ${error.message}`, 'var(--error)');
+      showLoading(false);
+  });
+}
+
+function saveLevel(lvl) {
+  let inputQNum = document.getElementById(`input_qnum_${lvl}`);
+  let inputTMarks = document.getElementById(`input_tmarks_${lvl}`);
+  let inputDuration = document.getElementById(`input_duration_${lvl}`);
+
+  let qNum = parseInt(inputQNum.value);
+  let tMarks = parseInt(inputTMarks.value);
+  let duration = parseInt(inputDuration.value);
+
+  if (!qNum || qNum < 1) {
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد الأسئلة للمستوى ${lvl}`, 'var(--error)');
+    inputQNum.focus();
+    return;
+  }
+  if (!tMarks || tMarks < 1) {
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر لعدد العلامات للمستوى ${lvl}`, 'var(--error)');
+    inputTMarks.focus();
+    return;
+  }
+  if (!duration || duration < 1) {
+    showToast(`يرجى إدخال عدد صحيح أكبر من صفر للوقت المخصص للمستوى ${lvl}`, 'var(--error)');
+    inputDuration.focus();
+    return;
+  }
+
+  firestore.collection('exam_settings').doc(`level_${lvl}`).set({
+    question_num: qNum,
+    total_marks: tMarks,
+    exam_duration: duration
+  }).then(()=>{
+    showToast(`تم حفظ إعدادات المستوى ${lvl} بنجاح`, 'var(--secondary-color)');
+  }).catch((error)=>{
+    showToast(`حدث خطأ أثناء الحفظ! ${error.message}`, 'var(--error)');
+    console.error("Error saving level settings:", error);
+  });
+}
+
+// الكود الأصلي لإضافة الأسئلة وإدارتها
+function startQuestionsAdmin() {
+  resetForm();
+  loadQuestions();
+}
+
+function addChoice(text = '', checked = false) {
+  let idx = document.querySelectorAll('.choice-row').length;
+  let div = document.createElement('div');
+  div.className = 'choice-row d-flex align-items-center mb-1';
+  div.innerHTML = `
+    <input type="checkbox" class="correctChoice" name="correct${idx}" ${checked ? 'checked' : ''} title="صحيح" style="width:24px; height:24px; margin-left:8px; accent-color: var(--primary-color);">
+    <input type="text" class="choiceText form-control" value="${text}" required placeholder="الخيار ${idx+1}" style="flex-grow:1; margin-bottom:0;">
+    <button type="button" class="btn btn-danger ml-2" onclick="this.parentNode.remove()" style="padding: 6px 12px; height: auto;">
+        <i class="material-icons">delete</i>
+    </button>
+  `;
+  document.getElementById('choicesArea').appendChild(div);
+}
+
+function resetForm() {
+  document.getElementById('questionForm').reset();
+  document.getElementById('choicesArea').innerHTML = '';
+  addChoice();
+  addChoice();
+  document.getElementById('editId').value = '';
+  document.getElementById('formTitle').innerText = 'إضافة سؤال جديد';
+  document.getElementById('formMsg').innerText = '';
+  document.getElementById('qMark').value = 1;
+}
+
+function loadQuestions() {
+  showLoading(true);
+  firestore.collection('questions').orderBy('level').get().then(snap => {
+    questions = snap.docs.map(doc => ({...doc.data(), id: doc.id}));
+    renderQuestionsTable();
+    showLoading(false);
+  }).catch(error => {
+      showToast(`خطأ في تحميل الأسئلة: ${error.message}`, 'var(--error)');
+      showLoading(false);
+  });
+}
+
+function renderQuestionsTable() {
+  let level = document.getElementById('filterLevel').value;
+  let rows = '';
+  let filtered = level ? questions.filter(q => q.level == level) : questions;
+  filtered.forEach((q, i) => {
+    let chs = q.choices.map((c, idx) =>
+      `<span class="choice-item${q.correct && q.correct.includes(idx) ? ' correct' : ''}">${c}</span>`
+    ).join('');
+    rows += `<tr>
+      <td class="text-center">${i+1}</td>
+      <td class="text-right">${q.question}</td>
+      <td class="text-center">${q.level}</td>
+      <td class="text-center">${q.mark || 1}</td>
+      <td><div class="choices-list d-flex justify-content-end">${chs}</div></td>
+      <td class="text-center">${q.correct ? q.correct.length : 0}</td>
+      <td class="text-center">
+        <button class="btn" onclick="editQuestion('${q.id}')" style="padding: 6px 12px; height: auto;">
+            <i class="material-icons" style="font-size:18px;">edit</i>
+        </button>
+      </td>
+      <td class="text-center">
+        <button class="btn btn-danger" onclick="deleteQuestion('${q.id}')" style="padding: 6px 12px; height: auto;">
+            <i class="material-icons" style="font-size:18px;">delete</i>
+        </button>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('questionsTbody').innerHTML = rows || `<tr><td colspan="8" class="text-center" style="color:var(--text-secondary)">لا توجد أسئلة</td></tr>`;
+}
+
+function editQuestion(id) {
+  let q = questions.find(x => x.id === id);
+  if (!q) return;
+  document.getElementById('qText').value = q.question;
+  document.getElementById('qLevel').value = q.level;
+  document.getElementById('qMark').value = q.mark || 1;
+  document.getElementById('choicesArea').innerHTML = '';
+  q.choices.forEach((choice, i) => {
+    addChoice(choice, q.correct && q.correct.includes(i));
+  });
+  document.getElementById('editId').value = id;
+  document.getElementById('formTitle').innerText = 'تعديل سؤال';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteQuestion(id) {
+  if (!confirm('هل أنت متأكد من حذف السؤال؟')) return;
+  firestore.collection('questions').doc(id).delete().then(()=>{
+      loadQuestions();
+      showToast('تم حذف السؤال بنجاح!', 'var(--secondary-color)');
+  }).catch(error => {
+      showToast(`خطأ في حذف السؤال: ${error.message}`, 'var(--error)');
+      console.error("Error deleting question:", error);
+  });
+}
+
+document.getElementById('questionForm').onsubmit = function(e){
+  e.preventDefault();
+  let question = document.getElementById('qText').trim();
+  let level = parseInt(document.getElementById('qLevel').value);
+  let mark = parseFloat(document.getElementById('qMark').value) || 1;
+  let choiceNodes = document.querySelectorAll('.choice-row');
+  let choices = [];
+  let correct = [];
+  choiceNodes.forEach((row, i) => {
+    let text = row.querySelector('.choiceText').value.trim();
+    if (text) {
+      choices.push(text);
+      if (row.querySelector('.correctChoice').checked) correct.push(i);
+    }
+  });
+  if (choices.length < 2) { showFormMsg('يجب إدخال خيارين على الأقل!'); return; }
+  if (correct.length === 0) { showFormMsg('حدد إجابة صحيحة واحدة على الأقل!'); return; }
+  if (mark <= 0) { showFormMsg('يجب أن تكون العلامة أكبر من صفر!'); return; }
+  let qObj = {
+    question,
+    choices,
+    correct,
+    level,
+    mark
+  };
+  let editId = document.getElementById('editId').value;
+  if (editId) {
+    firestore.collection('questions').doc(editId).set(qObj).then(()=>{
+      resetForm();
+      loadQuestions();
+      showFormMsg('تم تحديث السؤال بنجاح', true);
+      showToast('تم تحديث السؤال بنجاح!', 'var(--secondary-color)');
+    }).catch(error => {
+        showFormMsg(`خطأ في تحديث السؤال: ${error.message}`, false);
+        showToast(`خطأ في تحديث السؤال: ${error.message}`, 'var(--error)');
+        console.error("Error updating question:", error);
+    });
+  } else {
+    firestore.collection('questions').add(qObj).then(()=>{
+      resetForm();
+      loadQuestions();
+      showFormMsg('تمت إضافة السؤال بنجاح', true);
+      showToast('تمت إضافة السؤال بنجاح!', 'var(--secondary-color)');
+    }).catch(error => {
+        showFormMsg(`خطأ في إضافة السؤال: ${error.message}`, false);
+        showToast(`خطأ في إضافة السؤال: ${error.message}`, 'var(--error)');
+        console.error("Error adding question:", error);
+    });
+  }
+};
+
+function showFormMsg(msg, success=false) {
+  let el = document.getElementById('formMsg');
+  el.innerText = msg;
+  el.style.color = success ? 'var(--secondary-color)' : 'var(--error)';
+  setTimeout(()=>{el.innerText='';}, 2500);
+}
+</script>
+</body>
+</html>
